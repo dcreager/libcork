@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------
+# Copyright © 2010, RedJack, LLC.
+# All rights reserved.
+#
+# Please see the LICENSE.txt file in this distribution for license
+# details.
+# ----------------------------------------------------------------------
+
+
+def set_options(opt):
+    opt.tool_options("compiler_cxx")
+
+
+def configure(conf):
+    conf.check_tool("compiler_cxx")
+
+
+def build(bld):
+    def make_test(test_name):
+        test = bld(
+            features = "cxx cprogram",
+            source = "%s.cc" % test_name,
+            target = test_name,
+            install_path = None,
+            includes = [
+                "../include",
+            ],
+            rpath = [
+                "$ORIGIN/../src",
+            ],
+        )
+
+        test.unit_test = True
