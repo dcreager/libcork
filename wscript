@@ -37,6 +37,14 @@ def set_options(opt):
         help="which variants to build"
     )
 
+    opt.add_option(
+        "--disable-strict-aliasing",
+        action="store_false",
+        default=True,
+        dest="strict_aliasing",
+        help="turn off strict aliasing"
+    )
+
 
 def configure(conf):
     conf.env.DEBUG_CFLAGS = [
@@ -51,6 +59,11 @@ def configure(conf):
         "-Werror",
         "-O3",
     ]
+
+    import Options
+    if not Options.options.strict_aliasing:
+        conf.env.DEBUG_CFLAGS.append("-fno-strict-aliasing")
+        conf.env.RELEASE_CFLAGS.append("-fno-strict-aliasing")
 
     conf.env.DEBUG_DEFINES = []
     conf.env.RELEASE_DEFINES = []
