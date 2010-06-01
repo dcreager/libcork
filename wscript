@@ -18,7 +18,6 @@ VERSION = get_git_version("RELEASE-VERSION")
 SUBDIRS = [
     "include",
     "src",
-    "tests",
 ]
 
 # The tests subdirectory is only included if the user runs "waf test"
