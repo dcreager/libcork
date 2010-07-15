@@ -19,6 +19,6 @@ def configure(conf):
 def build(bld):
     bld.install_files(
         "${PREFIX}/include",
-        bld.path.ant_glob("**/*.hh"),
+        bld.path.ant_glob("**/*.h"),
         relative_trick=True,
     )

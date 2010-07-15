@@ -9,19 +9,30 @@
 
 
 def set_options(opt):
-    opt.tool_options("compiler_cxx")
+    opt.tool_options("compiler_cc")
+    opt.tool_options("misc")
 
 
 def configure(conf):
-    conf.check_tool("compiler_cxx")
+    conf.check_tool("compiler_cc")
+    conf.check_tool("misc")
+
+    conf.check_cfg(atleast_pkgconfig_version="0.15.0")
+    conf.check_cfg(
+        package="check",
+        uselib_store="CHECK",
+        args="--cflags --libs",
+        mandatory=True
+    )
 
 
 def build(bld):
     def make_test(test_name):
         test = bld(
-            features = "cxx cprogram",
-            source = "%s.cc" % test_name,
+            features = "cc cprogram",
+            source = "%s.c" % test_name,
             target = test_name,
+            uselib = "CHECK",
             install_path = None,
             includes = [
                 "../include",
