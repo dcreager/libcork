@@ -11,13 +11,16 @@
 def set_options(opt):
     opt.tool_options("compiler_cc")
     opt.tool_options("misc")
+    opt.tool_options("osx")
 
 
 def configure(conf):
     conf.check_tool("compiler_cc")
     conf.check_tool("misc")
+    conf.check_tool("osx")
 
     conf.check_cfg(atleast_pkgconfig_version="0.15.0")
+
     conf.check_cfg(
         package="glib-2.0",
         uselib_store="GLIB",
