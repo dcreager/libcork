@@ -12,6 +12,9 @@ from version import *
 #--------------------------
 # Edit the variables below
 
+top = "."
+out = "build"
+
 APPNAME = "PLEASE_DEFINE_APPNAME"
 VERSION = get_git_version("RELEASE-VERSION")
 
