@@ -1,24 +1,12 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2010, RedJack, LLC.
+# Copyright © 2011, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
 # details.
 # ----------------------------------------------------------------------
 
-
-def set_options(opt):
-    pass
-
-
-def configure(conf):
-    pass
-
-
-def build(bld):
-    bld.install_files(
-        "${PREFIX}/include",
-        bld.path.ant_glob("**/*.h"),
-        relative_trick=True,
-    )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")

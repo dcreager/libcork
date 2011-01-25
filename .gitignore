@@ -1,6 +1,4 @@
 /.lock-wscript
-/.waf*/
-/*.py[co]
 /build/
 
 RELEASE-VERSION
