@@ -93,18 +93,49 @@ START_TEST(test_endianness)
     { \
         union { uint8_t octets[sz]; type val; }  u = \
             { { __VA_ARGS__ } }; \
+        \
         type  from_big = CORK_##TYPE##_BIG_TO_HOST(u.val); \
         fail_unless(from_big == expected, \
                     "Unexpected big-to-host " #type " value"); \
+        \
+        type  from_big_in_place = u.val; \
+        CORK_##TYPE##_BIG_TO_HOST_IN_PLACE(from_big_in_place); \
+        fail_unless(from_big_in_place == expected, \
+                    "Unexpected in-place big-to-host " #type " value"); \
+        \
+        type  to_big = CORK_##TYPE##_HOST_TO_BIG(expected); \
+        fail_unless(to_big == u.val, \
+                    "Unexpected host-to-big " #type " value"); \
+        \
+        type  to_big_in_place = expected; \
+        CORK_##TYPE##_HOST_TO_BIG_IN_PLACE(to_big_in_place); \
+        fail_unless(to_big_in_place == u.val, \
+                    "Unexpected in-place host-to-big " #type " value"); \
+        \
         int  i; \
         for (i = 0; i < sz/2; i++) { \
             uint8_t  tmp = u.octets[i]; \
             u.octets[i] = u.octets[sz-i-1]; \
             u.octets[sz-i-1] = tmp; \
         } \
+        \
         type  from_little = CORK_##TYPE##_LITTLE_TO_HOST(u.val); \
         fail_unless(from_little == expected, \
                     "Unexpected little-to-host " #type " value"); \
+        \
+        type  from_little_in_place = u.val; \
+        CORK_##TYPE##_LITTLE_TO_HOST_IN_PLACE(from_little_in_place); \
+        fail_unless(from_little_in_place == expected, \
+                    "Unexpected in-place little-to-host " #type " value"); \
+        \
+        type  to_little = CORK_##TYPE##_HOST_TO_LITTLE(expected); \
+        fail_unless(to_little == u.val, \
+                    "Unexpected host-to-little " #type " value"); \
+        \
+        type  to_little_in_place = expected; \
+        CORK_##TYPE##_HOST_TO_LITTLE_IN_PLACE(to_little_in_place); \
+        fail_unless(to_little_in_place == u.val, \
+                    "Unexpected in-place host-to-little " #type " value"); \
     }
 
     TEST_ENDIAN(UINT16, uint16_t, 2, 0x0102, 1, 2);
