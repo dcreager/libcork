@@ -33,14 +33,10 @@ find_package(PkgConfig)
 #-----------------------------------------------------------------------
 # Set some options
 
-# We can't set this by default since we don't have a Universal glib to
-# link to...
-
-#if(APPLE)
-#    set(CMAKE_OSX_ARCHITECTURES "ppc;i386;x86_64"
-#        CACHE STRING "Build architectures for Mac OS X"
-#        FORCE)
-#endif(APPLE)
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "i386;x86_64"
+        CACHE STRING "Build architectures for Mac OS X")
+endif(APPLE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
