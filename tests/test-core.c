@@ -14,6 +14,7 @@
 
 #include <check.h>
 
+#include "libcork/core/byte-order.h"
 #include "libcork/core/types.h"
 
 
@@ -83,6 +84,40 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Endianness
+ */
+
+START_TEST(test_endianness)
+{
+#define TEST_ENDIAN(TYPE, type, sz, expected, ...) \
+    { \
+        union { uint8_t octets[sz]; type val; }  u = \
+            { { __VA_ARGS__ } }; \
+        type  from_big = CORK_##TYPE##_BIG_TO_HOST(u.val); \
+        fail_unless(from_big == expected, \
+                    "Unexpected big-to-host " #type " value"); \
+        int  i; \
+        for (i = 0; i < sz/2; i++) { \
+            uint8_t  tmp = u.octets[i]; \
+            u.octets[i] = u.octets[sz-i-1]; \
+            u.octets[sz-i-1] = tmp; \
+        } \
+        type  from_little = CORK_##TYPE##_LITTLE_TO_HOST(u.val); \
+        fail_unless(from_little == expected, \
+                    "Unexpected little-to-host " #type " value"); \
+    }
+
+    TEST_ENDIAN(UINT16, uint16_t, 2, 0x0102, 1, 2);
+    TEST_ENDIAN(UINT32, uint32_t, 4, 0x01020304, 1, 2, 3, 4);
+    TEST_ENDIAN(UINT64, uint64_t, 8, UINT64_C(0x0102030405060708),
+                1, 2, 3, 4, 5, 6, 7, 8);
+
+#undef TEST_ENDIAN
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -94,6 +129,7 @@ test_suite()
     TCase  *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_int_types);
     tcase_add_test(tc_core, test_int_sizeof);
+    tcase_add_test(tc_core, test_endianness);
     suite_add_tcase(s, tc_core);
 
     return s;
