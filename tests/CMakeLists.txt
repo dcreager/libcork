@@ -28,3 +28,4 @@ macro(make_test test_name)
     add_test(NAME ${test_name} COMMAND ${test_name})
 endmacro(make_test)
 
+make_test(test-core)
