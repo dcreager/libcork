@@ -52,6 +52,36 @@ START_TEST(test_int_types)
 END_TEST
 
 
+START_TEST(test_int_sizeof)
+{
+    /*
+     * Test that our CORK_SIZEOF_FOO preprocessor macros match the
+     * results of the builtin sizeof operator.
+     */
+
+#define TEST_SIZEOF(TYPE, type) \
+    { \
+        fail_unless(CORK_SIZEOF_##TYPE == sizeof(type), \
+                    "Incorrect size for " #type ": got %zu, expected %zu", \
+                    (size_t) CORK_SIZEOF_##TYPE, \
+                    (size_t) sizeof(type)); \
+    }
+
+    TEST_SIZEOF(SHORT, short)
+    TEST_SIZEOF(SHORT, unsigned short)
+    TEST_SIZEOF(INT, int)
+    TEST_SIZEOF(INT, unsigned int)
+    TEST_SIZEOF(LONG, long)
+    TEST_SIZEOF(LONG, unsigned long)
+    TEST_SIZEOF(POINTER, void *)
+    TEST_SIZEOF(POINTER, int *)
+    TEST_SIZEOF(POINTER, void (*)(void))
+
+#undef TEST_SIZEOF
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -63,6 +93,7 @@ test_suite()
 
     TCase  *tc_core = tcase_create("core");
     tcase_add_test(tc_core, test_int_types);
+    tcase_add_test(tc_core, test_int_sizeof);
     suite_add_tcase(s, tc_core);
 
     return s;
