@@ -12,17 +12,15 @@ include_directories(../include)
 #-----------------------------------------------------------------------
 # Build the library
 
-file(GLOB_RECURSE LIBAPPNAME_SRC libAPPNAME/*.c)
+file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
 
-add_library(libAPPNAME SHARED ${LIBAPPNAME_SRC})
-set_target_properties(libAPPNAME PROPERTIES
-    COMPILE_DEFINITIONS G_LOG_DOMAIN="APPNAME"
-    OUTPUT_NAME appname
+add_library(libcork SHARED ${LIBCORK_SRC})
+set_target_properties(libcork PROPERTIES
+    OUTPUT_NAME cork
     SOVERSION 0.0.0)
-target_link_libraries(libAPPNAME
-    ${GLIB_LIBRARIES})
+target_link_libraries(libcork)
 
-install(TARGETS libAPPNAME
+install(TARGETS libcork
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib)
 
@@ -30,6 +28,6 @@ install(TARGETS libAPPNAME
 # Generate the pkg-config file
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
-configure_file(libAPPNAME.pc.in libAPPNAME.pc)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libAPPNAME.pc
+configure_file(libcork.pc.in libcork.pc)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc
         DESTINATION lib/pkgconfig)

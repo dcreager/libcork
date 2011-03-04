@@ -1,0 +1,6 @@
+Name: libcork
+Description: A simple, easily embeddable cross-platform C library
+Version: @VERSION@
+URL: http://github.com/zazzle/libcork
+Libs: -L@prefix@/lib -lcork
+Cflags: -I@prefix@/include

@@ -2,10 +2,9 @@
 /build/
 
 RELEASE-VERSION
-PLEASE_DEFINE_APPNAME.pc
 
-/PLEASE_DEFINE_APPNAME*.tar.gz
-/PLEASE_DEFINE_APPNAME*.tar.bz2
+/libcork*.tar.gz
+/libcork*.tar.bz2
 
 *.[oa]
 *.os
