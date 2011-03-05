@@ -49,39 +49,44 @@
  */
 
 /**
- * A constant that represents a big-endian system.
+ * @brief A constant that represents a big-endian system.
  */
 
 #define CORK_BIG_ENDIAN  4321
 
 /**
- * A constant that represents a little-endian system.
+ * @brief A constant that represents a little-endian system.
  */
 
 #define CORK_LITTLE_ENDIAN  1234
 
 /**
  * @def CORK_HOST_ENDIANNESS
- * A constant macro giving the endianness of the host system.  This will
- * either be CORK_BIG_ENDIAN or CORK_LITTLE_ENDIAN.
+ * @brief A constant macro giving the endianness of the host system.
+ *
+ * This will be equal to either @ref CORK_BIG_ENDIAN or @ref
+ * CORK_LITTLE_ENDIAN.
  */
 
 /**
  * @def CORK_OTHER_ENDIANNESS
- * A constant macro giving the endianness that the host system is
- * <b>not</b>.  This will either be CORK_BIG_ENDIAN or
+ * @brief A constant macro giving the endianness that the host system is
+ * <b>not</b>.
+ *
+ * This will be equal to either @ref CORK_BIG_ENDIAN or @ref
  * CORK_LITTLE_ENDIAN.
  */
 
 /**
  * @def CORK_HOST_ENDIANNESS_NAME
- * A string constant containing the endianness of the host system.
+ * @brief A string constant containing the endianness of the host
+ * system.
  */
 
 /**
  * @def CORK_OTHER_ENDIANNESS_NAME
- * A string constant containing the endianness that the host system is
- * <b>not</b>.
+ * @brief A string constant containing the endianness that the host
+ * system is <b>not</b>.
  */
 
 /*
@@ -161,10 +166,12 @@
 
 
 /**
- * Returns the byte-swapped a 16-bit integer, regardless of the
- * underlying endianness.  This macro only requires an rvalue as its
- * parameter (so it can be an expression), and doesn't modify the
- * original contents if it happens to be a variable.
+ * @brief Returns the byte-swapped version a 16-bit integer, regardless
+ * of the underlying endianness.
+ *
+ * This macro only requires an rvalue as its parameter (so it can be an
+ * expression), and doesn't modify the original contents if it happens
+ * to be a variable.
  *
  * @param[in] __u16  a 16-bit integer value
  * @returns  the same integer value, in reversed byte order
@@ -175,10 +182,12 @@
      ((((uint16_t) __u16) & 0x00ffu) << 8))
 
 /**
- * Returns the byte-swapped a 32-bit integer, regardless of the
- * underlying endianness.  This macro only requires an rvalue as its
- * parameter (so it can be an expression), and doesn't modify the
- * original contents if it happens to be a variable.
+ * @brief Returns the byte-swapped version of a 32-bit integer,
+ * regardless of the underlying endianness.
+ *
+ * This macro only requires an rvalue as its parameter (so it can be an
+ * expression), and doesn't modify the original contents if it happens
+ * to be a variable.
  *
  * @param[in] __u32  a 32-bit integer value
  * @returns  the same integer value, in reversed byte order
@@ -191,10 +200,12 @@
      ((((uint32_t) __u32) & 0x000000ffu) << 24))
 
 /**
- * Returns the byte-swapped a 64-bit integer, regardless of the
- * underlying endianness.  This macro only requires an rvalue as its
- * parameter (so it can be an expression), and doesn't modify the
- * original contents if it happens to be a variable.
+ * @brief Returns the byte-swapped version of a 64-bit integer,
+ * regardless of the underlying endianness.
+ *
+ * This macro only requires an rvalue as its parameter (so it can be an
+ * expression), and doesn't modify the original contents if it happens
+ * to be a variable.
  *
  * @param[in] __u64  a 64-bit integer value
  * @returns  the same integer value, in reversed byte order
@@ -211,9 +222,10 @@
      ((((uint64_t) __u64) & UINT64_C(0x00000000000000ff)) << 56))
 
 /**
- * Bytes-swaps a 16-bit integer variable in place.  This macro requires
- * an lvalue as its parameter; the contents of this variable will be
- * modified by the macro.
+ * @brief Bytes-swaps a 16-bit integer variable in place.
+ *
+ * This macro requires an lvalue as its parameter; the contents of this
+ * variable will be modified by the macro.
  *
  * @param[in,out] __u16  a 16-bit integer variable
  * @returns  nothing
@@ -225,9 +237,10 @@
     } while (0)
 
 /**
- * Bytes-swaps a 32-bit integer variable in place.  This macro requires
- * an lvalue as its parameter; the contents of this variable will be
- * modified by the macro.
+ * @brief Bytes-swaps a 32-bit integer variable in place.
+ *
+ * This macro requires an lvalue as its parameter; the contents of this
+ * variable will be modified by the macro.
  *
  * @param[in,out] __u32  a 32-bit integer variable
  * @returns  nothing
@@ -239,9 +252,10 @@
     } while (0)
 
 /**
- * Bytes-swaps a 64-bit integer variable in place.  This macro requires
- * an lvalue as its parameter; the contents of this variable will be
- * modified by the macro.
+ * @brief Bytes-swaps a 64-bit integer variable in place.
+ *
+ * This macro requires an lvalue as its parameter; the contents of this
+ * variable will be modified by the macro.
  *
  * @param[in,out] __u64  a 64-bit integer variable
  * @returns  nothing
@@ -255,7 +269,7 @@
 
 /**
  * @def CORK_UINT16_BIG_TO_HOST(u16)
- * Converts a 16-bit big-endian integer value to host endianness,
+ * @brief Converts a 16-bit big-endian integer value to host endianness,
  * returning the result.
  *
  * @param[in] __u16  a 16-bit big-endian integer value
@@ -264,7 +278,7 @@
 
 /**
  * @def CORK_UINT32_BIG_TO_HOST(u32)
- * Converts a 32-bit big-endian integer value to host endianness,
+ * @brief Converts a 32-bit big-endian integer value to host endianness,
  * returning the result.
  *
  * @param[in] __u32  a 32-bit big-endian integer value
@@ -273,7 +287,7 @@
 
 /**
  * @def CORK_UINT64_BIG_TO_HOST(u64)
- * Converts a 64-bit big-endian integer value to host endianness,
+ * @brief Converts a 64-bit big-endian integer value to host endianness,
  * returning the result.
  *
  * @param[in] __u64  a 64-bit big-endian integer value
@@ -282,8 +296,8 @@
 
 /**
  * @def CORK_UINT16_LITTLE_TO_HOST(u16)
- * Converts a 16-bit little-endian integer value to host endianness,
- * returning the result.
+ * @brief Converts a 16-bit little-endian integer value to host
+ * endianness, returning the result.
  *
  * @param[in] __u16  a 16-bit little-endian integer value
  * @returns  the same integer value, in host byte order
@@ -291,8 +305,8 @@
 
 /**
  * @def CORK_UINT32_LITTLE_TO_HOST(u32)
- * Converts a 32-bit little-endian integer value to host endianness,
- * returning the result.
+ * @brief Converts a 32-bit little-endian integer value to host
+ * endianness, returning the result.
  *
  * @param[in] __u32  a 32-bit little-endian integer value
  * @returns  the same integer value, in host byte order
@@ -300,8 +314,8 @@
 
 /**
  * @def CORK_UINT64_LITTLE_TO_HOST(u64)
- * Converts a 64-bit little-endian integer value to host endianness,
- * returning the result.
+ * @brief Converts a 64-bit little-endian integer value to host
+ * endianness, returning the result.
  *
  * @param[in] __u64  a 64-bit little-endian integer value
  * @returns  the same integer value, in host byte order
@@ -310,7 +324,7 @@
 
 /**
  * @def CORK_UINT16_BIG_TO_HOST_IN_PLACE(u16)
- * Converts a 16-bit big-endian integer value to host endianness
+ * @brief Converts a 16-bit big-endian integer value to host endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u16  a 16-bit big-endian integer variable
@@ -319,7 +333,7 @@
 
 /**
  * @def CORK_UINT32_BIG_TO_HOST_IN_PLACE(u32)
- * Converts a 32-bit big-endian integer value to host endianness
+ * @brief Converts a 32-bit big-endian integer value to host endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u32  a 32-bit big-endian integer variable
@@ -328,7 +342,7 @@
 
 /**
  * @def CORK_UINT64_BIG_TO_HOST_IN_PLACE(u64)
- * Converts a 64-bit big-endian integer value to host endianness
+ * @brief Converts a 64-bit big-endian integer value to host endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u64  a 64-bit big-endian integer variable
@@ -337,8 +351,8 @@
 
 /**
  * @def CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(u16)
- * Converts a 16-bit little-endian integer value to host endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 16-bit little-endian integer value to host
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u16  a 16-bit little-endian integer variable
  * @returns  nothing
@@ -346,8 +360,8 @@
 
 /**
  * @def CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(u32)
- * Converts a 32-bit little-endian integer value to host endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 32-bit little-endian integer value to host
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u32  a 32-bit little-endian integer variable
  * @returns  nothing
@@ -355,8 +369,8 @@
 
 /**
  * @def CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(u64)
- * Converts a 64-bit little-endian integer value to host endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 64-bit little-endian integer value to host
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u64  a 64-bit little-endian integer variable
  * @returns  nothing
@@ -406,7 +420,7 @@
 
 
 /**
- * Converts a 16-bit host-endian integer value to big endianness,
+ * @brief Converts a 16-bit host-endian integer value to big endianness,
  * returning the result.
  *
  * @param[in] __u16  a 16-bit host-endian integer value
@@ -416,7 +430,7 @@
 #define CORK_UINT16_HOST_TO_BIG(__u16)  CORK_UINT16_BIG_TO_HOST(__u16)
 
 /**
- * Converts a 32-bit host-endian integer value to big endianness,
+ * @brief Converts a 32-bit host-endian integer value to big endianness,
  * returning the result.
  *
  * @param[in] __u32  a 32-bit host-endian integer value
@@ -426,7 +440,7 @@
 #define CORK_UINT32_HOST_TO_BIG(__u32)  CORK_UINT32_BIG_TO_HOST(__u32)
 
 /**
- * Converts a 64-bit host-endian integer value to big endianness,
+ * @brief Converts a 64-bit host-endian integer value to big endianness,
  * returning the result.
  *
  * @param[in] __u64  a 64-bit host-endian integer value
@@ -436,8 +450,8 @@
 #define CORK_UINT64_HOST_TO_BIG(__u64)  CORK_UINT64_BIG_TO_HOST(__u64)
 
 /**
- * Converts a 16-bit host-endian integer value to little endianness,
- * returning the result.
+ * @brief Converts a 16-bit host-endian integer value to little
+ * endianness, returning the result.
  *
  * @param[in] __u16  a 16-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
@@ -446,8 +460,8 @@
 #define CORK_UINT16_HOST_TO_LITTLE(__u16)  CORK_UINT16_LITTLE_TO_HOST(__u16)
 
 /**
- * Converts a 32-bit host-endian integer value to little endianness,
- * returning the result.
+ * @brief Converts a 32-bit host-endian integer value to little
+ * endianness, returning the result.
  *
  * @param[in] __u32  a 32-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
@@ -456,8 +470,8 @@
 #define CORK_UINT32_HOST_TO_LITTLE(__u32)  CORK_UINT32_LITTLE_TO_HOST(__u32)
 
 /**
- * Converts a 64-bit host-endian integer value to little endianness,
- * returning the result.
+ * @brief Converts a 64-bit host-endian integer value to little
+ * endianness, returning the result.
  *
  * @param[in] __u64  a 64-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
@@ -467,7 +481,7 @@
 
 
 /**
- * Converts a 16-bit host-endian integer value to big endianness
+ * @brief Converts a 16-bit host-endian integer value to big endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u16  a 16-bit host-endian integer variable
@@ -477,7 +491,7 @@
 #define CORK_UINT16_HOST_TO_BIG_IN_PLACE(__u16)  CORK_UINT16_BIG_TO_HOST_IN_PLACE(__u16)
 
 /**
- * Converts a 32-bit host-endian integer value to big endianness
+ * @brief Converts a 32-bit host-endian integer value to big endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u32  a 32-bit host-endian integer variable
@@ -487,7 +501,7 @@
 #define CORK_UINT32_HOST_TO_BIG_IN_PLACE(__u32)  CORK_UINT32_BIG_TO_HOST_IN_PLACE(__u32)
 
 /**
- * Converts a 64-bit host-endian integer value to big endianness
+ * @brief Converts a 64-bit host-endian integer value to big endianness
  * in place, replacing the contents of the old value.
  *
  * @param[in,out] __u64  a 64-bit host-endian integer variable
@@ -497,8 +511,8 @@
 #define CORK_UINT64_HOST_TO_BIG_IN_PLACE(__u64)  CORK_UINT64_BIG_TO_HOST_IN_PLACE(__u64)
 
 /**
- * Converts a 16-bit host-endian integer value to little endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 16-bit host-endian integer value to little
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u16  a 16-bit host-endian integer variable
  * @returns  nothing
@@ -507,8 +521,8 @@
 #define CORK_UINT16_HOST_TO_LITTLE_IN_PLACE(__u16)  CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(__u16)
 
 /**
- * Converts a 32-bit host-endian integer value to little endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 32-bit host-endian integer value to little
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u32  a 32-bit host-endian integer variable
  * @returns  nothing
@@ -517,8 +531,8 @@
 #define CORK_UINT32_HOST_TO_LITTLE_IN_PLACE(__u32)  CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(__u32)
 
 /**
- * Converts a 64-bit host-endian integer value to little endianness
- * in place, replacing the contents of the old value.
+ * @brief Converts a 64-bit host-endian integer value to little
+ * endianness in place, replacing the contents of the old value.
  *
  * @param[in,out] __u64  a 64-bit host-endian integer variable
  * @returns  nothing
