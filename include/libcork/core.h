@@ -14,11 +14,13 @@
 /**
  * @file
  *
- * This file contains all of the definitions in the Core module.
+ * @see core
  */
 
 /**
  * @defgroup core Core module
+ *
+ * <tt>#%include &lt;libcork/core.h&gt;</tt>
  */
 
 /*** order of groups in documentation ***/

@@ -14,11 +14,13 @@
 /**
  * @file
  *
- * This file contains definitions for some basic types.
+ * @see basic_types
  */
 
 /**
  * @addtogroup basic_types Basic types
+ *
+ * <tt>#%include &lt;libcork/core/types.h&gt;</tt>
  *
  * The types in this section ensure that the C99 integer types are
  * available, regardless of platform.  We also define some preprocessor
