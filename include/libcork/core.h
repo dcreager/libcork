@@ -13,8 +13,7 @@
 
 /**
  * @file
- *
- * @see core
+ * @brief Pulls in all features of the @ref core
  */
 
 /**

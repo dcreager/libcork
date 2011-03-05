@@ -13,8 +13,7 @@
 
 /**
  * @file
- *
- * @see byte_order
+ * @brief Implementation of the @ref byte_order submodule
  */
 
 

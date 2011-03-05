@@ -13,8 +13,7 @@
 
 /**
  * @file
- *
- * @see basic_types
+ * @brief Implementation of the @ref basic_types submodule
  */
 
 /**
