@@ -23,6 +23,7 @@
 
 /**
  * @defgroup byte_order Byte order
+ * @ingroup core
  * @{
  */
 
