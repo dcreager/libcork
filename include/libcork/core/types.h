@@ -38,26 +38,46 @@
  * just to trick doxygen into generating an entry for them.
  */
 
-typedef char  int8_t;               /**< @brief A signed 8-bit integer. */
-typedef unsigned char  uint8_t;     /**< @brief An unsigned 8-bit integer. */
-typedef short  int16_t;             /**< @brief A signed 16-bit integer. */
-typedef unsigned short  uint16_t;   /**< @brief An unsigned 16-bit integer. */
-typedef int  int32_t;               /**< @brief A signed 32-bit integer. */
-typedef unsigned int  uint32_t;     /**< @brief An unsigned 32-bit integer. */
-typedef long  int64_t;              /**< @brief A signed 64-bit integer. */
-typedef unsigned long  uint64_t;    /**< @brief An unsigned 64-bit integer. */
+/** @brief A signed 8-bit integer. @since 0.0-dev */
+typedef char  int8_t;
+/** @brief An unsigned 8-bit integer. @since 0.0-dev */
+typedef unsigned char  uint8_t;
+/** @brief A signed 16-bit integer. @since 0.0-dev */
+typedef short  int16_t;
+/** @brief An unsigned 16-bit integer. @since 0.0-dev */
+typedef unsigned short  uint16_t;
+/** @brief A signed 32-bit integer. @since 0.0-dev */
+typedef int  int32_t;
+/** @brief An unsigned 32-bit integer. @since 0.0-dev */
+typedef unsigned int  uint32_t;
+/** @brief A signed 64-bit integer. @since 0.0-dev */
+typedef long  int64_t;
+/** @brief An unsigned 64-bit integer. @since 0.0-dev */
+typedef unsigned long  uint64_t;
 
-/** @brief A signed integer big enough to hold the difference between
- * two pointers. */
+/**
+ * @brief A signed integer big enough to hold the difference between two
+ * pointers.
+ * @since 0.0-dev
+ */
 typedef signed long  ptrdiff_t;
 
-/** @brief An unsigned integer big enough to hold an array index. */
+/**
+ * @brief An unsigned integer big enough to hold an array index.
+ * @since 0.0-dev
+ */
 typedef unsigned long  size_t;
 
-/** @brief A signed integer big enough to hold a type-cast pointer. */
+/**
+ * @brief A signed integer big enough to hold a type-cast pointer.
+ * @since 0.0-dev
+ */
 typedef signed long  intptr_t;
 
-/** @brief An unsigned integer big enough to hold a type-case pointer. */
+/**
+ * @brief An unsigned integer big enough to hold a type-case pointer.
+ * @since 0.0-dev
+ */
 typedef unsigned long  uintptr_t;
 
 #endif /* documentation */
@@ -81,6 +101,7 @@ typedef unsigned long  uintptr_t;
  * @def CORK_SIZEOF_SHORT
  * @brief The size, in bytes, of the <tt>short</tt> and <tt>unsigned
  * short</tt> built-in types.
+ * @since 0.0-dev
  */
 
 #if SHRT_MAX == INT8_MAX
@@ -99,6 +120,7 @@ typedef unsigned long  uintptr_t;
  * @def CORK_SIZEOF_INT
  * @brief The size, in bytes, of the <tt>int</tt> and <tt>unsigned
  * int</tt> built-in types.
+ * @since 0.0-dev
  */
 
 #if INT_MAX == INT8_MAX
@@ -117,6 +139,7 @@ typedef unsigned long  uintptr_t;
  * @def CORK_SIZEOF_LONG
  * @brief The size, in bytes, of the <tt>long</tt> and <tt>unsigned
  * long</tt> built-in types.
+ * @since 0.0-dev
  */
 
 #if LONG_MAX == INT8_MAX
@@ -134,6 +157,7 @@ typedef unsigned long  uintptr_t;
 /**
  * @def CORK_SIZEOF_POINTER
  * @brief The size, in bytes, of the <tt>void *</tt> built-in type.
+ * @since 0.0-dev
  */
 
 #if INTPTR_MAX == INT8_MAX

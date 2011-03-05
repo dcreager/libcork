@@ -50,12 +50,14 @@
 
 /**
  * @brief A constant that represents a big-endian system.
+ * @since 0.0-dev
  */
 
 #define CORK_BIG_ENDIAN  4321
 
 /**
  * @brief A constant that represents a little-endian system.
+ * @since 0.0-dev
  */
 
 #define CORK_LITTLE_ENDIAN  1234
@@ -66,6 +68,8 @@
  *
  * This will be equal to either @ref CORK_BIG_ENDIAN or @ref
  * CORK_LITTLE_ENDIAN.
+ *
+ * @since 0.0-dev
  */
 
 /**
@@ -75,18 +79,22 @@
  *
  * This will be equal to either @ref CORK_BIG_ENDIAN or @ref
  * CORK_LITTLE_ENDIAN.
+ *
+ * @since 0.0-dev
  */
 
 /**
  * @def CORK_HOST_ENDIANNESS_NAME
  * @brief A string constant containing the endianness of the host
  * system.
+ * @since 0.0-dev
  */
 
 /**
  * @def CORK_OTHER_ENDIANNESS_NAME
  * @brief A string constant containing the endianness that the host
  * system is <b>not</b>.
+ * @since 0.0-dev
  */
 
 /*
@@ -175,6 +183,7 @@
  *
  * @param[in] __u16  a 16-bit integer value
  * @returns  the same integer value, in reversed byte order
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_UINT16(__u16) \
@@ -191,6 +200,7 @@
  *
  * @param[in] __u32  a 32-bit integer value
  * @returns  the same integer value, in reversed byte order
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_UINT32(__u32) \
@@ -209,6 +219,7 @@
  *
  * @param[in] __u64  a 64-bit integer value
  * @returns  the same integer value, in reversed byte order
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_UINT64(__u64) \
@@ -229,6 +240,7 @@
  *
  * @param[in,out] __u16  a 16-bit integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_IN_PLACE_UINT16(__u16) \
@@ -244,6 +256,7 @@
  *
  * @param[in,out] __u32  a 32-bit integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_IN_PLACE_UINT32(__u32) \
@@ -259,6 +272,7 @@
  *
  * @param[in,out] __u64  a 64-bit integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_SWAP_IN_PLACE_UINT64(__u64) \
@@ -274,6 +288,7 @@
  *
  * @param[in] __u16  a 16-bit big-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 /**
@@ -283,6 +298,7 @@
  *
  * @param[in] __u32  a 32-bit big-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 /**
@@ -292,6 +308,7 @@
  *
  * @param[in] __u64  a 64-bit big-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 /**
@@ -301,6 +318,7 @@
  *
  * @param[in] __u16  a 16-bit little-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 /**
@@ -310,6 +328,7 @@
  *
  * @param[in] __u32  a 32-bit little-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 /**
@@ -319,6 +338,7 @@
  *
  * @param[in] __u64  a 64-bit little-endian integer value
  * @returns  the same integer value, in host byte order
+ * @since 0.0-dev
  */
 
 
@@ -329,6 +349,7 @@
  *
  * @param[in,out] __u16  a 16-bit big-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 /**
@@ -338,6 +359,7 @@
  *
  * @param[in,out] __u32  a 32-bit big-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 /**
@@ -347,6 +369,7 @@
  *
  * @param[in,out] __u64  a 64-bit big-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 /**
@@ -356,6 +379,7 @@
  *
  * @param[in,out] __u16  a 16-bit little-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 /**
@@ -365,6 +389,7 @@
  *
  * @param[in,out] __u32  a 32-bit little-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 /**
@@ -374,6 +399,7 @@
  *
  * @param[in,out] __u64  a 64-bit little-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #if CORK_HOST_ENDIANNESS == CORK_BIG_ENDIAN
@@ -425,6 +451,7 @@
  *
  * @param[in] __u16  a 16-bit host-endian integer value
  * @returns  the same integer value, in big-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT16_HOST_TO_BIG(__u16)  CORK_UINT16_BIG_TO_HOST(__u16)
@@ -435,6 +462,7 @@
  *
  * @param[in] __u32  a 32-bit host-endian integer value
  * @returns  the same integer value, in big-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT32_HOST_TO_BIG(__u32)  CORK_UINT32_BIG_TO_HOST(__u32)
@@ -445,6 +473,7 @@
  *
  * @param[in] __u64  a 64-bit host-endian integer value
  * @returns  the same integer value, in big-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT64_HOST_TO_BIG(__u64)  CORK_UINT64_BIG_TO_HOST(__u64)
@@ -455,6 +484,7 @@
  *
  * @param[in] __u16  a 16-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT16_HOST_TO_LITTLE(__u16)  CORK_UINT16_LITTLE_TO_HOST(__u16)
@@ -465,6 +495,7 @@
  *
  * @param[in] __u32  a 32-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT32_HOST_TO_LITTLE(__u32)  CORK_UINT32_LITTLE_TO_HOST(__u32)
@@ -475,6 +506,7 @@
  *
  * @param[in] __u64  a 64-bit host-endian integer value
  * @returns  the same integer value, in little-endian byte order
+ * @since 0.0-dev
  */
 
 #define CORK_UINT64_HOST_TO_LITTLE(__u64)  CORK_UINT64_LITTLE_TO_HOST(__u64)
@@ -486,6 +518,7 @@
  *
  * @param[in,out] __u16  a 16-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT16_HOST_TO_BIG_IN_PLACE(__u16)  CORK_UINT16_BIG_TO_HOST_IN_PLACE(__u16)
@@ -496,6 +529,7 @@
  *
  * @param[in,out] __u32  a 32-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT32_HOST_TO_BIG_IN_PLACE(__u32)  CORK_UINT32_BIG_TO_HOST_IN_PLACE(__u32)
@@ -506,6 +540,7 @@
  *
  * @param[in,out] __u64  a 64-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT64_HOST_TO_BIG_IN_PLACE(__u64)  CORK_UINT64_BIG_TO_HOST_IN_PLACE(__u64)
@@ -516,6 +551,7 @@
  *
  * @param[in,out] __u16  a 16-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT16_HOST_TO_LITTLE_IN_PLACE(__u16)  CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(__u16)
@@ -526,6 +562,7 @@
  *
  * @param[in,out] __u32  a 32-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT32_HOST_TO_LITTLE_IN_PLACE(__u32)  CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(__u32)
@@ -536,6 +573,7 @@
  *
  * @param[in,out] __u64  a 64-bit host-endian integer variable
  * @returns  nothing
+ * @since 0.0-dev
  */
 
 #define CORK_UINT64_HOST_TO_LITTLE_IN_PLACE(__u64)  CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(__u64)
