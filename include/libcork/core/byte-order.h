@@ -21,15 +21,23 @@
 
 #include <libcork/core/types.h>
 
+/**
+ * @defgroup byte_order Byte order
+ * @{
+ */
+
 
 /*---------------------------------------------------------------------*/
 /**
- * @section endianness Endianness detection
+ * @defgroup endianness Endianness detection
+ * @ingroup byte_order
  *
  * The macros in this section can be used to determine the endianness of
  * the current system.  We also provide a C string constant for the
  * host's endianness, as well as these values for the <i>opposite</i>
  * endianness.
+ *
+ * @{
  */
 
 /**
@@ -116,16 +124,23 @@
 
 #endif
 
+/* end of byteswap group */
+/**
+ * @}
+ */
 
 /*---------------------------------------------------------------------*/
 /**
- * @section byteswap Byte swapping macros
+ * @defgroup byteswap Byte swapping macros
+ * @ingroup byte_order
  *
  * The macros in this section can be used to swap integer values of
  * various sizes.  There are a couple variations for each integer types:
  * one for converting between host-endianness and either big- or
  * little-endianness; and one for an explicit swap regardless of the
  * underlying endianness.
+ *
+ * @{
  */
 
 
@@ -280,41 +295,41 @@
 #if CORK_HOST_ENDIANNESS == CORK_BIG_ENDIAN
 
 #define CORK_UINT16_BIG_TO_HOST(__u16) (__u16) /* nothing to do */
-#define CORK_UINT16_LITTLE_TO_HOST  CORK_SWAP_UINT16
+#define CORK_UINT16_LITTLE_TO_HOST(__u16)  CORK_SWAP_UINT16(__u16)
 
 #define CORK_UINT32_BIG_TO_HOST(__u32) (__u32) /* nothing to do */
-#define CORK_UINT32_LITTLE_TO_HOST  CORK_SWAP_UINT32
+#define CORK_UINT32_LITTLE_TO_HOST(__u32)  CORK_SWAP_UINT32(__u32)
 
 #define CORK_UINT64_BIG_TO_HOST(__u64) (__u64) /* nothing to do */
-#define CORK_UINT64_LITTLE_TO_HOST  CORK_SWAP_UINT64
+#define CORK_UINT64_LITTLE_TO_HOST(__u64)  CORK_SWAP_UINT64(__u64)
 
 #define CORK_UINT16_BIG_TO_HOST_IN_PLACE(__u16) /* nothing to do */
-#define CORK_UINT16_LITTLE_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT16
+#define CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(__u16)  CORK_SWAP_IN_PLACE_UINT16(__u16)
 
 #define CORK_UINT32_BIG_TO_HOST_IN_PLACE(__u32) /* nothing to do */
-#define CORK_UINT32_LITTLE_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT32
+#define CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(__u32)  CORK_SWAP_IN_PLACE_UINT32(__u32)
 
 #define CORK_UINT64_BIG_TO_HOST_IN_PLACE(__u64) /* nothing to do */
-#define CORK_UINT64_LITTLE_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT64
+#define CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(__u64)  CORK_SWAP_IN_PLACE_UINT64(__u64)
 
 #elif CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
 
-#define CORK_UINT16_BIG_TO_HOST  CORK_SWAP_UINT16
+#define CORK_UINT16_BIG_TO_HOST(__u16)  CORK_SWAP_UINT16(__u16)
 #define CORK_UINT16_LITTLE_TO_HOST(__u16) (__u16) /* nothing to do */
 
-#define CORK_UINT32_BIG_TO_HOST  CORK_SWAP_UINT32
+#define CORK_UINT32_BIG_TO_HOST(__u32)  CORK_SWAP_UINT32(__u32)
 #define CORK_UINT32_LITTLE_TO_HOST(__u32) (__u32) /* nothing to do */
 
-#define CORK_UINT64_BIG_TO_HOST  CORK_SWAP_UINT64
+#define CORK_UINT64_BIG_TO_HOST(__u64)  CORK_SWAP_UINT64(__u64)
 #define CORK_UINT64_LITTLE_TO_HOST(__u64) (__u64) /* nothing to do */
 
-#define CORK_UINT16_BIG_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT16
+#define CORK_UINT16_BIG_TO_HOST_IN_PLACE(__u16)  CORK_SWAP_IN_PLACE_UINT16(__u16)
 #define CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(__u16) /* nothing to do */
 
-#define CORK_UINT32_BIG_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT32
+#define CORK_UINT32_BIG_TO_HOST_IN_PLACE(__u32)  CORK_SWAP_IN_PLACE_UINT32(__u32)
 #define CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(__u32) /* nothing to do */
 
-#define CORK_UINT64_BIG_TO_HOST_IN_PLACE  CORK_SWAP_IN_PLACE_UINT64
+#define CORK_UINT64_BIG_TO_HOST_IN_PLACE(__u64)  CORK_SWAP_IN_PLACE_UINT64(__u64)
 #define CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(__u64) /* nothing to do */
 
 #endif
@@ -325,42 +340,42 @@
  * returning the result.
  */
 
-#define CORK_UINT16_HOST_TO_BIG  CORK_UINT16_BIG_TO_HOST
+#define CORK_UINT16_HOST_TO_BIG(__u16)  CORK_UINT16_BIG_TO_HOST(__u16)
 
 /**
  * Converts a 32-bit host-endian integer value to big endianness,
  * returning the result.
  */
 
-#define CORK_UINT32_HOST_TO_BIG  CORK_UINT32_BIG_TO_HOST
+#define CORK_UINT32_HOST_TO_BIG(__u32)  CORK_UINT32_BIG_TO_HOST(__u32)
 
 /**
  * Converts a 64-bit host-endian integer value to big endianness,
  * returning the result.
  */
 
-#define CORK_UINT64_HOST_TO_BIG  CORK_UINT64_BIG_TO_HOST
+#define CORK_UINT64_HOST_TO_BIG(__u64)  CORK_UINT64_BIG_TO_HOST(__u64)
 
 /**
  * Converts a 16-bit host-endian integer value to little endianness,
  * returning the result.
  */
 
-#define CORK_UINT16_HOST_TO_LITTLE  CORK_UINT16_LITTLE_TO_HOST
+#define CORK_UINT16_HOST_TO_LITTLE(__u16)  CORK_UINT16_LITTLE_TO_HOST(__u16)
 
 /**
  * Converts a 32-bit host-endian integer value to little endianness,
  * returning the result.
  */
 
-#define CORK_UINT32_HOST_TO_LITTLE  CORK_UINT32_LITTLE_TO_HOST
+#define CORK_UINT32_HOST_TO_LITTLE(__u32)  CORK_UINT32_LITTLE_TO_HOST(__u32)
 
 /**
  * Converts a 64-bit host-endian integer value to little endianness,
  * returning the result.
  */
 
-#define CORK_UINT64_HOST_TO_LITTLE  CORK_UINT64_LITTLE_TO_HOST
+#define CORK_UINT64_HOST_TO_LITTLE(__u64)  CORK_UINT64_LITTLE_TO_HOST(__u64)
 
 
 /**
@@ -368,42 +383,53 @@
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT16_HOST_TO_BIG_IN_PLACE  CORK_UINT16_BIG_TO_HOST_IN_PLACE
+#define CORK_UINT16_HOST_TO_BIG_IN_PLACE(__u16)  CORK_UINT16_BIG_TO_HOST_IN_PLACE(__u16)
 
 /**
  * Converts a 32-bit host-endian integer value to big endianness
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT32_HOST_TO_BIG_IN_PLACE  CORK_UINT32_BIG_TO_HOST_IN_PLACE
+#define CORK_UINT32_HOST_TO_BIG_IN_PLACE(__u32)  CORK_UINT32_BIG_TO_HOST_IN_PLACE(__u32)
 
 /**
  * Converts a 64-bit host-endian integer value to big endianness
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT64_HOST_TO_BIG_IN_PLACE  CORK_UINT64_BIG_TO_HOST_IN_PLACE
+#define CORK_UINT64_HOST_TO_BIG_IN_PLACE(__u64)  CORK_UINT64_BIG_TO_HOST_IN_PLACE(__u64)
 
 /**
  * Converts a 16-bit host-endian integer value to little endianness
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT16_HOST_TO_LITTLE_IN_PLACE  CORK_UINT16_LITTLE_TO_HOST_IN_PLACE
+#define CORK_UINT16_HOST_TO_LITTLE_IN_PLACE(__u16)  CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(__u16)
 
 /**
  * Converts a 32-bit host-endian integer value to little endianness
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT32_HOST_TO_LITTLE_IN_PLACE  CORK_UINT32_LITTLE_TO_HOST_IN_PLACE
+#define CORK_UINT32_HOST_TO_LITTLE_IN_PLACE(__u32)  CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(__u32)
 
 /**
  * Converts a 64-bit host-endian integer value to little endianness
  * in place, replacing the contents of the old value.
  */
 
-#define CORK_UINT64_HOST_TO_LITTLE_IN_PLACE  CORK_UINT64_LITTLE_TO_HOST_IN_PLACE
+#define CORK_UINT64_HOST_TO_LITTLE_IN_PLACE(__u64)  CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(__u64)
 
+
+/* end of byteswap group */
+/**
+ * @}
+ */
+
+
+/* end of byte_order group */
+/**
+ * @}
+ */
 
 #endif /* LIBCORK_CORE_BYTE_ORDER_H */
