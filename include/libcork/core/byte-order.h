@@ -22,8 +22,7 @@
 #include <libcork/core/types.h>
 
 /**
- * @defgroup byte_order Byte order
- * @ingroup core
+ * @addtogroup byte_order Byte order
  * @{
  */
 
@@ -81,9 +80,15 @@
  * Find a header file that can tell us the endianness of this platform.
  */
 
+/*** A cheat for the documentation ***/
+
+#if defined(CORK_DOCUMENTATION)
+#define CORK_HOST_ENDIANNESS  CORK_LITTLE_ENDIAN
+
+
 /*** Linux ***/
 
-#if defined(__linux)
+#elif defined(__linux)
 #include <endian.h>
 
 #if __BYTE_ORDER == __BIG_ENDIAN

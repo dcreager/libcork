@@ -17,6 +17,49 @@
  * This file contains definitions for some basic types.
  */
 
+/**
+ * @addtogroup basic_types Basic types
+ *
+ * The types in this section ensure that the C99 integer types are
+ * available, regardless of platform.  We also define some preprocessor
+ * macros that give the size of the non-fixed-size standard types.
+ *
+ * @{
+ */
+
+/*** Add documentation for the C99 types ***/
+
+#if defined(CORK_DOCUMENTATION)
+
+/*
+ * Note that these typedefs are never evaluated in real code; this is
+ * just to trick doxygen into generating an entry for them.
+ */
+
+typedef char  int8_t;               /**< A signed 8-bit integer. */
+typedef unsigned char  uint8_t;     /**< An unsigned 8-bit integer. */
+typedef short  int16_t;             /**< A signed 16-bit integer. */
+typedef unsigned short  uint16_t;   /**< An unsigned 16-bit integer. */
+typedef int  int32_t;               /**< A signed 32-bit integer. */
+typedef unsigned int  uint32_t;     /**< An unsigned 32-bit integer. */
+typedef long  int64_t;              /**< A signed 64-bit integer. */
+typedef unsigned long  uint64_t;    /**< An unsigned 64-bit integer. */
+
+/** A signed integer big enough to hold the difference between two
+ * pointers. */
+typedef signed long  ptrdiff_t;
+
+/** An unsigned integer big enough to hold an array index. */
+typedef unsigned long  size_t;
+
+/** A signed integer big enough to hold a type-cast pointer. */
+typedef signed long  intptr_t;
+
+/** An unsigned integer big enough to hold a type-case pointer. */
+typedef unsigned long  uintptr_t;
+
+#endif /* documentation */
+
 /*
  * For now, we assume that the C99 integer types are available using the
  * standard header.
@@ -88,7 +131,7 @@
 
 /**
  * @def CORK_SIZEOF_POINTER
- * The size, in bytes, of the <tt>void *</tt>.
+ * The size, in bytes, of the <tt>void *</tt> built-in type.
  */
 
 #if INTPTR_MAX == INT8_MAX
@@ -103,5 +146,9 @@
 #error "Cannot determine size of void *"
 #endif
 
+/* end of basic_types group */
+/**
+ * @}
+ */
 
 #endif /* LIBCORK_CORE_TYPES_H */

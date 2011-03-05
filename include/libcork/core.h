@@ -21,6 +21,20 @@
  * @defgroup core Core module
  */
 
+/*** order of groups in documentation ***/
+
+/**
+ * @defgroup basic_types Basic types
+ * @ingroup core
+ */
+
+/**
+ * @defgroup byte_order Byte order
+ * @ingroup core
+ */
+
+/*** include all of the parts ***/
+
 #include <libcork/core/byte-order.h>
 #include <libcork/core/types.h>
 
