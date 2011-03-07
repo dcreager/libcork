@@ -22,6 +22,18 @@
  * Core types
  */
 
+START_TEST(test_bool)
+{
+    bool  value;
+
+    value = true;
+    fail_unless(value, "Unexpected true value");
+
+    value = false;
+    fail_if(value, "Unexpected false value");
+}
+END_TEST
+
 START_TEST(test_int_types)
 {
     /*
@@ -158,6 +170,7 @@ test_suite()
     Suite  *s = suite_create("core");
 
     TCase  *tc_core = tcase_create("core");
+    tcase_add_test(tc_core, test_bool);
     tcase_add_test(tc_core, test_int_types);
     tcase_add_test(tc_core, test_int_sizeof);
     tcase_add_test(tc_core, test_endianness);

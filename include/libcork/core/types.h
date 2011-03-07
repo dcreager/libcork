@@ -19,7 +19,7 @@
 /**
  * @addtogroup basic_types Basic types
  *
- * <tt>#%include &lt;libcork/core/types.h&gt;</tt>
+ * <tt>#%include \<libcork/core/types.h\></tt>
  *
  * The types in this section ensure that the C99 integer types are
  * available, regardless of platform.  We also define some preprocessor
@@ -36,6 +36,13 @@
  * Note that these typedefs are never evaluated in real code; this is
  * just to trick doxygen into generating an entry for them.
  */
+
+/** @brief A boolean. @since 0.0-dev */
+typedef int  bool;
+/** @brief The boolean “true” value. @since 0.0-dev */
+#define true  1
+/** @brief The boolean “false” value. @since 0.0-dev */
+#define false  0
 
 /** @brief A signed 8-bit integer. @since 0.0-dev */
 typedef char  int8_t;
@@ -83,11 +90,12 @@ typedef unsigned long  uintptr_t;
 
 /*
  * For now, we assume that the C99 integer types are available using the
- * standard header.
+ * standard headers.
  */
 
 #include <limits.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
