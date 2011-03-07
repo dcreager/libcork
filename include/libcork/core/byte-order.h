@@ -22,7 +22,7 @@
 /**
  * @addtogroup byte_order Byte order
  *
- * <tt>#%include &lt;libcork/core/byte-order.h&gt;</tt>
+ * <tt>#%include \<libcork/core/byte-order.h\></tt>
  *
  * This section contains definitions for determining the endianness of
  * the host system, and for byte-swapping integer values of various
@@ -37,7 +37,7 @@
  * @defgroup endianness Endianness detection
  * @ingroup byte_order
  *
- * <tt>#%include &lt;libcork/core/byte-order.h&gt;</tt>
+ * <tt>#%include \<libcork/core/byte-order.h\></tt>
  *
  * The macros in this section can be used to determine the endianness of
  * the current system.  We also provide a C string constant for the
@@ -160,7 +160,7 @@
  * @defgroup byteswap Byte swapping macros
  * @ingroup byte_order
  *
- * <tt>#%include &lt;libcork/core/byte-order.h&gt;</tt>
+ * <tt>#%include \<libcork/core/byte-order.h\></tt>
  *
  * The macros in this section can be used to swap integer values of
  * various sizes.  There are a couple variations for each integer types:

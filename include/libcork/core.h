@@ -19,7 +19,7 @@
 /**
  * @defgroup core Core module
  *
- * <tt>#%include &lt;libcork/core.h&gt;</tt>
+ * <tt>#%include \<libcork/core.h\></tt>
  */
 
 /*** order of groups in documentation ***/
