@@ -42,4 +42,5 @@ macro(make_test test_name)
 endmacro(make_test)
 
 make_test(test-core)
-make_test(test-ds)
+make_test(test-dllist)
+make_test(test-managed-buffer)

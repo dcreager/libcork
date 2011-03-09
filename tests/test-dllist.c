@@ -88,9 +88,9 @@ END_TEST
 Suite *
 test_suite()
 {
-    Suite  *s = suite_create("ds");
+    Suite  *s = suite_create("dllist");
 
-    TCase  *tc_ds = tcase_create("ds");
+    TCase  *tc_ds = tcase_create("dllist");
     tcase_add_test(tc_ds, test_dllist);
     suite_add_tcase(s, tc_ds);
 

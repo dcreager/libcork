@@ -29,8 +29,14 @@
  * @ingroup ds
  */
 
+/**
+ * @defgroup managed_buffer Managed binary buffers
+ * @ingroup ds
+ */
+
 /*** include all of the parts ***/
 
 #include <libcork/ds/dllist.h>
+#include <libcork/ds/managed-buffer.h>
 
 #endif /* LIBCORK_DS_H */
