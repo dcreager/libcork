@@ -119,6 +119,33 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Slicing
+ */
+
+START_TEST(test_slice)
+{
+    /*
+     * Try to slice a NULL buffer.
+     */
+
+    cork_slice_t  ps1;
+
+    fail_if(cork_managed_buffer_slice(&ps1, NULL, 0, 0),
+            "Shouldn't be able to slice a NULL buffer");
+    fail_if(cork_managed_buffer_slice_offset(&ps1, NULL, 0),
+            "Shouldn't be able to slice a NULL buffer");
+
+    fail_if(cork_slice_slice(&ps1, NULL, 0, 0),
+            "Shouldn't be able to slice a NULL slice");
+    fail_if(cork_slice_slice_offset(&ps1, NULL, 0),
+            "Shouldn't be able to slice a NULL slice");
+
+    cork_slice_finish(&ps1);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Slice reference counting
  */
 
@@ -287,6 +314,10 @@ test_suite()
     tcase_add_test(tc_buffer_refcount, test_managed_buffer_refcount);
     tcase_add_test(tc_buffer_refcount, test_managed_buffer_bad_refcount);
     suite_add_tcase(s, tc_buffer_refcount);
+
+    TCase  *tc_slice = tcase_create("slice");
+    tcase_add_test(tc_slice, test_slice);
+    suite_add_tcase(s, tc_slice);
 
     TCase  *tc_slice_refcount = tcase_create("slice-refcount");
     tcase_add_test(tc_slice_refcount, test_slice_refcount);

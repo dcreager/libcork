@@ -105,7 +105,8 @@ cork_managed_buffer_slice(cork_slice_t *dest,
                           cork_managed_buffer_t *buffer,
                           size_t offset, size_t length)
 {
-    if ((offset < buffer->size) &&
+    if ((buffer != NULL) &&
+        (offset < buffer->size) &&
         ((offset + length) <= buffer->size)) {
         /*
         DEBUG("Slicing [%p:%zu] at %zu:%zu, gives <%p:%zu>",
@@ -138,8 +139,15 @@ cork_managed_buffer_slice_offset(cork_slice_t *dest,
                                  cork_managed_buffer_t *buffer,
                                  size_t offset)
 {
-    return cork_managed_buffer_slice
-        (dest, buffer, offset, buffer->size - offset);
+    if (buffer == NULL) {
+        dest->managed_buffer = NULL;
+        dest->buf = NULL;
+        dest->size = 0;
+        return false;
+    } else {
+        return cork_managed_buffer_slice
+            (dest, buffer, offset, buffer->size - offset);
+    }
 }
 
 
@@ -148,7 +156,8 @@ cork_slice_slice(cork_slice_t *dest,
                  cork_slice_t *slice,
                  size_t offset, size_t length)
 {
-    if ((offset < slice->size) &&
+    if ((slice != NULL) &&
+        (offset < slice->size) &&
         ((offset + length) <= slice->size)) {
         /*
         DEBUG("Slicing <%p:%zu> at %zu:%zu, gives <%p:%zu>",
@@ -181,8 +190,15 @@ cork_slice_slice_offset(cork_slice_t *dest,
                         cork_slice_t *slice,
                         size_t offset)
 {
-    return cork_slice_slice
-        (dest, slice, offset, slice->size - offset);
+    if (slice == NULL) {
+        dest->managed_buffer = NULL;
+        dest->buf = NULL;
+        dest->size = 0;
+        return false;
+    } else {
+        return cork_slice_slice
+            (dest, slice, offset, slice->size - offset);
+    }
 }
 
 
