@@ -34,8 +34,14 @@
  * @ingroup ds
  */
 
+/**
+ * @defgroup buffer Resizable binary buffers
+ * @ingroup ds
+ */
+
 /*** include all of the parts ***/
 
+#include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/managed-buffer.h>
 
