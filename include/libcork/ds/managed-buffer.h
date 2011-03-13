@@ -120,7 +120,8 @@ struct cork_managed_buffer_t
  */
 
 cork_managed_buffer_t *
-cork_managed_buffer_new(cork_allocator_t *alloc, const void *buf, size_t size);
+cork_managed_buffer_new_copy(cork_allocator_t *alloc,
+                             const void *buf, size_t size);
 
 
 /**
@@ -149,9 +150,9 @@ cork_managed_buffer_new(cork_allocator_t *alloc, const void *buf, size_t size);
  */
 
 cork_managed_buffer_t *
-cork_managed_buffer_wrap(cork_allocator_t *alloc,
-                         const void *buf, size_t size,
-                         cork_managed_buffer_free_t free);
+cork_managed_buffer_new(cork_allocator_t *alloc,
+                        const void *buf, size_t size,
+                        cork_managed_buffer_free_t free);
 
 
 /**

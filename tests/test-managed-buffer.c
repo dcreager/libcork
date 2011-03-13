@@ -37,9 +37,9 @@ set_flag_on_free(cork_managed_buffer_t *mbuf)
 }
 
 static cork_managed_buffer_t *
-flag_buffer_wrap(cork_allocator_t *alloc,
-                 const void *buf, size_t size,
-                 bool *flag)
+flag_buffer_new(cork_allocator_t *alloc,
+                const void *buf, size_t size,
+                bool *flag)
 {
     struct flag_buffer  *fbuf = cork_new(alloc, struct flag_buffer);
     fbuf->parent.buf = buf;
@@ -68,7 +68,7 @@ START_TEST(test_managed_buffer_refcount)
      * verify that the free function got called.
      */
 
-    cork_managed_buffer_t  *pb0 = flag_buffer_wrap(alloc, NULL, 0, &flag);
+    cork_managed_buffer_t  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
     cork_managed_buffer_t  *pb1 = cork_managed_buffer_ref(pb0);
     cork_managed_buffer_t  *pb2 = cork_managed_buffer_ref(pb0);
     cork_managed_buffer_t  *pb3 = cork_managed_buffer_ref(pb2);
@@ -97,7 +97,7 @@ START_TEST(test_managed_buffer_bad_refcount)
      * and then verify that the free function didn't called.
      */
 
-    cork_managed_buffer_t  *pb0 = flag_buffer_wrap(alloc, NULL, 0, &flag);
+    cork_managed_buffer_t  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
     cork_managed_buffer_t  *pb1 = cork_managed_buffer_ref(pb0);
     cork_managed_buffer_t  *pb2 = cork_managed_buffer_ref(pb0);
     cork_managed_buffer_t  *pb3 = cork_managed_buffer_ref(pb2);
@@ -164,7 +164,7 @@ START_TEST(test_slice_refcount)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = flag_buffer_wrap(alloc, BUF, LEN, &flag);
+    cork_managed_buffer_t  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
 
     cork_slice_t  ps1;
     cork_slice_t  ps2;
@@ -202,7 +202,7 @@ START_TEST(test_slice_bad_refcount)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = flag_buffer_wrap(alloc, BUF, LEN, &flag);
+    cork_managed_buffer_t  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
 
     cork_slice_t  ps1;
     cork_slice_t  ps2;
@@ -244,7 +244,7 @@ START_TEST(test_slice_equals_01)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = cork_managed_buffer_new(alloc, BUF, LEN);
+    cork_managed_buffer_t  *pb = cork_managed_buffer_new_copy(alloc, BUF, LEN);
 
     cork_slice_t  ps1;
     cork_slice_t  ps2;
@@ -277,7 +277,7 @@ START_TEST(test_slice_equals_02)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = cork_managed_buffer_new(alloc, BUF, LEN);
+    cork_managed_buffer_t  *pb = cork_managed_buffer_new_copy(alloc, BUF, LEN);
 
     cork_slice_t  ps1;
     cork_slice_t  ps2;
