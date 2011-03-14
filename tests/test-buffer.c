@@ -18,6 +18,7 @@
 #include "libcork/core/types.h"
 #include "libcork/ds/buffer.h"
 #include "libcork/ds/managed-buffer.h"
+#include "libcork/ds/stream.h"
 
 
 /*-----------------------------------------------------------------------
@@ -160,6 +161,67 @@ START_TEST(test_buffer_slicing)
 END_TEST
 
 
+START_TEST(test_buffer_stream)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
+
+    static char  SRC1[] = "abcd";
+    size_t  SRC1_LEN = 4;
+    static char  SRC2[] = "efg";
+    size_t  SRC2_LEN = 3;
+
+    cork_buffer_t  buffer1;
+    cork_buffer_init(alloc, &buffer1);
+    cork_stream_consumer_t  *consumer =
+        cork_buffer_to_stream_consumer(&buffer1);
+
+    cork_managed_buffer_t  *src;
+    cork_slice_t  slice;
+
+    /* chunk #1 */
+
+    src = cork_managed_buffer_new_copy(alloc, SRC1, SRC1_LEN);
+    cork_managed_buffer_slice_offset(&slice, src, 0);
+    fail_unless(cork_stream_consumer_data(consumer, &slice, true),
+                "Cannot process first chunk");
+    cork_slice_finish(&slice);
+    cork_managed_buffer_unref(src);
+
+    /* chunk #2 */
+
+    src = cork_managed_buffer_new_copy(alloc, SRC2, SRC2_LEN);
+    cork_managed_buffer_slice_offset(&slice, src, 0);
+    fail_unless(cork_stream_consumer_data(consumer, &slice, false),
+                "Cannot process second chunk");
+    cork_slice_finish(&slice);
+    cork_managed_buffer_unref(src);
+
+    /* eof */
+
+    fail_unless(cork_stream_consumer_eof(consumer),
+                "Cannot process EOF");
+
+    /* check the result */
+
+    static char  EXPECTED[] = "abcdefg";
+    static size_t  EXPECTED_SIZE = 7;
+
+    cork_buffer_t  buffer2;
+    cork_buffer_init(alloc, &buffer2);
+    cork_buffer_set(&buffer2, EXPECTED, EXPECTED_SIZE);
+
+    fail_unless(cork_buffer_equal(&buffer1, &buffer2),
+                "Buffers should be equal: got %zu:%s, expected %zu:%s",
+                buffer1.size, buffer1.buf, buffer2.size, buffer2.buf);
+
+    cork_stream_consumer_free(consumer);
+    cork_buffer_done(&buffer1);
+    cork_buffer_done(&buffer2);
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -173,6 +235,7 @@ test_suite()
     tcase_add_test(tc_buffer, test_buffer);
     tcase_add_test(tc_buffer, test_buffer_append);
     tcase_add_test(tc_buffer, test_buffer_slicing);
+    tcase_add_test(tc_buffer, test_buffer_stream);
     suite_add_tcase(s, tc_buffer);
 
     return s;

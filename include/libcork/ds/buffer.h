@@ -23,6 +23,7 @@
 #include <libcork/core/types.h>
 
 #include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/stream.h>
 
 /**
  * @addtogroup buffer
@@ -363,6 +364,10 @@ cork_buffer_append_vprintf(cork_buffer_t *buffer,
     CORK_ATTR_PRINTF(2,0);
 
 
+/*-----------------------------------------------------------------------
+ * Buffer's managed buffer/slice implementation
+ */
+
 /**
  * @brief Create a new cork_managed_buffer_t to manage the contents of a
  * buffer.
@@ -418,6 +423,28 @@ cork_buffer_to_managed_buffer(cork_buffer_t *buffer);
 
 bool
 cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice);
+
+
+/*-----------------------------------------------------------------------
+ * Buffer's stream consumer implementation
+ */
+
+/**
+ * @brief Create a new stream consumer that appends the binary data into
+ * a @ref cork_buffer_t
+ *
+ * We do @b not take control of @a buffer.  You retain responsibility
+ * for freeing the buffer, though you must ensure that it remains
+ * allocated and valid for the entire lifetime of the stream consumer.
+ *
+ * @param [in] buffer  A buffer
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+cork_stream_consumer_t *
+cork_buffer_to_stream_consumer(cork_buffer_t *buffer);
 
 
 #endif /* LIBCORK_DS_BUFFER_H */

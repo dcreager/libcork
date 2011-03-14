@@ -25,17 +25,27 @@
 /*** order of groups in documentation ***/
 
 /**
- * @defgroup dllist Doubly-linked lists
+ * @defgroup binary Binary data
  * @ingroup ds
  */
 
 /**
  * @defgroup managed_buffer Managed binary buffers
- * @ingroup ds
+ * @ingroup binary
  */
 
 /**
  * @defgroup buffer Resizable binary buffers
+ * @ingroup binary
+ */
+
+/**
+ * @defgroup stream Stream processing
+ * @ingroup binary
+ */
+
+/**
+ * @defgroup dllist Doubly-linked lists
  * @ingroup ds
  */
 
@@ -44,5 +54,6 @@
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/stream.h>
 
 #endif /* LIBCORK_DS_H */

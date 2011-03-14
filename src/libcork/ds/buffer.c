@@ -16,6 +16,7 @@
 #include "libcork/core/types.h"
 #include "libcork/ds/buffer.h"
 #include "libcork/ds/managed-buffer.h"
+#include "libcork/ds/stream.h"
 
 
 void
@@ -310,4 +311,52 @@ cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice)
     }
 
     return result;
+}
+
+
+typedef struct cork_buffer__stream_consumer_t {
+    cork_stream_consumer_t  consumer;
+    cork_buffer_t  *buffer;
+} cork_buffer__stream_consumer_t;
+
+static bool
+cork_buffer_stream_consumer_data(cork_stream_consumer_t *consumer,
+                                 cork_slice_t *slice, bool is_first_chunk)
+{
+    cork_buffer__stream_consumer_t  *bconsumer =
+        cork_container_of(consumer, cork_buffer__stream_consumer_t, consumer);
+
+    if (is_first_chunk) {
+        cork_buffer_clear(bconsumer->buffer);
+    }
+
+    return cork_buffer_append(bconsumer->buffer, slice->buf, slice->size);
+}
+
+static bool
+cork_buffer_stream_consumer_eof(cork_stream_consumer_t *consumer)
+{
+    return true;
+}
+
+static void
+cork_buffer_stream_consumer_free(cork_stream_consumer_t *consumer)
+{
+    cork_buffer__stream_consumer_t  *bconsumer =
+        cork_container_of(consumer, cork_buffer__stream_consumer_t, consumer);
+    cork_allocator_t  *alloc = bconsumer->buffer->alloc;
+
+    cork_delete(alloc, cork_buffer__stream_consumer_t, bconsumer);
+}
+
+cork_stream_consumer_t *
+cork_buffer_to_stream_consumer(cork_buffer_t *buffer)
+{
+    cork_buffer__stream_consumer_t  *bconsumer =
+        cork_new(buffer->alloc, cork_buffer__stream_consumer_t);
+    bconsumer->consumer.data = cork_buffer_stream_consumer_data;
+    bconsumer->consumer.eof = cork_buffer_stream_consumer_eof;
+    bconsumer->consumer.free = cork_buffer_stream_consumer_free;
+    bconsumer->buffer = buffer;
+    return &bconsumer->consumer;
 }
