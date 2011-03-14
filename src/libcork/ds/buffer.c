@@ -105,6 +105,13 @@ cork_buffer_ensure_size(cork_buffer_t *buffer, size_t desired_size)
 }
 
 
+void
+cork_buffer_clear(cork_buffer_t *buffer)
+{
+    buffer->size = 0;
+}
+
+
 bool
 cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length)
 {
@@ -120,6 +127,20 @@ cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length)
 
 
 bool
+cork_buffer_append(cork_buffer_t *buffer, const void *src, size_t length)
+{
+    if (!cork_buffer_ensure_size(buffer, buffer->size + length + 1)) {
+        return false;
+    }
+
+    memcpy(buffer->buf + buffer->size, src, length);
+    buffer->size += length;
+    ((char *) buffer->buf)[buffer->size] = '\0';
+    return true;
+}
+
+
+bool
 cork_buffer_set_string(cork_buffer_t *buffer, const char *str)
 {
     size_t  length = strlen(str);
@@ -130,6 +151,34 @@ cork_buffer_set_string(cork_buffer_t *buffer, const char *str)
 
     memcpy(buffer->buf, str, length+1);
     buffer->size = length+1;
+    return true;
+}
+
+
+bool
+cork_buffer_append_string(cork_buffer_t *buffer, const char *str)
+{
+    size_t  new_size;
+    size_t  dest_offset;
+    size_t  length = strlen(str);
+
+    if (((char *) buffer->buf)[buffer->size-1] == '\0') {
+        /*
+         * Overwrite the existing NUL-terminator
+         */
+        new_size = buffer->size + length;
+        dest_offset = buffer->size - 1;
+    } else {
+        new_size = buffer->size + length + 1;
+        dest_offset = buffer->size;
+    }
+
+    if (!cork_buffer_ensure_size(buffer, new_size)) {
+        return false;
+    }
+
+    memcpy(buffer->buf + dest_offset, str, length+1);
+    buffer->size = new_size;
     return true;
 }
 

@@ -165,6 +165,21 @@ cork_buffer_ensure_size(cork_buffer_t *buffer, size_t desired_size);
 
 
 /**
+ * @brief Clears a buffer.
+ * @param [in] buffer  A buffer
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+void
+cork_buffer_clear(cork_buffer_t *buffer);
+
+
+/*-----------------------------------------------------------------------
+ * A whole bunch of methods for adding data
+ */
+
+/**
  * @brief Copy the contents of the given byte array into a buffer.
  *
  * The buffer's internal storage is reallocated, if necessary, to ensure
@@ -189,6 +204,30 @@ cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length);
 
 
 /**
+ * @brief Append the contents of the given byte array into a buffer.
+ *
+ * The buffer's internal storage is reallocated, if necessary, to ensure
+ * that it's large enough to hold the contents of @a src.
+ *
+ * We will add a NUL byte after the contents of @a src in memory, but
+ * this NUL byte won't be included in the @ref size of the buffer.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] src  An external byte array to append
+ * @param [in] length  The size of @a src
+ *
+ * @returns @c true if the array is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_append(cork_buffer_t *buffer, const void *src, size_t length);
+
+
+/**
  * @brief Copy the contents of a C string into a buffer.
  *
  * The buffer's internal storage is reallocated, if necessary, to ensure
@@ -206,6 +245,26 @@ cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length);
 
 bool
 cork_buffer_set_string(cork_buffer_t *buffer, const char *str);
+
+
+/**
+ * @brief Append the contents of a C string into a buffer.
+ *
+ * The buffer's internal storage is reallocated, if necessary, to ensure
+ * that it's large enough to hold the contents of @a str.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] str  An external string to append
+ *
+ * @returns @c true if the string is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_append_string(cork_buffer_t *buffer, const char *str);
 
 
 /**
