@@ -17,6 +17,7 @@
  */
 
 
+#include <libcork/config.h>
 #include <libcork/core/types.h>
 
 /**
@@ -96,64 +97,36 @@
  * @since 0.0-dev
  */
 
-/*
- * Find a header file that can tell us the endianness of this platform.
- */
 
 /*** A cheat for the documentation ***/
 
 #if defined(CORK_DOCUMENTATION)
 #define CORK_HOST_ENDIANNESS  CORK_LITTLE_ENDIAN
-
-
-/*** Linux ***/
-
-#elif defined(__linux)
-#include <endian.h>
-
-#if __BYTE_ORDER == __BIG_ENDIAN
-#define CORK_HOST_ENDIANNESS  CORK_BIG_ENDIAN
-#elif __BYTE_ORDER == __LITTLE_ENDIAN
-#define CORK_HOST_ENDIANNESS  CORK_LITTLE_ENDIAN
-#else
-#error "Cannot determine system endianness"
-#endif
-
-/*** Mac OS X ***/
-
-#elif defined(__APPLE__) && defined(__MACH__)
-
-#include <machine/endian.h>
-
-#if BYTE_ORDER == BIG_ENDIAN
-#define CORK_HOST_ENDIANNESS  CORK_BIG_ENDIAN
-#elif BYTE_ORDER == LITTLE_ENDIAN
-#define CORK_HOST_ENDIANNESS  CORK_LITTLE_ENDIAN
-#else
-#error "Cannot determine system endianness"
-#endif
-
-/*** End of platforms ***/
-
-#endif /* endianness detection */
-
-
-#if CORK_HOST_ENDIANNESS == CORK_BIG_ENDIAN
-#define CORK_OTHER_ENDIANNESS  CORK_LITTLE_ENDIAN
-#define CORK_HOST_ENDIANNESS_NAME   "big"
-#define CORK_OTHER_ENDIANNESS_NAME  "little"
-
-#elif CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
 #define CORK_OTHER_ENDIANNESS  CORK_BIG_ENDIAN
 #define CORK_HOST_ENDIANNESS_NAME   "little"
 #define CORK_OTHER_ENDIANNESS_NAME  "big"
 
+#elif CORK_CONFIG_IS_BIG_ENDIAN
+#define CORK_HOST_ENDIANNESS  CORK_BIG_ENDIAN
+#define CORK_OTHER_ENDIANNESS  CORK_LITTLE_ENDIAN
+#define CORK_HOST_ENDIANNESS_NAME   "big"
+#define CORK_OTHER_ENDIANNESS_NAME  "little"
+
+#elif CORK_CONFIG_IS_LITTLE_ENDIAN
+#define CORK_HOST_ENDIANNESS  CORK_LITTLE_ENDIAN
+#define CORK_OTHER_ENDIANNESS  CORK_BIG_ENDIAN
+#define CORK_HOST_ENDIANNESS_NAME   "little"
+#define CORK_OTHER_ENDIANNESS_NAME  "big"
+
+#else
+#error "Unknown endianness"
 #endif
 
 /* end of byteswap group */
 /**
  * @}
  */
+
 
 /*---------------------------------------------------------------------*/
 /**
