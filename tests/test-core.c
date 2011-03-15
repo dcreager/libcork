@@ -17,6 +17,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/byte-order.h"
 #include "libcork/core/hash.h"
+#include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
 
 
@@ -293,6 +294,140 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * IP addresses
+ */
+
+START_TEST(test_ipv4_address)
+{
+#define ROUND_TRIP(str) \
+    { \
+        cork_ipv4_t  addr; \
+        fail_unless(cork_ipv4_init(&addr, str), \
+                    "Could not initialize IPv4 address from %s", \
+                    str); \
+        char  actual[CORK_IPV4_STRING_LENGTH]; \
+        cork_ipv4_to_raw_string(&addr, actual); \
+        fail_unless(strcmp(actual, str) == 0, \
+                    "Unexpected string representation: " \
+                    "got %s, expected %s", \
+                    actual, str); \
+    }
+
+#define BAD(str) \
+    { \
+        cork_ipv4_t  addr; \
+        fail_if(cork_ipv4_init(&addr, str), \
+                "Shouldn't be able to initialize IPv4 address from %s", \
+                str); \
+    }
+
+    ROUND_TRIP("192.168.1.100");
+    BAD("192.168.0.");
+    BAD("fe80::1");
+    BAD("::ffff:192.168.1.100");
+    BAD("abcd");
+
+#undef ROUND_TRIP
+#undef BAD
+}
+END_TEST
+
+
+START_TEST(test_ipv6_address)
+{
+#define ROUND_TRIP(str) \
+    { \
+        cork_ipv6_t  addr; \
+        fail_unless(cork_ipv6_init(&addr, str), \
+                    "Could not initialize IPv6 address from %s", \
+                    str); \
+        char  actual[CORK_IPV6_STRING_LENGTH]; \
+        cork_ipv6_to_raw_string(&addr, actual); \
+        fail_unless(strcmp(actual, str) == 0, \
+                    "Unexpected string representation: " \
+                    "got %s, expected %s", \
+                    actual, str); \
+    }
+
+#define BAD(str) \
+    { \
+        cork_ipv6_t  addr; \
+        fail_if(cork_ipv6_init(&addr, str), \
+                "Shouldn't be able to initialize IPv6 address from %s", \
+                str); \
+    }
+
+    ROUND_TRIP("fe80::1");
+    ROUND_TRIP("::ffff:192.168.1.100");
+    BAD("fe80:");
+    BAD("fe80::1::2");
+    BAD("192.168.1.100");
+    BAD("abcd");
+
+#undef ROUND_TRIP
+#undef BAD
+}
+END_TEST
+
+
+START_TEST(test_ip_address)
+{
+    cork_ip_t  addr;
+
+#define ROUND_TRIP(str) \
+    { \
+        fail_unless(cork_ip_init(&addr, str), \
+                    "Could not initialize IP address from %s", \
+                    str); \
+        char  actual[CORK_IP_STRING_LENGTH]; \
+        cork_ip_to_raw_string(&addr, actual); \
+        fail_unless(strcmp(actual, str) == 0, \
+                    "Unexpected string representation: " \
+                    "got %s, expected %s", \
+                    actual, str); \
+    }
+
+#define BAD(str) \
+    { \
+        fail_if(cork_ip_init(&addr, str), \
+                "Shouldn't be able to initialize IP address from %s", \
+                str); \
+    }
+
+    ROUND_TRIP("192.168.1.100");
+    ROUND_TRIP("fe80::1");
+    ROUND_TRIP("::ffff:192.168.1.100");
+    BAD("192.168.0.");
+    BAD("fe80:");
+    BAD("fe80::1::2");
+    BAD("abcd");
+
+#undef ROUND_TRIP
+#undef BAD
+
+    cork_ipv4_t  addr4;
+    cork_ipv6_t  addr6;
+
+    cork_ip_init(&addr, "192.168.1.1");
+    cork_ipv4_init(&addr4, "192.168.1.1");
+    fail_unless(addr.version == 4,
+                "Unexpected IP address version (expected 4, got %u)",
+                addr.version);
+    fail_unless(cork_ipv4_equal(&addr.ip.v4, &addr4),
+                "IP addresses should be equal");
+
+    cork_ip_init(&addr, "fe80::1");
+    cork_ipv6_init(&addr6, "fe80::1");
+    fail_unless(addr.version == 6,
+                "Unexpected IP address version (expected 6, got %u)",
+                addr.version);
+    fail_unless(cork_ipv6_equal(&addr.ip.v6, &addr6),
+                "IP addresses should be equal");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -301,16 +436,31 @@ test_suite()
 {
     Suite  *s = suite_create("core");
 
-    TCase  *tc_core = tcase_create("core");
-    tcase_add_test(tc_core, test_bool);
-    tcase_add_test(tc_core, test_int_types);
-    tcase_add_test(tc_core, test_int_sizeof);
-    tcase_add_test(tc_core, test_endianness);
-    tcase_add_test(tc_core, test_hash);
-    tcase_add_test(tc_core, test_default_allocator);
-    tcase_add_test(tc_core, test_debug_allocator);
-    tcase_add_test(tc_core, test_halloc);
-    suite_add_tcase(s, tc_core);
+    TCase  *tc_types = tcase_create("types");
+    tcase_add_test(tc_types, test_bool);
+    tcase_add_test(tc_types, test_int_types);
+    tcase_add_test(tc_types, test_int_sizeof);
+    suite_add_tcase(s, tc_types);
+
+    TCase  *tc_endianness = tcase_create("endianness");
+    tcase_add_test(tc_endianness, test_endianness);
+    suite_add_tcase(s, tc_endianness);
+
+    TCase  *tc_hash = tcase_create("hash");
+    tcase_add_test(tc_hash, test_hash);
+    suite_add_tcase(s, tc_hash);
+
+    TCase  *tc_allocation = tcase_create("allocator");
+    tcase_add_test(tc_allocation, test_default_allocator);
+    tcase_add_test(tc_allocation, test_debug_allocator);
+    tcase_add_test(tc_allocation, test_halloc);
+    suite_add_tcase(s, tc_allocation);
+
+    TCase  *tc_addresses = tcase_create("net-addresses");
+    tcase_add_test(tc_addresses, test_ipv4_address);
+    tcase_add_test(tc_addresses, test_ipv6_address);
+    tcase_add_test(tc_addresses, test_ip_address);
+    suite_add_tcase(s, tc_addresses);
 
     return s;
 }
