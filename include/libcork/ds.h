@@ -54,10 +54,16 @@
  * @ingroup ds
  */
 
+/**
+ * @defgroup hash_table Hash tables
+ * @ingroup ds
+ */
+
 /*** include all of the parts ***/
 
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
+#include <libcork/ds/hash-table.h>
 #include <libcork/ds/managed-buffer.h>
 #include <libcork/ds/slice.h>
 #include <libcork/ds/stream.h>
