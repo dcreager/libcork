@@ -36,6 +36,13 @@
 
 /*** include all of the parts ***/
 
+/**
+ * @defgroup compiler_attrs Compiler attributes
+ * @ingroup core
+ */
+
+
+#include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
 #include <libcork/core/types.h>
 

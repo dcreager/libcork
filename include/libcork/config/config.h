@@ -98,6 +98,20 @@
 #endif
 
 
+/*-----------------------------------------------------------------------
+ * Compiler attributes
+ */
+
+/**
+ * @brief Whether the GCC compiler attributes are available.
+ * @since 0.0-dev
+ */
+
+#if defined(CORK_DOCUMENTATION)
+#define CORK_CONFIG_HAVE_GCC_ATTRIBUTES  0
+#endif
+
+
 /* end of config group */
 /**
  * @}
@@ -129,6 +143,15 @@
 #include <libcork/config/macosx.h>
 
 #endif  /* platforms */
+
+
+/**** COMPILERS ****/
+
+#if defined(__GNUC__)
+/* Do some GCC-specific autodetection. */
+#include <libcork/config/gcc.h>
+
+#endif  /* compilers */
 
 
 #endif  /* autodetect or not */
