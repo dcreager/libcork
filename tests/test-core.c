@@ -16,6 +16,7 @@
 
 #include "libcork/core/allocator.h"
 #include "libcork/core/byte-order.h"
+#include "libcork/core/error.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
@@ -302,30 +303,43 @@ START_TEST(test_ipv4_address)
 #define ROUND_TRIP(str) \
     { \
         cork_ipv4_t  addr; \
-        fail_unless(cork_ipv4_init(&addr, str), \
-                    "Could not initialize IPv4 address from %s", \
-                    str); \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        bool result = cork_ipv4_init(&addr, str, &error); \
+        fail_unless(result, \
+                    "Could not initialize IPv4 address from %s: %s", \
+                    str, cork_error_message(&error)); \
         char  actual[CORK_IPV4_STRING_LENGTH]; \
         cork_ipv4_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
                     "Unexpected string representation: " \
                     "got %s, expected %s", \
                     actual, str); \
+        \
+        cork_ipv4_t  addr2; \
+        cork_ipv4_init(&addr2, str, NULL); \
+        fail_unless(cork_ipv4_equal(&addr, &addr2), \
+                    "IPv4 cork_eq_t instances should be equal"); \
     }
 
 #define BAD(str) \
     { \
         cork_ipv4_t  addr; \
-        fail_if(cork_ipv4_init(&addr, str), \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        fail_if(cork_ipv4_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IPv4 address from %s", \
                 str); \
+        cork_error_done(&error); \
     }
+
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("192.168.1.100");
     BAD("192.168.0.");
     BAD("fe80::1");
     BAD("::ffff:192.168.1.100");
     BAD("abcd");
+
+    cork_allocator_free(alloc);
 
 #undef ROUND_TRIP
 #undef BAD
@@ -338,24 +352,35 @@ START_TEST(test_ipv6_address)
 #define ROUND_TRIP(str) \
     { \
         cork_ipv6_t  addr; \
-        fail_unless(cork_ipv6_init(&addr, str), \
-                    "Could not initialize IPv6 address from %s", \
-                    str); \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        bool result = cork_ipv6_init(&addr, str, &error); \
+        fail_unless(result, \
+                    "Could not initialize IPv6 address from %s: %s", \
+                    str, cork_error_message(&error)); \
         char  actual[CORK_IPV6_STRING_LENGTH]; \
         cork_ipv6_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
                     "Unexpected string representation: " \
                     "got %s, expected %s", \
                     actual, str); \
+        \
+        cork_ipv6_t  addr2; \
+        cork_ipv6_init(&addr2, str, NULL); \
+        fail_unless(cork_ipv6_equal(&addr, &addr2), \
+                    "IPv6 cork_eq_t instances should be equal"); \
     }
 
 #define BAD(str) \
     { \
         cork_ipv6_t  addr; \
-        fail_if(cork_ipv6_init(&addr, str), \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        fail_if(cork_ipv6_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IPv6 address from %s", \
                 str); \
+        cork_error_done(&error); \
     }
+
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("fe80::1");
     ROUND_TRIP("::ffff:192.168.1.100");
@@ -363,6 +388,8 @@ START_TEST(test_ipv6_address)
     BAD("fe80::1::2");
     BAD("192.168.1.100");
     BAD("abcd");
+
+    cork_allocator_free(alloc);
 
 #undef ROUND_TRIP
 #undef BAD
@@ -376,23 +403,36 @@ START_TEST(test_ip_address)
 
 #define ROUND_TRIP(str) \
     { \
-        fail_unless(cork_ip_init(&addr, str), \
-                    "Could not initialize IP address from %s", \
-                    str); \
+        cork_ip_t  addr; \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        bool result = cork_ip_init(&addr, str, &error); \
+        fail_unless(result, \
+                    "Could not initialize IP address from %s: %s", \
+                    str, cork_error_message(&error)); \
         char  actual[CORK_IP_STRING_LENGTH]; \
         cork_ip_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
                     "Unexpected string representation: " \
                     "got %s, expected %s", \
                     actual, str); \
+        \
+        cork_ip_t  addr2; \
+        cork_ip_init(&addr2, str, NULL); \
+        fail_unless(cork_ip_equal(&addr, &addr2), \
+                    "IP cork_eq_t instances should be equal"); \
     }
 
 #define BAD(str) \
     { \
-        fail_if(cork_ip_init(&addr, str), \
+        cork_ip_t  addr; \
+        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        fail_if(cork_ip_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IP address from %s", \
                 str); \
+        cork_error_done(&error); \
     }
+
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("192.168.1.100");
     ROUND_TRIP("fe80::1");
@@ -408,21 +448,23 @@ START_TEST(test_ip_address)
     cork_ipv4_t  addr4;
     cork_ipv6_t  addr6;
 
-    cork_ip_init(&addr, "192.168.1.1");
-    cork_ipv4_init(&addr4, "192.168.1.1");
+    cork_ip_init(&addr, "192.168.1.1", NULL);
+    cork_ipv4_init(&addr4, "192.168.1.1", NULL);
     fail_unless(addr.version == 4,
                 "Unexpected IP address version (expected 4, got %u)",
                 addr.version);
     fail_unless(cork_ipv4_equal(&addr.ip.v4, &addr4),
                 "IP addresses should be equal");
 
-    cork_ip_init(&addr, "fe80::1");
-    cork_ipv6_init(&addr6, "fe80::1");
+    cork_ip_init(&addr, "fe80::1", NULL);
+    cork_ipv6_init(&addr6, "fe80::1", NULL);
     fail_unless(addr.version == 6,
                 "Unexpected IP address version (expected 6, got %u)",
                 addr.version);
     fail_unless(cork_ipv6_equal(&addr.ip.v6, &addr6),
                 "IP addresses should be equal");
+
+    cork_allocator_free(alloc);
 }
 END_TEST
 

@@ -12,9 +12,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libcork/core/error.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
 
+
+/*-----------------------------------------------------------------------
+ * IP addresses
+ */
 
 /*** IPv4 ***/
 
@@ -26,9 +31,27 @@ cork_ipv4_copy(cork_ipv4_t *addr, const void *src)
 }
 
 bool
-cork_ipv4_init(cork_ipv4_t *addr, const char *str)
+cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error)
 {
-    return (inet_pton(AF_INET, str, addr) == 1);
+    int  rc = inet_pton(AF_INET, str, addr);
+
+    if (rc == 1) {
+        /* successful parse */
+        return true;
+    } else if (rc == 0) {
+        /* parse error */
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_PARSE_ERROR,
+                       "Invalid IPv4 address");
+        return false;
+    } else {
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
+                       "Unknown error while parsing IPv4 address");
+        return false;
+    }
 }
 
 bool
@@ -54,9 +77,27 @@ cork_ipv6_copy(cork_ipv6_t *addr, const void *src)
 }
 
 bool
-cork_ipv6_init(cork_ipv6_t *addr, const char *str)
+cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error)
 {
-    return (inet_pton(AF_INET6, str, addr) == 1);
+    int  rc = inet_pton(AF_INET6, str, addr);
+
+    if (rc == 1) {
+        /* successful parse */
+        return true;
+    } else if (rc == 0) {
+        /* parse error */
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_PARSE_ERROR,
+                       "Invalid IPv6 address");
+        return false;
+    } else {
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
+                       "Unknown error while parsing IPv6 address");
+        return false;
+    }
 }
 
 bool
@@ -168,18 +209,49 @@ cork_ip_from_ipv6(cork_ip_t *addr, const void *src)
 }
 
 bool
-cork_ip_init(cork_ip_t *addr, const char *str)
+cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
 {
-    if (cork_ipv4_init(&addr->ip.v4, str)) {
+    int  rc;
+
+    /* Try IPv4 first */
+
+    rc = inet_pton(AF_INET, str, &addr->ip.v4);
+
+    if (rc == 1) {
+        /* successful parse */
         addr->version = 4;
         return true;
+    } else if (rc != 0) {
+        /* non-parse error */
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
+                       "Unknown error while parsing IP address");
+        return false;
     }
 
-    if (cork_ipv6_init(&addr->ip.v6, str)) {
+    /* Then try IPv6 */
+
+    rc = inet_pton(AF_INET6, str, &addr->ip.v6);
+
+    if (rc == 1) {
+        /* successful parse */
         addr->version = 6;
         return true;
+    } else if (rc != 0) {
+        /* non-parse error */
+        cork_error_set(error,
+                       CORK_NET_ADDRESS_ERROR,
+                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
+                       "Unknown error while parsing IP address");
+        return false;
     }
 
+    /* Parse error for both address types */
+    cork_error_set(error,
+                   CORK_NET_ADDRESS_ERROR,
+                   CORK_NET_ADDRESS_PARSE_ERROR,
+                   "Invalid IP address");
     return false;
 }
 

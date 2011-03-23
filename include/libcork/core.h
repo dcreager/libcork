@@ -45,6 +45,11 @@
  */
 
 /**
+ * @defgroup error Error conditions
+ * @ingroup core
+ */
+
+/**
  * @defgroup hier_alloc Hierarchical allocation
  * @ingroup core
  */
@@ -60,6 +65,7 @@
 #include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
+#include <libcork/core/error.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/net-addresses.h>
 #include <libcork/core/types.h>

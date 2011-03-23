@@ -96,6 +96,20 @@ void
 cork_buffer_init(cork_allocator_t *alloc, cork_buffer_t *buffer);
 
 /**
+ * @brief A static initializer for a buffer allocated on the stack.
+ * @param [in] alloc  A custom allocator
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+#if CORK_DOCUMENTATION
+cork_buffer_t
+CORK_BUFFER_INIT(cork_allocator_t *alloc);
+#else
+#define CORK_BUFFER_INIT(alloc)  { NULL, 0, 0, (alloc) }
+#endif
+
+/**
  * @brief Allocate and initialize a new buffer.
  * @param [in] alloc  A custom allocator
  * @return A new buffer, or @c NULL if the buffer couldn't be allocated.

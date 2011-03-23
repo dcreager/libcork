@@ -16,6 +16,7 @@
  * @brief Implementation of the @ref net_addresses submodule
  */
 
+#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
 /**
@@ -29,6 +30,30 @@
  *
  * @{
  */
+
+/*-----------------------------------------------------------------------
+ * Error handling
+ */
+
+/**
+ * @brief The error class for errors defined in this file
+ * @since 0.1-dev
+ */
+/* hash of "libcork/core/net-addresses.h" */
+#define CORK_NET_ADDRESS_ERROR  0x1f76fedf
+
+/**
+ * @brief Error codes for the errors defined in this file
+ * @since 0.1-dev
+ */
+enum cork_net_address_error_t
+{
+    /** @brief An unknown error while parsing a network address. */
+    CORK_NET_ADDRESS_UNKNOWN_ERROR,
+    /** @brief A parse error while parsing a network address. */
+    CORK_NET_ADDRESS_PARSE_ERROR
+};
+
 
 /*-----------------------------------------------------------------------
  * IP addresses
@@ -130,15 +155,20 @@ cork_ipv4_copy(cork_ipv4_t *addr, const void *src);
 
 /**
  * @brief Initialize an IPv4 address from a string.
+ *
+ * If the string doesn't represent a valid IPv4 address, we will leave
+ * @c addr unchanged, return @c NULL, and fill in @a error.
+ *
  * @param [in] addr  The address to initialize
  * @param [in] str  The string to parse
+ * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
  * @public @memberof cork_ipv4_t
  * @since 0.1-dev
  */
 
 bool
-cork_ipv4_init(cork_ipv4_t *addr, const char *str);
+cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error);
 
 /**
  * @brief Check two IPv4 addresses for equality.
@@ -185,15 +215,20 @@ cork_ipv6_copy(cork_ipv6_t *addr, const void *src);
 
 /**
  * @brief Initialize an IPv6 address from a string.
+ *
+ * If the string doesn't represent a valid IPv4 address, we will leave
+ * @c addr unchanged, return @c NULL, and fill in @a error.
+ *
  * @param [in] addr  The address to initialize
  * @param [in] str  The string to parse
+ * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
  * @public @memberof cork_ipv6_t
  * @since 0.1-dev
  */
 
 bool
-cork_ipv6_init(cork_ipv6_t *addr, const char *str);
+cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error);
 
 /**
  * @brief Check two IPv6 addresses for equality.
@@ -257,15 +292,20 @@ cork_ip_from_ipv6(cork_ip_t *addr, const void *src);
 
 /**
  * @brief Initialize a generic IP address from a string.
+ *
+ * If the string doesn't represent a valid IPv4 address, we will leave
+ * @c addr unchanged, return @c NULL, and fill in @a error.
+ *
  * @param [in] addr  The address to initialize
  * @param [in] str  The string to parse
+ * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
  * @public @memberof cork_ip_t
  * @since 0.1-dev
  */
 
 bool
-cork_ip_init(cork_ip_t *addr, const char *str);
+cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error);
 
 /**
  * @brief Check two generic IP addresses for equality.
