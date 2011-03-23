@@ -17,6 +17,7 @@
  */
 
 #include <libcork/core/allocator.h>
+#include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/buffer.h>
 
@@ -188,7 +189,10 @@ cork_error_done(cork_error_t *error);
  * @param [out] error  The error condition to fill in
  * @param [in] error_class  The class of the error
  * @param [in] error_code  The code of the error
- * @param [in] message  The detailed message for the error
+ * @param [in] format  A <tt>printf</tt>-life format string for the
+ * error's detailed message
+ * @param [in] ...  Any additional parameters needed by the format
+ * string
  * @public @memberof cork_error_t
  * @since 0.1-dev
  */
@@ -197,7 +201,8 @@ void
 cork_error_set(cork_error_t *error,
                cork_error_class_t error_class,
                cork_error_code_t error_code,
-               const char *message);
+               const char *format, ...)
+    CORK_ATTR_PRINTF(4,5);
 
 /**
  * @brief Clear an error condition instance.

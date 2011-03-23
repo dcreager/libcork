@@ -47,8 +47,19 @@ START_TEST(test_buffer)
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2->size, buffer2->buf);
 
+    cork_buffer_t  *buffer3 = cork_buffer_new(alloc);
+    fail_if(buffer3 == NULL,
+            "Could not allocate buffer");
+    fail_unless(cork_buffer_printf(buffer3, "Here is %s text.", "some"),
+                "Could not format into buffer");
+
+    fail_unless(cork_buffer_equal(&buffer1, buffer3),
+                "Buffers should be equal: got %zu:%s, expected %zu:%s",
+                buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
+
     cork_buffer_done(&buffer1);
     cork_buffer_free(buffer2);
+    cork_buffer_free(buffer3);
     cork_allocator_free(alloc);
 }
 END_TEST
@@ -100,8 +111,19 @@ START_TEST(test_buffer_append)
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2.size, buffer2.buf);
 
+    cork_buffer_t  *buffer3 = cork_buffer_new(alloc);
+    cork_buffer_set(buffer3, SRC1, SRC1_LEN);
+    fail_unless(cork_buffer_append_printf(buffer3, "%s%s%s",
+                                          SRC2, SRC3, SRC4),
+                "Could not append formatted string into buffer");
+
+    fail_unless(cork_buffer_equal(&buffer1, buffer3),
+                "Buffers should be equal: got %zu:%s, expected %zu:%s",
+                buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
+
     cork_buffer_done(&buffer1);
     cork_buffer_done(&buffer2);
+    cork_buffer_free(buffer3);
     cork_allocator_free(alloc);
 }
 END_TEST

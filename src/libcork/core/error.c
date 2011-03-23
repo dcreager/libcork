@@ -8,6 +8,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include <stdarg.h>
 #include <string.h>
 
 #include <libcork/core/allocator.h>
@@ -38,13 +39,16 @@ void
 cork_error_set(cork_error_t *error,
                cork_error_class_t error_class,
                cork_error_code_t error_code,
-               const char *message)
+               const char *format, ...)
 {
     if (error != NULL) {
         /* TODO: Assert that there isn't already an error */
         error->error_class = error_class;
         error->error_code = error_code;
-        cork_buffer_set_string(&error->message, message);
+        va_list  args;
+        va_start(args, format);
+        cork_buffer_vprintf(&error->message, format, args);
+        va_end(args);
     }
 }
 

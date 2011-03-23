@@ -16,7 +16,10 @@
  * @brief Implementation of the @ref buffer submodule
  */
 
+#include <stdarg.h>
+
 #include <libcork/core/allocator.h>
+#include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
 #include <libcork/ds/managed-buffer.h>
@@ -279,6 +282,85 @@ cork_buffer_set_string(cork_buffer_t *buffer, const char *str);
 
 bool
 cork_buffer_append_string(cork_buffer_t *buffer, const char *str);
+
+
+/**
+ * @brief Place a formatted string into a buffer.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] format  A <tt>printf</tt>-like format string
+ * @param [in] ...  Any additional parameters needed by the format
+ * string
+ *
+ * @returns @c true if the string is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
+    CORK_ATTR_PRINTF(2,3);
+
+/**
+ * @brief Place a formatted string into a buffer.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] format  A <tt>printf</tt>-like format string
+ * @param [in] args  Any additional parameters needed by the format
+ * string
+ *
+ * @returns @c true if the string is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_vprintf(cork_buffer_t *buffer, const char *format, va_list args)
+    CORK_ATTR_PRINTF(2,0);
+
+
+/**
+ * @brief Append a formatted string into a buffer.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] format  A <tt>printf</tt>-like format string
+ * @param [in] ...  Any additional parameters needed by the format
+ * string
+ *
+ * @returns @c true if the string is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_append_printf(cork_buffer_t *buffer, const char *format, ...)
+    CORK_ATTR_PRINTF(2,3);
+
+/**
+ * @brief Append a formatted string into a buffer.
+ *
+ * @param [in] buffer  A buffer
+ * @param [in] format  A <tt>printf</tt>-like format string
+ * @param [in] args  Any additional parameters needed by the format
+ * string
+ *
+ * @returns @c true if the string is successfully copied into the buffer;
+ * @c false otherwise.
+ *
+ * @public @memberof cork_buffer_t
+ * @since 0.1-dev
+ */
+
+bool
+cork_buffer_append_vprintf(cork_buffer_t *buffer,
+                           const char *format, va_list args)
+    CORK_ATTR_PRINTF(2,0);
 
 
 /**

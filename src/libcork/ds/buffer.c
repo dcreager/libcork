@@ -8,6 +8,8 @@
  * ----------------------------------------------------------------------
  */
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "libcork/core/allocator.h"
@@ -162,7 +164,8 @@ cork_buffer_append_string(cork_buffer_t *buffer, const char *str)
     size_t  dest_offset;
     size_t  length = strlen(str);
 
-    if (((char *) buffer->buf)[buffer->size-1] == '\0') {
+    if ((buffer->size > 0) &&
+        ((char *) buffer->buf)[buffer->size-1] == '\0') {
         /*
          * Overwrite the existing NUL-terminator
          */
@@ -180,6 +183,70 @@ cork_buffer_append_string(cork_buffer_t *buffer, const char *str)
     memcpy(buffer->buf + dest_offset, str, length+1);
     buffer->size = new_size;
     return true;
+}
+
+
+bool
+cork_buffer_append_vprintf(cork_buffer_t *buffer,
+                           const char *format, va_list args)
+{
+    va_list  args1;
+    va_copy(args1, args);
+    size_t  formatted_length = vsnprintf(NULL, 0, format, args1);
+    va_end(args1);
+
+    size_t  new_size;
+    size_t  dest_offset;
+
+    if ((buffer->size > 0) &&
+        ((char *) buffer->buf)[buffer->size-1] == '\0') {
+        /*
+         * Overwrite the existing NUL-terminator
+         */
+        new_size = buffer->size + formatted_length;
+        dest_offset = buffer->size - 1;
+    } else {
+        new_size = buffer->size + formatted_length + 1;
+        dest_offset = buffer->size;
+    }
+
+    if (!cork_buffer_ensure_size(buffer, new_size)) {
+        return false;
+    }
+
+    vsnprintf(buffer->buf + dest_offset, formatted_length+1, format, args);
+    buffer->size = new_size;
+    return true;
+}
+
+
+bool
+cork_buffer_vprintf(cork_buffer_t *buffer, const char *format, va_list args)
+{
+    cork_buffer_clear(buffer);
+    return cork_buffer_append_vprintf(buffer, format, args);
+}
+
+
+bool
+cork_buffer_append_printf(cork_buffer_t *buffer, const char *format, ...)
+{
+    va_list  args;
+    va_start(args, format);
+    bool  result = cork_buffer_append_vprintf(buffer, format, args);
+    va_end(args);
+    return result;
+}
+
+
+bool
+cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
+{
+    va_list  args;
+    va_start(args, format);
+    bool  result = cork_buffer_vprintf(buffer, format, args);
+    va_end(args);
+    return result;
 }
 
 
