@@ -23,7 +23,8 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version.sh
 if(VERSION_RESULT)
     message(FATAL_ERROR "Cannot determine version number")
 endif(VERSION_RESULT)
-message("Current version: " ${VERSION})
+# This causes an annoying extra prompt in ccmake.
+# message("Current version: " ${VERSION})
 
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
@@ -59,6 +60,7 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 #-----------------------------------------------------------------------
 # Include our subdirectories
 
+add_subdirectory(docs)
 add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(tests)
