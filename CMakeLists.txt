@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.6)
-set(PROJECT_NAME changeme)
+set(PROJECT_NAME libcork)
 project(${PROJECT_NAME})
 enable_testing()
 
@@ -23,7 +23,8 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version.sh
 if(VERSION_RESULT)
     message(FATAL_ERROR "Cannot determine version number")
 endif(VERSION_RESULT)
-message("Current version: " ${VERSION})
+# This causes an annoying extra prompt in ccmake.
+# message("Current version: " ${VERSION})
 
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
@@ -33,14 +34,10 @@ find_package(PkgConfig)
 #-----------------------------------------------------------------------
 # Set some options
 
-# We can't set this by default since we don't have a Universal glib to
-# link to...
-
-#if(APPLE)
-#    set(CMAKE_OSX_ARCHITECTURES "ppc;i386;x86_64"
-#        CACHE STRING "Build architectures for Mac OS X"
-#        FORCE)
-#endif(APPLE)
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "i386;x86_64"
+        CACHE STRING "Build architectures for Mac OS X")
+endif(APPLE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -55,6 +52,7 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 #-----------------------------------------------------------------------
 # Include our subdirectories
 
+add_subdirectory(docs)
 add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(tests)
