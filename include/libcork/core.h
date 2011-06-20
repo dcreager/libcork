@@ -34,16 +34,22 @@
  * @ingroup core
  */
 
-/*** include all of the parts ***/
-
 /**
  * @defgroup compiler_attrs Compiler attributes
  * @ingroup core
  */
 
+/**
+ * @defgroup hashing Hash values
+ * @ingroup core
+ */
+
+
+/*** include all of the parts ***/
 
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
+#include <libcork/core/hash.h>
 #include <libcork/core/types.h>
 
 #endif /* LIBCORK_CORE_H */

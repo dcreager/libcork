@@ -15,6 +15,7 @@
 #include <check.h>
 
 #include "libcork/core/byte-order.h"
+#include "libcork/core/hash.h"
 #include "libcork/core/types.h"
 
 
@@ -161,6 +162,37 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Hash values
+ */
+
+START_TEST(test_hash)
+{
+    static const char  BUF[] = "test";
+    static size_t  LEN = sizeof(BUF);
+
+    /* without the NUL terminator */
+    fail_unless(cork_hash_buffer(0, BUF, LEN-1) == 0xba6bd213,
+                "Unexpected hash value 0x%08lx",
+                (unsigned long) cork_hash_buffer(0, BUF, LEN-1));
+    /* with the NUL terminator */
+    fail_unless(cork_hash_buffer(0, BUF, LEN)   == 0x586fce33,
+                "Unexpected hash value 0x%08lx",
+                (unsigned long) cork_hash_buffer(0, BUF, LEN));
+
+    uint32_t  val32 = 1234;
+    fail_unless(cork_hash_variable(0, val32) == 0x6bb65380,
+                "Unexpected hash value: 0x%08lx",
+                (unsigned long) cork_hash_variable(0, val32));
+
+    uint64_t  val64 = 1234;
+    fail_unless(cork_hash_variable(0, val64) == 0x4d5c4063,
+                "Unexpected hash value: 0x%08lx",
+                (unsigned long) cork_hash_variable(0, val64));
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -174,6 +206,7 @@ test_suite()
     tcase_add_test(tc_core, test_int_types);
     tcase_add_test(tc_core, test_int_sizeof);
     tcase_add_test(tc_core, test_endianness);
+    tcase_add_test(tc_core, test_hash);
     suite_add_tcase(s, tc_core);
 
     return s;
