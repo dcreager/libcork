@@ -63,7 +63,7 @@
  * it's available once you start compiling the libcork source files.
  *
  * @showinitializer
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -81,7 +81,7 @@
 
 /**
  * @brief Whether this is a big-endian system.
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -90,7 +90,7 @@
 
 /**
  * @brief Whether this is a little-endian system.
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -104,7 +104,7 @@
 
 /**
  * @brief Whether the GCC compiler attributes are available.
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
