@@ -42,7 +42,7 @@
  * int square(int x) CORK_ATTR_CONST;
  * @endcode
  *
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -64,7 +64,7 @@
  * int square(int x) CORK_ATTR_PURE;
  * @endcode
  *
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -83,7 +83,7 @@
  * aliasing information, since it can infer that the result of the
  * function cannot alias any other existing pointer.
  *
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -101,7 +101,7 @@
  * This lets you keep <tt>-Wall</tt> activated in several cases where
  * you're obligated to define something that you don't intend to use.
  *
- * @since 0.0-dev
+ * @since 0.1
  */
 
 #if defined(CORK_DOCUMENTATION)

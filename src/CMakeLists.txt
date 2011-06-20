@@ -17,7 +17,7 @@ file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
 add_library(libcork SHARED ${LIBCORK_SRC})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 0.0.0)
+    SOVERSION 1.0.1)
 target_link_libraries(libcork)
 
 install(TARGETS libcork
