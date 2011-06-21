@@ -14,6 +14,7 @@ link_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
 # Create separate source lists for each libcork module
 
 file(GLOB_RECURSE LIBCORK_CORE_SRC ../src/libcork/core/*.c)
+file(GLOB_RECURSE LIBCORK_DS_SRC ../src/libcork/ds/*.c)
 
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
@@ -44,4 +45,5 @@ macro(make_test test_name)
     add_test(NAME embedded-${test_name} COMMAND embedded-${test_name})
 endmacro(make_test)
 
-make_test(test-core ${LIBCORK_CORE_SRC})
+make_test(test-core ${LIBCORK_CORE_SRC} ${LIBCORK_DS_SRC})
+make_test(test-ds ${LIBCORK_CORE_SRC} ${LIBCORK_DS_SRC})

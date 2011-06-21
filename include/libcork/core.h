@@ -40,6 +40,16 @@
  */
 
 /**
+ * @defgroup allocator Custom allocation
+ * @ingroup core
+ */
+
+/**
+ * @defgroup hier_alloc Hierarchical allocation
+ * @ingroup core
+ */
+
+/**
  * @defgroup hashing Hash values
  * @ingroup core
  */
@@ -47,6 +57,7 @@
 
 /*** include all of the parts ***/
 
+#include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
 #include <libcork/core/hash.h>

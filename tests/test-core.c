@@ -14,6 +14,7 @@
 
 #include <check.h>
 
+#include "libcork/core/allocator.h"
 #include "libcork/core/byte-order.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/types.h"
@@ -193,6 +194,105 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Allocation
+ */
+
+START_TEST(test_default_allocator)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_malloc();
+
+    void  *buf = cork_malloc(alloc, 100);
+    fail_if(buf == NULL, "Couldn't allocate buffer");
+    buf = cork_realloc(alloc, buf, 100, 200);
+    fail_if(buf == NULL, "Couldn't reallocate buffer");
+    cork_free(alloc, buf, 200);
+
+    double  *d = cork_new(alloc, double);
+    fail_if(d == NULL, "Couldn't allocate new double");
+    cork_delete(alloc, double, d);
+
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
+START_TEST(test_debug_allocator)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
+
+    void  *buf = cork_malloc(alloc, 100);
+    fail_if(buf == NULL, "Couldn't allocate buffer");
+    buf = cork_realloc(alloc, buf, 100, 200);
+    fail_if(buf == NULL, "Couldn't reallocate buffer");
+    cork_free(alloc, buf, 200);
+
+    double  *d = cork_new(alloc, double);
+    fail_if(d == NULL, "Couldn't allocate new double");
+    cork_delete(alloc, double, d);
+
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
+ * Hierarchical allocator
+ */
+
+struct halloc_value {
+    size_t  *count;
+};
+
+static void
+decrement_count(cork_halloc_t *ptr)
+{
+    struct halloc_value  *u = ptr;
+    (*u->count)--;
+}
+
+START_TEST(test_halloc)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    cork_halloc_t  *root = cork_halloc_new_root(alloc);
+
+    size_t  count = 4;
+    struct halloc_value  *val1;
+    struct halloc_value  *val2;
+    struct halloc_value  *val3;
+    struct halloc_value  *val4;
+
+    val1 = cork_halloc_new(root, struct halloc_value);
+    cork_halloc_set_destructor(val1, decrement_count);
+    val1->count = &count;
+
+    val2 = cork_halloc_new(val1, struct halloc_value);
+    cork_halloc_set_destructor(val2, decrement_count);
+    val2->count = &count;
+
+    val3 = cork_halloc_new(val1, struct halloc_value);
+    cork_halloc_set_destructor(val3, decrement_count);
+    val3->count = &count;
+
+    val4 = cork_halloc_new(val3, struct halloc_value);
+    cork_halloc_set_destructor(val4, decrement_count);
+    val4->count = &count;
+
+    /* Reallocate one of the pointers to make sure we can update the
+     * tree state correctly. */
+    val1 = cork_halloc_realloc(val1, sizeof(struct halloc_value) * 2);
+
+    /* Free the root and make sure that all destructors were called. */
+    cork_halloc_free(root);
+    fail_unless(count == 0,
+                "Unexpected final count: got %zu, expected 0",
+                count);
+
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -207,6 +307,9 @@ test_suite()
     tcase_add_test(tc_core, test_int_sizeof);
     tcase_add_test(tc_core, test_endianness);
     tcase_add_test(tc_core, test_hash);
+    tcase_add_test(tc_core, test_default_allocator);
+    tcase_add_test(tc_core, test_debug_allocator);
+    tcase_add_test(tc_core, test_halloc);
     suite_add_tcase(s, tc_core);
 
     return s;
