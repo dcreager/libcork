@@ -45,5 +45,5 @@ macro(make_test test_name)
     add_test(NAME embedded-${test_name} COMMAND embedded-${test_name})
 endmacro(make_test)
 
-make_test(test-core ${LIBCORK_CORE_SRC})
+make_test(test-core ${LIBCORK_CORE_SRC} ${LIBCORK_DS_SRC})
 make_test(test-ds ${LIBCORK_CORE_SRC} ${LIBCORK_DS_SRC})

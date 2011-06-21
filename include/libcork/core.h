@@ -45,6 +45,11 @@
  */
 
 /**
+ * @defgroup hier_alloc Hierarchical allocation
+ * @ingroup core
+ */
+
+/**
  * @defgroup hashing Hash values
  * @ingroup core
  */

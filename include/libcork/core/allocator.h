@@ -13,7 +13,8 @@
 
 /**
  * @file
- * @brief Implementation of the @ref allocator submodule
+ * @brief Implementation of the @ref allocator and @ref hier_alloc
+ * submodules
  */
 
 #include <libcork/core/types.h>
@@ -271,6 +272,138 @@ void cork_delete(cork_allocator_t *alloc,
 #define cork_delete(alloc, type, instance) \
     cork_free(alloc, instance, sizeof(type))
 #endif
+
+
+/*-----------------------------------------------------------------------
+ * Hierarchical allocation
+ */
+
+
+/**
+ * @addtogroup hier_alloc
+ *
+ * <tt>#%include &lt;libcork/core/allocator.h&gt;</tt>
+ *
+ * The functions in this section allow you to create hierarchical trees
+ * of memory objects.  Each object has an optional “parent” object.
+ * Freeing any object all causes all of its child objects to be freed.
+ * In addition, you can assign a destructor object that will be called
+ * when each object is freed.
+ *
+ * Each object is created using a @ref cork_allocator_t custom
+ * allocator.  When creating an object with no parent, you must provide
+ * the allocator object explicitly; when creating an object with a
+ * parent, we use the same allocator as the parent object.
+ *
+ * This API is based on the BSD-licensed <a
+ * href="http://swapped.cc/halloc/">halloc</a> project.
+ *
+ * @{
+ */
+
+/**
+ * @brief An object that belongs to some hierarchical object tree.
+ *
+ * This is just a @c typedef for a @c void pointer, since any object can
+ * be a memory tree.
+ *
+ * @since 0.1-dev
+ */
+
+typedef void  cork_halloc_t;
+
+
+/**
+ * @brief Allocate a new, parentless “root” object.
+ * @param[in] alloc  The custom allocator to use with this memory tree
+ * @returns A pointer to the new memory tree root, or @c NULL if the
+ * root can't be allocated.
+ * @since 0.1-dev
+ */
+
+cork_halloc_t *
+cork_halloc_new_root(cork_allocator_t *alloc);
+
+
+/**
+ * @brief Allocate a new memory region with the given parent.
+ * @param[in] parent  A parent object
+ * @param[in] size  The requested size of the new memory region
+ * @returns A pointer to the new memory region, or @c NULL if the region
+ * can't be allocated.
+ * @since 0.1-dev
+ */
+
+void *
+cork_halloc_malloc(cork_halloc_t *parent, size_t size);
+
+
+/**
+ * @brief Reallocate a memory region in a memory tree.
+ *
+ * If we can't resize the region, it will automatically be freed.
+ *
+ * @param[in] ptr  The memory region to resize
+ * @param[in] nsize  The requested new size of the memory region
+ * @returns A pointer to the resized memory region (which may or may not
+ * be the same as @a ptr), or @c NULL if the region can't be resized.
+ * @since 0.1-dev
+ */
+
+void *
+cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize);
+
+
+/**
+ * @brief Allocate a new object with the given parent.
+ * @param[in] parent  A parent object
+ * @param[in] type  The name of the object type to instantiate
+ * @returns A pointer to a new, empty instance of the given type, or @c
+ * NULL if the instance can't be allocated.
+ * @since 0.1-dev
+ */
+
+#if defined(CORK_DOCUMENTATION)
+type *cork_halloc_new(cork_halloc_t *parent, TYPE_NAME type);
+#else
+#define cork_halloc_new(parent, type) \
+    ((type *) cork_halloc_malloc(parent, sizeof(type)))
+#endif
+
+
+/**
+ * @brief A destructor function for memory objects
+ * @since 0.1-dev
+ */
+
+typedef void
+(*cork_halloc_destructor_t)(cork_halloc_t *ptr);
+
+/**
+ * @brief Assign a destructor function to a memory object.
+ * @param[in] ptr  A memory object
+ * @param[in] destructor  A destructor function
+ * @since 0.1-dev
+ */
+
+void
+cork_halloc_set_destructor(cork_halloc_t *ptr,
+                           cork_halloc_destructor_t destructor);
+
+
+/**
+ * @brief Free a memory region, along with all of its children.
+ * @param[in] ptr  The memory region to free
+ * @since 0.1-dev
+ */
+
+void
+cork_halloc_free(cork_halloc_t *ptr);
+
+/* end of hier_alloc group */
+/**
+ * @}
+ */
 
 
 #endif /* LIBCORK_CORE_ALLOCATOR_H */

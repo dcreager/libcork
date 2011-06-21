@@ -8,8 +8,6 @@
  * ----------------------------------------------------------------------
  */
 
-#include <string.h>
-
 #include "libcork/core/types.h"
 #include "libcork/ds/dllist.h"
 
@@ -26,9 +24,13 @@ void
 cork_dllist_map(cork_dllist_t *list,
                 cork_dllist_map_func_t func, void *user_data)
 {
-    cork_dllist_item_t  *curr;
-    for (curr = list->head.next; curr != &list->head; curr = curr->next) {
+    cork_dllist_item_t  *curr = list->head.next;
+    while (curr != &list->head) {
+        /* Extract the next pointer now, just in case func frees the
+         * list item. */
+        cork_dllist_item_t  *next = curr->next;
         func(curr, user_data);
+        curr = next;
     }
 }
 
