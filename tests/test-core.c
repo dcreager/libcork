@@ -14,6 +14,7 @@
 
 #include <check.h>
 
+#include "libcork/core/allocator.h"
 #include "libcork/core/byte-order.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/types.h"
@@ -193,6 +194,48 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Allocation
+ */
+
+START_TEST(test_default_allocator)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_malloc();
+
+    void  *buf = cork_malloc(alloc, 100);
+    fail_if(buf == NULL, "Couldn't allocate buffer");
+    buf = cork_realloc(alloc, buf, 100, 200);
+    fail_if(buf == NULL, "Couldn't reallocate buffer");
+    cork_free(alloc, buf, 200);
+
+    double  *d = cork_new(alloc, double);
+    fail_if(d == NULL, "Couldn't allocate new double");
+    cork_delete(alloc, double, d);
+
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
+START_TEST(test_debug_allocator)
+{
+    cork_allocator_t  *alloc = cork_allocator_new_debug();
+
+    void  *buf = cork_malloc(alloc, 100);
+    fail_if(buf == NULL, "Couldn't allocate buffer");
+    buf = cork_realloc(alloc, buf, 100, 200);
+    fail_if(buf == NULL, "Couldn't reallocate buffer");
+    cork_free(alloc, buf, 200);
+
+    double  *d = cork_new(alloc, double);
+    fail_if(d == NULL, "Couldn't allocate new double");
+    cork_delete(alloc, double, d);
+
+    cork_allocator_free(alloc);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -207,6 +250,8 @@ test_suite()
     tcase_add_test(tc_core, test_int_sizeof);
     tcase_add_test(tc_core, test_endianness);
     tcase_add_test(tc_core, test_hash);
+    tcase_add_test(tc_core, test_default_allocator);
+    tcase_add_test(tc_core, test_debug_allocator);
     suite_add_tcase(s, tc_core);
 
     return s;
