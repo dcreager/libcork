@@ -175,21 +175,37 @@ START_TEST(test_hash)
     static size_t  LEN = sizeof(BUF);
 
     /* without the NUL terminator */
-    fail_unless(cork_hash_buffer(0, BUF, LEN-1) == 0xba6bd213,
+    fail_unless(cork_hash_buffer(0, BUF, LEN-1) ==
+#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+                0xba6bd213,
+#else
+                0x29d175e5,
+#endif
                 "Unexpected hash value 0x%08lx",
                 (unsigned long) cork_hash_buffer(0, BUF, LEN-1));
     /* with the NUL terminator */
-    fail_unless(cork_hash_buffer(0, BUF, LEN)   == 0x586fce33,
+    fail_unless(cork_hash_buffer(0, BUF, LEN) ==
+#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+                0x586fce33,
+#else
+                0xe31d1ce0,
+#endif
                 "Unexpected hash value 0x%08lx",
                 (unsigned long) cork_hash_buffer(0, BUF, LEN));
 
     uint32_t  val32 = 1234;
-    fail_unless(cork_hash_variable(0, val32) == 0x6bb65380,
+    fail_unless(cork_hash_variable(0, val32) ==
+                0x6bb65380,
                 "Unexpected hash value: 0x%08lx",
                 (unsigned long) cork_hash_variable(0, val32));
 
     uint64_t  val64 = 1234;
-    fail_unless(cork_hash_variable(0, val64) == 0x4d5c4063,
+    fail_unless(cork_hash_variable(0, val64) ==
+#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+                0x4d5c4063,
+#else
+                0xbaeee6e9,
+#endif
                 "Unexpected hash value: 0x%08lx",
                 (unsigned long) cork_hash_variable(0, val64));
 }
