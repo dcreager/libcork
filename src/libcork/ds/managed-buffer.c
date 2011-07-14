@@ -13,6 +13,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
+#include "libcork/ds/slice.h"
 
 cork_managed_buffer_t *
 cork_managed_buffer_new(cork_allocator_t *alloc,
@@ -101,6 +102,34 @@ cork_managed_buffer_unref(cork_managed_buffer_t *mbuf)
 }
 
 
+static cork_slice_iface_t  CORK_MANAGED_BUFFER__SLICE;
+
+static void
+cork_managed_buffer__slice_free(cork_slice_t *self)
+{
+    cork_managed_buffer_t  *mbuf = self->user_data;
+    cork_managed_buffer_unref(mbuf);
+}
+
+static bool
+cork_managed_buffer__slice_copy(cork_slice_t *self, cork_slice_t *dest,
+                                size_t offset, size_t length)
+{
+    cork_managed_buffer_t  *mbuf = self->user_data;
+    dest->buf = self->buf + offset;
+    dest->size = length;
+    dest->iface = &CORK_MANAGED_BUFFER__SLICE;
+    dest->user_data = cork_managed_buffer_ref(mbuf);
+    return true;
+}
+
+static cork_slice_iface_t  CORK_MANAGED_BUFFER__SLICE = {
+    cork_managed_buffer__slice_free,
+    cork_managed_buffer__slice_copy,
+    NULL
+};
+
+
 bool
 cork_managed_buffer_slice(cork_slice_t *dest,
                           cork_managed_buffer_t *buffer,
@@ -115,9 +144,10 @@ cork_managed_buffer_slice(cork_slice_t *dest,
               offset, length,
               buffer->buf + offset, length);
         */
-        dest->managed_buffer = cork_managed_buffer_ref(buffer);
         dest->buf = buffer->buf + offset;
         dest->size = length;
+        dest->iface = &CORK_MANAGED_BUFFER__SLICE;
+        dest->user_data = cork_managed_buffer_ref(buffer);
         return true;
     }
 
@@ -127,9 +157,7 @@ cork_managed_buffer_slice(cork_slice_t *dest,
               buffer->buf, buffer->size,
               offset, length);
         */
-        dest->managed_buffer = NULL;
-        dest->buf = NULL;
-        dest->size = 0;
+        cork_slice_clear(dest);
         return false;
     }
 }
@@ -141,96 +169,10 @@ cork_managed_buffer_slice_offset(cork_slice_t *dest,
                                  size_t offset)
 {
     if (buffer == NULL) {
-        dest->managed_buffer = NULL;
-        dest->buf = NULL;
-        dest->size = 0;
+        cork_slice_clear(dest);
         return false;
     } else {
         return cork_managed_buffer_slice
             (dest, buffer, offset, buffer->size - offset);
     }
-}
-
-
-bool
-cork_slice_slice(cork_slice_t *dest,
-                 cork_slice_t *slice,
-                 size_t offset, size_t length)
-{
-    if ((slice != NULL) &&
-        (offset < slice->size) &&
-        ((offset + length) <= slice->size)) {
-        /*
-        DEBUG("Slicing <%p:%zu> at %zu:%zu, gives <%p:%zu>",
-              slice->buf, slice->size,
-              offset, length,
-              slice->buf + offset, length);
-        */
-        dest->managed_buffer = cork_managed_buffer_ref(slice->managed_buffer);
-        dest->buf = slice->buf + offset;
-        dest->size = length;
-        return true;
-    }
-
-    else {
-        /*
-        DEBUG("Cannot slice <%p:%zu> at %zu:%zu",
-              slice->buf, slice->size,
-              offset, length);
-        */
-        dest->managed_buffer = NULL;
-        dest->buf = NULL;
-        dest->size = 0;
-        return false;
-    }
-}
-
-
-bool
-cork_slice_slice_offset(cork_slice_t *dest,
-                        cork_slice_t *slice,
-                        size_t offset)
-{
-    if (slice == NULL) {
-        dest->managed_buffer = NULL;
-        dest->buf = NULL;
-        dest->size = 0;
-        return false;
-    } else {
-        return cork_slice_slice
-            (dest, slice, offset, slice->size - offset);
-    }
-}
-
-
-void
-cork_slice_finish(cork_slice_t *dest)
-{
-    /*
-    DEBUG("Finalizing <%p:%zu>", dest->buf, dest->size);
-    */
-
-    if (dest->managed_buffer != NULL) {
-        cork_managed_buffer_unref(dest->managed_buffer);
-    }
-
-    dest->managed_buffer = NULL;
-    dest->buf = NULL;
-    dest->size = 0;
-}
-
-
-bool
-cork_slice_equal(const cork_slice_t *slice1,
-                 const cork_slice_t *slice2)
-{
-    if (slice1 == slice2) {
-        return true;
-    }
-
-    if (slice1->size != slice2->size) {
-        return false;
-    }
-
-    return (memcmp(slice1->buf, slice2->buf, slice1->size) == 0);
 }

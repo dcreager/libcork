@@ -30,6 +30,11 @@
  */
 
 /**
+ * @defgroup slice Slices
+ * @ingroup binary
+ */
+
+/**
  * @defgroup managed_buffer Managed binary buffers
  * @ingroup binary
  */
@@ -54,6 +59,7 @@
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/slice.h>
 #include <libcork/ds/stream.h>
 
 #endif /* LIBCORK_DS_H */
