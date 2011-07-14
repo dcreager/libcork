@@ -25,6 +25,7 @@
 
 struct flag_buffer {
     cork_managed_buffer_t  parent;
+    cork_allocator_t  *alloc;
     bool  *flag;
 };
 
@@ -34,8 +35,12 @@ set_flag_on_free(cork_managed_buffer_t *mbuf)
     struct flag_buffer  *fbuf =
         cork_container_of(mbuf, struct flag_buffer, parent);
     *fbuf->flag = true;
-    cork_delete(mbuf->alloc, struct flag_buffer, fbuf);
+    cork_delete(fbuf->alloc, struct flag_buffer, fbuf);
 }
+
+static cork_managed_buffer_iface_t  FLAG__MANAGED_BUFFER = {
+    set_flag_on_free
+};
 
 static cork_managed_buffer_t *
 flag_buffer_new(cork_allocator_t *alloc,
@@ -45,10 +50,10 @@ flag_buffer_new(cork_allocator_t *alloc,
     struct flag_buffer  *fbuf = cork_new(alloc, struct flag_buffer);
     fbuf->parent.buf = buf;
     fbuf->parent.size = size;
-    fbuf->parent.free = set_flag_on_free;
     fbuf->parent.ref_count = 1;
-    fbuf->parent.alloc = alloc;
+    fbuf->parent.iface = &FLAG__MANAGED_BUFFER;
     fbuf->flag = flag;
+    fbuf->alloc = alloc;
     return &fbuf->parent;
 }
 

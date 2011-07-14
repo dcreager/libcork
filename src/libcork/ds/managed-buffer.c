@@ -15,6 +15,29 @@
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"
 
+
+typedef struct cork_managed_buffer_wrapped_t
+{
+    cork_managed_buffer_t  parent;
+    cork_allocator_t  *alloc;
+    void  *buf;
+    size_t  size;
+    cork_managed_buffer_free_t  free;
+} cork_managed_buffer_wrapped_t;
+
+static void
+cork_managed_buffer_wrapped__free(cork_managed_buffer_t *vself)
+{
+    cork_managed_buffer_wrapped_t  *self =
+        cork_container_of(vself, cork_managed_buffer_wrapped_t, parent);
+    self->free(self->alloc, self->buf, self->size);
+    cork_delete(self->alloc, cork_managed_buffer_wrapped_t, self);
+}
+
+static cork_managed_buffer_iface_t  CORK_MANAGED_BUFFER_WRAPPED = {
+    cork_managed_buffer_wrapped__free
+};
+
 cork_managed_buffer_t *
 cork_managed_buffer_new(cork_allocator_t *alloc,
                         const void *buf, size_t size,
@@ -25,79 +48,102 @@ cork_managed_buffer_new(cork_allocator_t *alloc,
           buf, size);
     */
 
-    cork_managed_buffer_t  *mbuf = cork_new(alloc, cork_managed_buffer_t);
-    mbuf->buf = buf;
-    mbuf->size = size;
-    mbuf->free = free;
-    mbuf->ref_count = 1;
-    mbuf->alloc = alloc;
-    return mbuf;
+    cork_managed_buffer_wrapped_t  *self =
+        cork_new(alloc, cork_managed_buffer_wrapped_t);
+    self->parent.buf = buf;
+    self->parent.size = size;
+    self->parent.ref_count = 1;
+    self->parent.iface = &CORK_MANAGED_BUFFER_WRAPPED;
+    self->alloc = alloc;
+    self->buf = (void *) buf;
+    self->size = size;
+    self->free = free;
+    return &self->parent;
 }
 
+
+typedef struct cork_managed_buffer_copied_t
+{
+    cork_managed_buffer_t  parent;
+    cork_allocator_t  *alloc;
+    size_t  allocated_size;
+} cork_managed_buffer_copied_t;
+
+#define cork_managed_buffer_copied_data(self) \
+    (((void *) (self)) + sizeof(cork_managed_buffer_copied_t))
+
+#define cork_managed_buffer_copied_sizeof(sz) \
+    ((sz) + sizeof(cork_managed_buffer_copied_t))
 
 static void
-cork_managed_buffer_free_copy(cork_managed_buffer_t *mbuf)
+cork_managed_buffer_copied__free(cork_managed_buffer_t *vself)
 {
-    cork_free(mbuf->alloc, (void *) mbuf->buf, mbuf->size);
-    cork_delete(mbuf->alloc, cork_managed_buffer_t, mbuf);
+    cork_managed_buffer_copied_t  *self =
+        cork_container_of(vself, cork_managed_buffer_copied_t, parent);
+    cork_free(self->alloc, self, self->allocated_size);
 }
+
+static cork_managed_buffer_iface_t  CORK_MANAGED_BUFFER_COPIED = {
+    cork_managed_buffer_copied__free
+};
 
 cork_managed_buffer_t *
 cork_managed_buffer_new_copy(cork_allocator_t *alloc,
                              const void *buf, size_t size)
 {
-    cork_managed_buffer_t  *result;
-    void  *buf_copy = cork_malloc(alloc, size);
-    if (buf_copy == NULL) {
+    size_t  allocated_size = cork_managed_buffer_copied_sizeof(size);
+    cork_managed_buffer_copied_t  *self = cork_malloc(alloc, allocated_size);
+    if (self == NULL) {
         return NULL;
     }
 
-    memcpy(buf_copy, buf, size);
-    result = cork_managed_buffer_new(alloc, buf_copy, size,
-                                     cork_managed_buffer_free_copy);
-    if (result == NULL) {
-        cork_free(alloc, buf_copy, size);
-    }
-    return result;
+    self->parent.buf = cork_managed_buffer_copied_data(self);
+    self->parent.size = size;
+    self->parent.ref_count = 1;
+    self->parent.iface = &CORK_MANAGED_BUFFER_COPIED;
+    self->alloc = alloc;
+    self->allocated_size = allocated_size;
+    memcpy((void *) self->parent.buf, buf, size);
+    return &self->parent;
 }
 
 
 static void
-cork_managed_buffer_free(cork_managed_buffer_t *mbuf)
+cork_managed_buffer_free(cork_managed_buffer_t *self)
 {
     /*
-    DEBUG("Freeing cork_managed_buffer_t [%p:%zu]", mbuf->buf, mbuf->size);
+    DEBUG("Freeing cork_managed_buffer_t [%p:%zu]", self->buf, self->size);
     */
 
-    mbuf->free(mbuf);
+    self->iface->free(self);
 }
 
 
 cork_managed_buffer_t *
-cork_managed_buffer_ref(cork_managed_buffer_t *mbuf)
+cork_managed_buffer_ref(cork_managed_buffer_t *self)
 {
     /*
-    int  old_count = mbuf->ref_count++;
+    int  old_count = self->ref_count++;
     DEBUG("Referencing cork_managed_buffer_t [%p:%zu], refcount now %d",
-          mbuf->buf, mbuf->size, old_count + 1);
+          self->buf, self->size, old_count + 1);
     */
 
-    mbuf->ref_count++;
-    return mbuf;
+    self->ref_count++;
+    return self;
 }
 
 
 void
-cork_managed_buffer_unref(cork_managed_buffer_t *mbuf)
+cork_managed_buffer_unref(cork_managed_buffer_t *self)
 {
     /*
-    int  old_count = mbuf->ref_count--;
+    int  old_count = self->ref_count--;
     DEBUG("Dereferencing cork_managed_buffer_t [%p:%zu], refcount now %d",
-          mbuf->buf, mbuf->size, old_count - 1);
+          self->buf, self->size, old_count - 1);
     */
 
-    if (--mbuf->ref_count == 0) {
-        cork_managed_buffer_free(mbuf);
+    if (--self->ref_count == 0) {
+        cork_managed_buffer_free(self);
     }
 }
 

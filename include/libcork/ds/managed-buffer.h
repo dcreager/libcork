@@ -47,12 +47,21 @@
 typedef struct cork_managed_buffer_t  cork_managed_buffer_t;
 
 /**
- * @brief A finalization function for a managed buffer.
+ * @brief The interface of methods that a managed buffer implementation
+ * must provide.
  * @since 0.1-dev
  */
 
-typedef void
-(*cork_managed_buffer_free_t)(cork_managed_buffer_t *buf);
+typedef struct cork_managed_buffer_iface_t
+{
+    /**
+     * @brief Free the contents of a managed buffer, and the managed
+     * buffer object itself.
+     * @since 0.1-dev
+     */
+    void
+    (*free)(cork_managed_buffer_t *buf);
+} cork_managed_buffer_iface_t;
 
 /**
  * @brief A “managed buffer”, which wraps a buffer with a simple
@@ -80,23 +89,17 @@ struct cork_managed_buffer_t
     size_t  size;
 
     /**
-     * @brief The function that will be called when the buffer is no
-     * longer needed.
-     *
-     * This function must also free the @c cork_managed_buffer_t
-     * instance itself.
-     */
-    cork_managed_buffer_free_t  free;
-
-    /**
      * @brief A reference count for the buffer.
      *
      * If this drops to 0, the buffer will be finalized.
      */
     volatile int  ref_count;
 
-    /** @brief The allocator uses to create this object */
-    cork_allocator_t  *alloc;
+    /**
+     * @brief The managed buffer implementation for this instance.
+     * @private
+     */
+    cork_managed_buffer_iface_t  *iface;
 };
 
 /* end of managed_buffer group */
@@ -126,6 +129,15 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
 
 
 /**
+ * @brief A finalization function for the contents of a managed buffer.
+ * @since 0.1-dev
+ */
+
+typedef void
+(*cork_managed_buffer_free_t)(cork_allocator_t *alloc,
+                              void *buf, size_t size);
+
+/**
  * @brief Allocate a new @c cork_managed_buffer_t to manage an existing
  * buffer.
  *
@@ -134,7 +146,7 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
  * function for when you don't need to store any additional state in the
  * managed buffer object.
  *
- * @note The @a free function is also responsible for freeing the @c
+ * @note The @a free function is @i not responsible for freeing the @c
  * cork_managed_buffer_t instance itself.
  *
  * @param [in] alloc  A custom allocator

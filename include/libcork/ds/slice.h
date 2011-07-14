@@ -58,7 +58,6 @@ typedef struct cork_slice_t  cork_slice_t;
 /**
  * @brief The interface of methods that slice implementations must
  * provide.
- *
  * @since 0.1-dev
  */
 
