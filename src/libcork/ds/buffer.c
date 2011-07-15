@@ -252,38 +252,40 @@ cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
 
 
 typedef struct cork_buffer__managed_buffer_t {
-    cork_managed_buffer_t  managed_buffer;
+    cork_managed_buffer_t  parent;
     cork_buffer_t  *buffer;
 } cork_buffer__managed_buffer_t;
 
 static void
-cork_buffer_managed_free(cork_managed_buffer_t *mbuf)
+cork_buffer__managed_free(cork_managed_buffer_t *vself)
 {
-    cork_buffer__managed_buffer_t  *bmbuf =
-        cork_container_of(mbuf, cork_buffer__managed_buffer_t, managed_buffer);
-    cork_allocator_t  *alloc = bmbuf->buffer->alloc;
-    cork_buffer_free(bmbuf->buffer);
-    cork_delete(alloc, cork_buffer__managed_buffer_t, bmbuf);
+    cork_buffer__managed_buffer_t  *self =
+        cork_container_of(vself, cork_buffer__managed_buffer_t, parent);
+    cork_allocator_t  *alloc = self->buffer->alloc;
+    cork_buffer_free(self->buffer);
+    cork_delete(alloc, cork_buffer__managed_buffer_t, self);
 }
 
+static cork_managed_buffer_iface_t  CORK_BUFFER__MANAGED_BUFFER = {
+    cork_buffer__managed_free
+};
 
 cork_managed_buffer_t *
 cork_buffer_to_managed_buffer(cork_buffer_t *buffer)
 {
-    cork_buffer__managed_buffer_t  *managed =
+    cork_buffer__managed_buffer_t  *self =
         cork_new(buffer->alloc, cork_buffer__managed_buffer_t);
-    if (managed == NULL) {
+    if (self == NULL) {
         cork_buffer_free(buffer);
         return NULL;
     }
 
-    managed->managed_buffer.buf = buffer->buf;
-    managed->managed_buffer.size = buffer->size;
-    managed->managed_buffer.free = cork_buffer_managed_free;
-    managed->managed_buffer.ref_count = 1;
-    managed->managed_buffer.alloc = buffer->alloc;
-    managed->buffer = buffer;
-    return &managed->managed_buffer;
+    self->parent.buf = buffer->buf;
+    self->parent.size = buffer->size;
+    self->parent.ref_count = 1;
+    self->parent.iface = &CORK_BUFFER__MANAGED_BUFFER;
+    self->buffer = buffer;
+    return &self->parent;
 }
 
 

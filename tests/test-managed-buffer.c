@@ -16,6 +16,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
+#include "libcork/ds/slice.h"
 
 
 /*-----------------------------------------------------------------------
@@ -24,6 +25,7 @@
 
 struct flag_buffer {
     cork_managed_buffer_t  parent;
+    cork_allocator_t  *alloc;
     bool  *flag;
 };
 
@@ -33,8 +35,12 @@ set_flag_on_free(cork_managed_buffer_t *mbuf)
     struct flag_buffer  *fbuf =
         cork_container_of(mbuf, struct flag_buffer, parent);
     *fbuf->flag = true;
-    cork_delete(mbuf->alloc, struct flag_buffer, fbuf);
+    cork_delete(fbuf->alloc, struct flag_buffer, fbuf);
 }
+
+static cork_managed_buffer_iface_t  FLAG__MANAGED_BUFFER = {
+    set_flag_on_free
+};
 
 static cork_managed_buffer_t *
 flag_buffer_new(cork_allocator_t *alloc,
@@ -44,10 +50,10 @@ flag_buffer_new(cork_allocator_t *alloc,
     struct flag_buffer  *fbuf = cork_new(alloc, struct flag_buffer);
     fbuf->parent.buf = buf;
     fbuf->parent.size = size;
-    fbuf->parent.free = set_flag_on_free;
     fbuf->parent.ref_count = 1;
-    fbuf->parent.alloc = alloc;
+    fbuf->parent.iface = &FLAG__MANAGED_BUFFER;
     fbuf->flag = flag;
+    fbuf->alloc = alloc;
     return &fbuf->parent;
 }
 
@@ -79,7 +85,7 @@ START_TEST(test_managed_buffer_refcount)
     cork_managed_buffer_unref(pb3);
 
     fail_unless(flag,
-                "Packet buffer free function never called.");
+                "Managed buffer free function never called.");
 
     cork_allocator_free(alloc);
 }
@@ -109,7 +115,7 @@ START_TEST(test_managed_buffer_bad_refcount)
     (void) pb3;
 
     fail_if(flag,
-            "Packet buffer free function was called unexpectedly.");
+            "Managed buffer free function was called unexpectedly.");
 
     /* free the buffer here to quiet valgrind */
     cork_managed_buffer_unref(pb3);
@@ -135,12 +141,10 @@ START_TEST(test_slice)
     fail_if(cork_managed_buffer_slice_offset(&ps1, NULL, 0),
             "Shouldn't be able to slice a NULL buffer");
 
-    fail_if(cork_slice_slice(&ps1, NULL, 0, 0),
+    fail_if(cork_slice_copy(&ps1, NULL, 0, 0),
             "Shouldn't be able to slice a NULL slice");
-    fail_if(cork_slice_slice_offset(&ps1, NULL, 0),
+    fail_if(cork_slice_copy_offset(&ps1, NULL, 0),
             "Shouldn't be able to slice a NULL slice");
-
-    cork_slice_finish(&ps1);
 }
 END_TEST
 
@@ -180,7 +184,7 @@ START_TEST(test_slice_refcount)
     cork_slice_finish(&ps3);
 
     fail_unless(flag,
-                "Packet buffer free function never called.");
+                "Managed buffer free function never called.");
 
     cork_allocator_free(alloc);
 }
@@ -218,7 +222,7 @@ START_TEST(test_slice_bad_refcount)
     /* cork_slice_finish(&ps3);   OH NO! */
 
     fail_if(flag,
-            "Packet buffer free function was called unexpectedly.");
+            "Managed buffer free function was called unexpectedly.");
 
     /* free the slice here to quiet valgrind */
     cork_slice_finish(&ps3);
@@ -253,7 +257,7 @@ START_TEST(test_slice_equals_01)
     cork_managed_buffer_slice(&ps2, pb, 0, LEN);
 
     fail_unless(cork_slice_equal(&ps1, &ps2),
-                "Packet slices aren't equal");
+                "Slices aren't equal");
 
     cork_managed_buffer_unref(pb);
     cork_slice_finish(&ps1);
@@ -286,10 +290,13 @@ START_TEST(test_slice_equals_02)
     cork_managed_buffer_slice(&ps1, pb, 3, 3);
 
     cork_managed_buffer_slice_offset(&ps2, pb, 1);
-    cork_slice_slice(&ps3, &ps2, 2, 3);
+    cork_slice_copy(&ps3, &ps2, 2, 3);
+    cork_slice_slice(&ps2, 2, 3);
 
+    fail_unless(cork_slice_equal(&ps1, &ps2),
+                "Slices aren't equal");
     fail_unless(cork_slice_equal(&ps1, &ps3),
-                "Packet slices aren't equal");
+                "Slices aren't equal");
 
     cork_managed_buffer_unref(pb);
     cork_slice_finish(&ps1);
