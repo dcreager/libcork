@@ -45,6 +45,24 @@ uint64_hash(const void *velement)
     return (cork_hash_t) *element;
 }
 
+static cork_hash_table_map_result_t
+uint64_sum(cork_hash_table_entry_t *entry, void *vsum)
+{
+    uint64_t  *sum = vsum;
+    uint64_t  *value = entry->value;
+    *sum += *value;
+    return CORK_HASH_TABLE_MAP_CONTINUE;
+}
+
+static cork_hash_table_map_result_t
+uint64_map_free(cork_hash_table_entry_t *entry, void *valloc)
+{
+    cork_allocator_t  *alloc = valloc;
+    cork_delete(alloc, uint64_t, entry->key);
+    cork_delete(alloc, uint64_t, entry->value);
+    return CORK_HASH_TABLE_MAP_DELETE;
+}
+
 START_TEST(test_hash_table)
 {
     cork_allocator_t  *alloc = cork_allocator_new_debug();
@@ -106,6 +124,12 @@ START_TEST(test_hash_table)
     fail_unless(cork_hash_table_size(table) == 2,
                 "Unexpected size after adding {1=>2}");
 
+    uint64_t  sum = 0;
+    cork_hash_table_map(table, uint64_sum, &sum);
+    fail_unless(sum == 34,
+                "Unexpected sum, got %lu, expected %lu",
+                (unsigned long) sum, (unsigned long) 34);
+
     key = 0;
     fail_unless(cork_hash_table_delete
                 (table, &key, (void **) &old_key, (void **) &old_value),
@@ -129,6 +153,35 @@ START_TEST(test_hash_table)
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
+
+    /*
+     * Add the entries back so that we can try deleting them using
+     * cork_hash_table_map.
+     */
+
+    key_ptr = cork_new(alloc, uint64_t);
+    *key_ptr = 0;
+    value_ptr = cork_new(alloc, uint64_t);
+    *value_ptr = 32;
+    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr,
+                                    (void **) &old_key, (void **) &old_value),
+                "Couldn't append {0=>32} to hash table");
+
+    key_ptr = cork_new(alloc, uint64_t);
+    *key_ptr = 1;
+    value_ptr = cork_new(alloc, uint64_t);
+    *value_ptr = 2;
+    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr,
+                                    (void **) &old_key, (void **) &old_value),
+                "Couldn't append {1=>2} to hash table");
+
+    cork_hash_table_map(table, uint64_map_free, alloc);
+    fail_unless(cork_hash_table_size(table) == 0,
+                "Unexpected size after deleting entries using map");
+
+    /*
+     * And we're done, so let's free everything.
+     */
 
     cork_hash_table_free(table);
     cork_allocator_free(alloc);

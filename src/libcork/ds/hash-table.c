@@ -473,3 +473,36 @@ cork_hash_table_delete(cork_hash_table_t *table, const void *key,
     DEBUG("  Entry not found");
     return false;
 }
+
+
+void
+cork_hash_table_map(cork_hash_table_t *table,
+                    cork_hash_table_mapper_t mapper, void *user_data)
+{
+    DEBUG("Mapping across hash table");
+
+    size_t  i;
+    for (i = 0; i < table->bin_count; i++) {
+        DEBUG("  Bin %zu", i);
+        cork_dllist_t  *bin = &table->bins[i];
+        cork_dllist_item_t  *curr = bin->head.next;
+        while (curr != &bin->head) {
+            cork_hash_table_entry_t  *entry =
+                cork_container_of(curr, cork_hash_table_entry_t, siblings);
+            cork_dllist_item_t  *next = curr->next;
+
+            DEBUG("    Applying function to entry %p", entry);
+            cork_hash_table_map_result_t  result = mapper(entry, user_data);
+
+            if (result == CORK_HASH_TABLE_MAP_ABORT) {
+                return;
+            } else if (result == CORK_HASH_TABLE_MAP_DELETE) {
+                DEBUG("      Delete requested");
+                cork_dllist_remove(curr);
+                table->entry_count--;
+            }
+
+            curr = next;
+        }
+    }
+}

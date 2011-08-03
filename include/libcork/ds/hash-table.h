@@ -374,4 +374,49 @@ cork_hash_table_delete(cork_hash_table_t *table, const void *key,
                        void **deleted_key, void **deleted_value);
 
 
+/**
+ * @brief The return value from a @ref cork_hash_table_mapper_t
+ * function.
+ * @ingroup hash_table
+ * @since 0.1-dev
+ */
+
+typedef enum cork_hash_table_map_result_t
+{
+    /** @brief Abort the current @ref cork_hash_table_map operation. */
+    CORK_HASH_TABLE_MAP_ABORT = 0,
+    /** @brief Continue on to the next entry in the hash table. */
+    CORK_HASH_TABLE_MAP_CONTINUE = 1,
+    /** @brief Delete the entry that was just processed, and then
+     * continue on to the next entry in the hash table. */
+    CORK_HASH_TABLE_MAP_DELETE = 2
+} cork_hash_table_map_result_t;
+
+/**
+ * @brief A function that can be applied to each entry in a hash table.
+ * @param [in] entry  A hash table entry
+ * @returns A @ref cork_hash_table_map_result_t value, indicating
+ * whether we should abort or continue the map operation, and whether we
+ * should delete the current entry before proceeding.
+ * @ingroup hash_table
+ * @since 0.1-dev
+ */
+
+typedef cork_hash_table_map_result_t
+(*cork_hash_table_mapper_t)(cork_hash_table_entry_t *entry, void *user_data);
+
+/**
+ * @brief Apply a function to each entry in a hash table.
+ * @param [in] table  A hash table
+ * @param [in] mapper  The function to apply to each entry
+ * @param [in] user_data  An additional parameter to pass into @a mapper
+ * @public @memberof cork_hash_table_t
+ * @since 0.1-dev
+ */
+
+void
+cork_hash_table_map(cork_hash_table_t *table,
+                    cork_hash_table_mapper_t mapper, void *user_data);
+
+
 #endif /* LIBCORK_DS_HASH_TABLE_H */
