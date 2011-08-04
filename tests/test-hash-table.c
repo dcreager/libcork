@@ -73,6 +73,7 @@ START_TEST(test_hash_table)
             "Couldn't allocate new hash table");
 
     uint64_t  key, *key_ptr, *old_key;
+    void  *v_key, *v_value;
     uint64_t  *value_ptr, *old_value;
     bool  is_new;
     cork_hash_table_entry_t  *entry;
@@ -88,9 +89,10 @@ START_TEST(test_hash_table)
     *key_ptr = 0;
     value_ptr = cork_new(alloc, uint64_t);
     *value_ptr = 32;
-    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr,
-                                    (void **) &old_key, (void **) &old_value),
+    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr, &v_key, &v_value),
                 "Couldn't append {0=>32} to hash table");
+    old_key = v_key;
+    old_value = v_value;
 
     fail_unless(old_key == NULL,
                 "Unexpected previous key");
@@ -131,9 +133,10 @@ START_TEST(test_hash_table)
                 (unsigned long) sum, (unsigned long) 34);
 
     key = 0;
-    fail_unless(cork_hash_table_delete
-                (table, &key, (void **) &old_key, (void **) &old_value),
+    fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
                 "Couldn't delete {0=>32}");
+    old_key = v_key;
+    old_value = v_value;
     cork_delete(alloc, uint64_t, old_key);
     cork_delete(alloc, uint64_t, old_value);
 
@@ -145,9 +148,10 @@ START_TEST(test_hash_table)
             "Shouldn't be able to delete nonexistent {3=>X}");
 
     key = 1;
-    fail_unless(cork_hash_table_delete
-                (table, &key, (void **) &old_key, (void **) &old_value),
+    fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
                 "Couldn't delete {1=>2}");
+    old_key = v_key;
+    old_value = v_value;
     cork_delete(alloc, uint64_t, old_key);
     cork_delete(alloc, uint64_t, old_value);
 
@@ -163,17 +167,19 @@ START_TEST(test_hash_table)
     *key_ptr = 0;
     value_ptr = cork_new(alloc, uint64_t);
     *value_ptr = 32;
-    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr,
-                                    (void **) &old_key, (void **) &old_value),
+    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr, &v_key, &v_value),
                 "Couldn't append {0=>32} to hash table");
+    old_key = v_key;
+    old_value = v_value;
 
     key_ptr = cork_new(alloc, uint64_t);
     *key_ptr = 1;
     value_ptr = cork_new(alloc, uint64_t);
     *value_ptr = 2;
-    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr,
-                                    (void **) &old_key, (void **) &old_value),
+    fail_unless(cork_hash_table_put(table, key_ptr, value_ptr, &v_key, &v_value),
                 "Couldn't append {1=>2} to hash table");
+    old_key = v_key;
+    old_value = v_value;
 
     cork_hash_table_map(table, uint64_map_free, alloc);
     fail_unless(cork_hash_table_size(table) == 0,
