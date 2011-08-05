@@ -19,6 +19,7 @@
 #include "libcork/core/error.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/net-addresses.h"
+#include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
 
 
@@ -470,6 +471,66 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Timestamps
+ */
+
+START_TEST(test_timestamp)
+{
+    static char  buf[4096];
+    static size_t  size = sizeof(buf);
+
+    static const uint32_t  TEST_TIME_1 = 700000000;
+    static const char  *FORMATTED_TIME_1 = "1992-03-07 20:26:40";
+
+    static const uint32_t  TEST_TIME_2 = 1200000000;
+    static const char  *FORMATTED_TIME_2 = "2008-01-10 21:20:00";
+
+    static const uint32_t  TEST_TIME_3 = 1305180745;
+    static const char  *FORMATTED_TIME_3 = "2011-05-12 06:12:25";
+
+    cork_timestamp_t  ts;
+
+#define test(unit, expected) \
+    fail_unless(cork_timestamp_##unit(ts) == expected, \
+                "Unexpected " #unit " portion of timestamp " \
+                "(got %lu, expected %lu)", \
+                (unsigned long) cork_timestamp_##unit(ts), \
+                (unsigned long) expected);
+
+#define test_format(expected) \
+    fail_unless(cork_timestamp_format_utc(ts, "%Y-%m-%d %H:%M:%S", buf, size), \
+                "Cannot format timestamp"); \
+    fail_unless(strcmp(buf, expected) == 0, \
+                "Unexpected formatted time (got %s, expected %s)", \
+                buf, expected);
+
+    cork_timestamp_init_sec(&ts, TEST_TIME_1);
+    test(sec, TEST_TIME_1);
+    test(gsec, 0);
+    test_format(FORMATTED_TIME_1);
+
+    cork_timestamp_init_sec(&ts, TEST_TIME_2);
+    test(sec, TEST_TIME_2);
+    test(gsec, 0);
+    test_format(FORMATTED_TIME_2);
+
+    cork_timestamp_init_sec(&ts, TEST_TIME_3);
+    test(sec, TEST_TIME_3);
+    test(gsec, 0);
+    test_format(FORMATTED_TIME_3);
+
+    cork_timestamp_init_msec(&ts, TEST_TIME_1, 500);
+    test(sec, TEST_TIME_1);
+    test(gsec, 1 << 31);
+
+    cork_timestamp_init_usec(&ts, TEST_TIME_1, 500000);
+    test(sec, TEST_TIME_1);
+    test(gsec, 1 << 31);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -503,6 +564,10 @@ test_suite()
     tcase_add_test(tc_addresses, test_ipv6_address);
     tcase_add_test(tc_addresses, test_ip_address);
     suite_add_tcase(s, tc_addresses);
+
+    TCase  *tc_timestamp = tcase_create("timestamp");
+    tcase_add_test(tc_timestamp, test_timestamp);
+    suite_add_tcase(s, tc_timestamp);
 
     return s;
 }

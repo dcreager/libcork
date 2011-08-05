@@ -68,6 +68,7 @@
 #include <libcork/core/error.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/net-addresses.h>
+#include <libcork/core/timestamp.h>
 #include <libcork/core/types.h>
 
 #endif /* LIBCORK_CORE_H */
