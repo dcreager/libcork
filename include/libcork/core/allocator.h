@@ -69,7 +69,7 @@ typedef struct cork_allocator_t  cork_allocator_t;
  * memory buffer, or @c NULL if the buffer cannot be (re)allocated.  For
  * frees, @c NULL.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef void *
@@ -91,7 +91,7 @@ typedef void *
  * } custom_allocator_t;
  * @endcode
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 struct cork_allocator_t
@@ -124,7 +124,7 @@ struct cork_allocator_t
  * malloc, @c realloc, and @c free functions.
  *
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_allocator_t *
@@ -139,7 +139,7 @@ cork_allocator_new_malloc(void);
  * be used in production code.
  *
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_allocator_t *
@@ -157,7 +157,7 @@ cork_allocator_new_debug(void);
  * this context.
  *
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_allocator_t *
@@ -168,7 +168,7 @@ cork_allocator_new(cork_alloc_func_t alloc_func);
  * @brief Finalizes and frees an allocator object.
  * @param[in] alloc  The allocator object to free.
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -186,7 +186,7 @@ cork_allocator_free(cork_allocator_t *alloc);
  * @returns A pointer to the new memory region, or @c NULL if the region
  * can't be allocated.
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -207,7 +207,7 @@ cork_malloc(cork_allocator_t *alloc, size_t size);
  * @returns A pointer to the resized memory region (which may or may not
  * be the same as @a ptr), or @c NULL if the region can't be resized.
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -226,7 +226,7 @@ cork_realloc(cork_allocator_t *alloc, void *ptr,
  * @param[in] ptr  The memory region to free
  * @param[in] osize  The old size of the memory region
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -245,7 +245,7 @@ cork_free(cork_allocator_t *alloc, void *ptr, size_t osize);
  * @returns A pointer to a new, empty instance of the given type, or @c
  * NULL if the instance can't be allocated.
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -262,7 +262,7 @@ type *cork_new(cork_allocator_t *alloc, TYPE_NAME type);
  * @param[in] type  The name of the object type to free
  * @param[in] instance  The object instance to free
  * @public @memberof cork_allocator_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -307,7 +307,7 @@ void cork_delete(cork_allocator_t *alloc,
  * This is just a @c typedef for a @c void pointer, since any object can
  * be a memory tree.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef void  cork_halloc_t;
@@ -318,7 +318,7 @@ typedef void  cork_halloc_t;
  * @param[in] alloc  The custom allocator to use with this memory tree
  * @returns A pointer to the new memory tree root, or @c NULL if the
  * root can't be allocated.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_halloc_t *
@@ -331,7 +331,7 @@ cork_halloc_new_root(cork_allocator_t *alloc);
  * @param[in] size  The requested size of the new memory region
  * @returns A pointer to the new memory region, or @c NULL if the region
  * can't be allocated.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void *
@@ -347,7 +347,7 @@ cork_halloc_malloc(cork_halloc_t *parent, size_t size);
  * @param[in] nsize  The requested new size of the memory region
  * @returns A pointer to the resized memory region (which may or may not
  * be the same as @a ptr), or @c NULL if the region can't be resized.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void *
@@ -360,7 +360,7 @@ cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize);
  * @param[in] type  The name of the object type to instantiate
  * @returns A pointer to a new, empty instance of the given type, or @c
  * NULL if the instance can't be allocated.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -373,7 +373,7 @@ type *cork_halloc_new(cork_halloc_t *parent, TYPE_NAME type);
 
 /**
  * @brief A destructor function for memory objects
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef void
@@ -383,7 +383,7 @@ typedef void
  * @brief Assign a destructor function to a memory object.
  * @param[in] ptr  A memory object
  * @param[in] destructor  A destructor function
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -394,7 +394,7 @@ cork_halloc_set_destructor(cork_halloc_t *ptr,
 /**
  * @brief Free a memory region, along with all of its children.
  * @param[in] ptr  The memory region to free
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void

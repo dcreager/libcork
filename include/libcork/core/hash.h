@@ -34,7 +34,7 @@
 
 /**
  * @brief A hash value
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef uint32_t  cork_hash_t;
@@ -46,7 +46,7 @@ typedef uint32_t  cork_hash_t;
  * @param[in] src  The binary buffer to incorporate into the hash
  * @param[in] len  The length of @a src
  * @returns  a new hash value
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_hash_t
@@ -60,7 +60,7 @@ cork_hash_buffer(cork_hash_t seed, const void *src, size_t len);
  * @param[in] seed  The current accumulated hash value
  * @param[in] val  A variable to add to the hash
  * @returns  a new hash value
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)

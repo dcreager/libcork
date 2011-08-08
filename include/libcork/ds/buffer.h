@@ -63,7 +63,7 @@
  * buffers without copying.  If you want to do that, you need the @ref
  * cork_managed_buffer_t class.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_buffer_t
@@ -93,7 +93,7 @@ typedef struct cork_buffer_t
  * @param [in] alloc  A custom allocator
  * @param [in] buffer  An uninitialized buffer
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -103,7 +103,7 @@ cork_buffer_init(cork_allocator_t *alloc, cork_buffer_t *buffer);
  * @brief A static initializer for a buffer allocated on the stack.
  * @param [in] alloc  A custom allocator
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if CORK_DOCUMENTATION
@@ -118,7 +118,7 @@ CORK_BUFFER_INIT(cork_allocator_t *alloc);
  * @param [in] alloc  A custom allocator
  * @return A new buffer, or @c NULL if the buffer couldn't be allocated.
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_buffer_t *
@@ -129,7 +129,7 @@ cork_buffer_new(cork_allocator_t *alloc);
  * @brief Finalize a buffer, freeing any content that it contains.
  * @param [in] buffer  A buffer
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -140,7 +140,7 @@ cork_buffer_done(cork_buffer_t *buffer);
  * contains.
  * @param [in] buffer  A buffer
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -153,7 +153,7 @@ cork_buffer_free(cork_buffer_t *buffer);
  * @param [in] buffer2  A buffer
  * @returns Whether the contents of the two buffers are identical.
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -175,7 +175,7 @@ cork_buffer_equal(const cork_buffer_t *buffer1, const cork_buffer_t *buffer2);
  * least as big as @a size; @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -186,7 +186,7 @@ cork_buffer_ensure_size(cork_buffer_t *buffer, size_t desired_size);
  * @brief Clears a buffer.
  * @param [in] buffer  A buffer
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -214,7 +214,7 @@ cork_buffer_clear(cork_buffer_t *buffer);
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -238,7 +238,7 @@ cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length);
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -258,7 +258,7 @@ cork_buffer_append(cork_buffer_t *buffer, const void *src, size_t length);
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -278,7 +278,7 @@ cork_buffer_set_string(cork_buffer_t *buffer, const char *str);
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -297,7 +297,7 @@ cork_buffer_append_string(cork_buffer_t *buffer, const char *str);
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -316,7 +316,7 @@ cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -336,7 +336,7 @@ cork_buffer_vprintf(cork_buffer_t *buffer, const char *format, va_list args)
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -355,7 +355,7 @@ cork_buffer_append_printf(cork_buffer_t *buffer, const char *format, ...)
  * @c false otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -385,7 +385,7 @@ cork_buffer_append_vprintf(cork_buffer_t *buffer,
  * couldn't be allocated.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_managed_buffer_t *
@@ -418,7 +418,7 @@ cork_buffer_to_managed_buffer(cork_buffer_t *buffer);
  * otherwise.
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -440,7 +440,7 @@ cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice);
  * @param [in] buffer  A buffer
  *
  * @public @memberof cork_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_stream_consumer_t *

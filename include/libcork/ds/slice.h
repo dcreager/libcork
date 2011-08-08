@@ -58,7 +58,7 @@ typedef struct cork_slice_t  cork_slice_t;
 /**
  * @brief The interface of methods that slice implementations must
  * provide.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_slice_iface_t
@@ -117,7 +117,7 @@ typedef struct cork_slice_iface_t
  * try/finally or RAII, but suck it up and make sure that @ref
  * cork_slice_finish gets called.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 struct cork_slice_t
@@ -163,7 +163,7 @@ struct cork_slice_t
  * @param [in] slice  The slice instance to clear
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -175,7 +175,7 @@ cork_slice_clear(cork_slice_t *slice);
  * @param [in] slice  A slice instance
  * @returns Whether the slice instance is empty
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -208,7 +208,7 @@ cork_slice_is_empty(cork_slice_t *slice);
  * valid portion of the slice; @c false otherwise.
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -236,7 +236,7 @@ cork_slice_copy(cork_slice_t *dest,
  * of the slice; @c false otherwise.
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -261,7 +261,7 @@ cork_slice_copy_offset(cork_slice_t *dest,
  * valid portion of the slice; @c false otherwise.
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -284,7 +284,7 @@ cork_slice_slice(cork_slice_t *slice,
  * of the slice; @c false otherwise.
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -298,7 +298,7 @@ cork_slice_slice_offset(cork_slice_t *slice,
  * @param [in] slice  A slice instance
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -316,7 +316,7 @@ cork_slice_finish(cork_slice_t *slice);
  * @returns Whether the contents of the two slices are identical.
  *
  * @public @memberof cork_slice_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool

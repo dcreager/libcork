@@ -42,7 +42,7 @@
 
 /**
  * @brief An unsigned high-precision timestamp.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef uint64_t  cork_timestamp_t;
@@ -60,7 +60,7 @@ typedef uint64_t  cork_timestamp_t;
  * @param [in] sec  The seconds portion of the timestamp
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -83,7 +83,7 @@ cork_timestamp_init_sec(cork_timestamp_t *ts, uint32_t sec);
  * @param [in] msec  The milliseconds portion of the timestamp
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -107,7 +107,7 @@ cork_timestamp_init_msec(cork_timestamp_t *ts, uint32_t sec, uint32_t msec);
  * @param [in] usec  The microseconds portion of the timestamp
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -130,7 +130,7 @@ cork_timestamp_init_usec(cork_timestamp_t *ts, uint32_t sec, uint32_t usec);
  * @param [out] ts  A timestamp
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -142,7 +142,7 @@ cork_timestamp_init_now(cork_timestamp_t *ts);
  * @param [in] ts  A timestamp
  * @returns The timestamp truncated to an integral number of seconds.
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -158,7 +158,7 @@ cork_timestamp_sec(const cork_timestamp_t ts);
  * @param [in] ts  A timestamp
  * @returns The fractional portion of a timestamp, in gammaseconds.
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -179,7 +179,7 @@ cork_timestamp_gsec(const cork_timestamp_t ts);
  * @returns Whether we successfully formatted the timestamp.
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -198,7 +198,7 @@ cork_timestamp_format_utc(const cork_timestamp_t ts,
  * @returns Whether we successfully formatted the timestamp.
  *
  * @public @memberof cork_timestamp_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool

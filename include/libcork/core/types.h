@@ -187,7 +187,7 @@ typedef unsigned long  uintptr_t;
  * type @a struct_type
  * @param[in] struct_type  The type of the @c struct to return
  * @param[in] field_name  The name of the field within @a struct_type
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)

@@ -47,7 +47,7 @@
  * You can then use the @ref cork_container_of macro to obtain a pointer to the
  * @c person_t, if you're given a pointer to the @c cork_dllist_item_t.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_dllist_item_t  cork_dllist_item_t;
@@ -67,7 +67,7 @@ struct cork_dllist_item_t {
  * representing the empty list.  This sentinel's @a next and @a prev pointers
  * can then be used to iterate through the rest of the list.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_dllist_t {
@@ -88,7 +88,7 @@ typedef struct cork_dllist_t {
  *
  * @param[in] list  The list to initialize
  * @public @memberof cork_dllist_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -100,7 +100,7 @@ cork_dllist_init(cork_dllist_t *list);
  * @param[in] element  The current list element
  * @param[in] user_data  A user-data pointer for the function
  * @ingroup dllist
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef void
@@ -112,7 +112,7 @@ typedef void
  * @param[in] func  The function to apply to each element
  * @param[in] user_data  An additional parameter to pass to the function
  * @public @memberof cork_dllist_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -125,7 +125,7 @@ cork_dllist_map(cork_dllist_t *list,
  * @param[in] list  A doubly-linked list
  * @returns The number of elements in the list
  * @public @memberof cork_dllist_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 size_t
@@ -146,7 +146,7 @@ cork_dllist_size(const cork_dllist_t *list);
  * @param[in] element  A list element
  *
  * @public @memberof cork_dllist_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -163,7 +163,7 @@ cork_dllist_add(cork_dllist_t *list, cork_dllist_item_t *element);
  * @param[in] element  A list element
  *
  * @public @memberof cork_dllist_item_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void

@@ -49,7 +49,7 @@ typedef struct cork_managed_buffer_t  cork_managed_buffer_t;
 /**
  * @brief The interface of methods that a managed buffer implementation
  * must provide.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_managed_buffer_iface_t
@@ -57,7 +57,7 @@ typedef struct cork_managed_buffer_iface_t
     /**
      * @brief Free the contents of a managed buffer, and the managed
      * buffer object itself.
-     * @since 0.1-dev
+     * @since 0.2
      */
     void
     (*free)(cork_managed_buffer_t *buf);
@@ -77,7 +77,7 @@ typedef struct cork_managed_buffer_iface_t
  * or function that accesses data within the buffer will have its own
  * @ref cork_slice_t referring to this buffer.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 struct cork_managed_buffer_t
@@ -120,7 +120,7 @@ struct cork_managed_buffer_t
  * allocated.
  *
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_managed_buffer_t *
@@ -130,7 +130,7 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
 
 /**
  * @brief A finalization function for the contents of a managed buffer.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef void
@@ -159,7 +159,7 @@ typedef void
  * allocated.
  *
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_managed_buffer_t *
@@ -174,7 +174,7 @@ cork_managed_buffer_new(cork_allocator_t *alloc,
  * @param [in] buf  A managed buffer
  * @returns A reference to the managed buffer.
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 cork_managed_buffer_t *
@@ -187,7 +187,7 @@ cork_managed_buffer_ref(cork_managed_buffer_t *buf);
  * function is thread-safe.
  * @param [in] buf  A managed buffer
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -216,7 +216,7 @@ cork_managed_buffer_unref(cork_managed_buffer_t *buf);
  * valid portion of a managed buffer; @c false otherwise.
  *
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -244,7 +244,7 @@ cork_managed_buffer_slice(cork_slice_t *dest,
  * of a managed buffer; @c false otherwise.
  *
  * @public @memberof cork_managed_buffer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
