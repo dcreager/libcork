@@ -42,7 +42,7 @@
  * producer will call the @ref cork_stream_consumer_eof
  * method.  Both methods can interrupt the producer if appropriate.
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_stream_consumer_t  cork_stream_consumer_t;
@@ -52,7 +52,7 @@ struct cork_stream_consumer_t
     /**
      * @brief Implementation of the @ref cork_stream_consumer_data
      * method
-     * @since 0.1-dev
+     * @since 0.2
      * @private
      */
 
@@ -62,7 +62,7 @@ struct cork_stream_consumer_t
 
     /**
      * @brief Implementation of the @ref cork_stream_consumer_eof method
-     * @since 0.1-dev
+     * @since 0.2
      * @private
      */
 
@@ -71,7 +71,7 @@ struct cork_stream_consumer_t
 
     /**
      * @brief Frees the stream consumer instance
-     * @since 0.1-dev
+     * @since 0.2
      * @private
      */
 
@@ -99,7 +99,7 @@ struct cork_stream_consumer_t
  * @returns @c true if this chunk was processed successfully, @c false
  * otherwise.
  * @public @memberof cork_stream_consumer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -122,7 +122,7 @@ cork_stream_consumer_data(cork_stream_consumer_t *consumer,
  * @returns @c true if this stream was processed successfully, @c false
  * otherwise.
  * @public @memberof cork_stream_consumer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -136,7 +136,7 @@ cork_stream_consumer_eof(cork_stream_consumer_t *consumer);
  * @brief Finalize and deallocate a stream consumer.
  * @param [in] consumer  A stream consumer
  * @public @memberof cork_stream_consumer_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)

@@ -27,7 +27,7 @@
 
 /**
  * @brief The header of each object in a hierarchical memory tree.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_halloc_header_t  cork_halloc_header_t;

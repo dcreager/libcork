@@ -34,21 +34,21 @@
 
 /**
  * @brief An identifier for a class of error conditions
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef uint32_t  cork_error_class_t;
 
 /**
  * @brief An error class that represents “no error”.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #define CORK_ERROR_NONE  ((cork_error_class_t) 0)
 
 /**
  * @brief An identifier for a particular type of error within a class.
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef unsigned int  cork_error_code_t;
@@ -66,7 +66,7 @@ typedef unsigned int  cork_error_code_t;
  * hash using the extras/hashstring.py script that's included in the
  * libcork source.)
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 typedef struct cork_error_t
@@ -92,7 +92,7 @@ typedef struct cork_error_t
  * @param [in] ctx  A libcork context
  * @param [in] error  An error condition instance
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -107,7 +107,7 @@ cork_error_occurred(cork_context_t *ctx, const cork_error_t *error);
  * @brief Retrieve the class from an error condition.
  * @param [in] error  An error condition instance
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -121,7 +121,7 @@ cork_error_class(const cork_error_t *error);
  * @brief Retrieve the code from an error condition.
  * @param [in] error  An error condition instance
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -135,7 +135,7 @@ cork_error_code(const cork_error_t *error);
  * @brief Retrieve the message from an error condition.
  * @param [in] error  An error condition instance
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -150,7 +150,7 @@ cork_error_message(const cork_error_t *error);
  * @param [in] alloc  A custom allocator
  * @param [out] error  The error condition to initialize
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 bool
@@ -160,7 +160,7 @@ cork_error_init(cork_allocator_t *alloc, cork_error_t *error);
  * @brief A static initializer for a new error condition instance.
  * @param [in] alloc  A custom allocator
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
@@ -174,7 +174,7 @@ CORK_ERROR_INIT(cork_allocator_t *alloc);
  * @brief Finalize an error condition instance.
  * @param [out] error  The error condition to finalize
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -194,7 +194,7 @@ cork_error_done(cork_error_t *error);
  * @param [in] ...  Any additional parameters needed by the format
  * string
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -212,7 +212,7 @@ cork_error_set(cork_error_t *error,
  *
  * @param [out] error  The error condition to clear
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void
@@ -230,7 +230,7 @@ cork_error_clear(cork_error_t *error);
  * @param [out] error  The error condition to fill in
  * @param [in] suberror  The error condition to propagate
  * @public @memberof cork_error_t
- * @since 0.1-dev
+ * @since 0.2
  */
 
 void

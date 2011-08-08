@@ -125,7 +125,7 @@
  * @param [in] args_index  The index of the first parameter which
  * contains the data to format
  *
- * @since 0.1-dev
+ * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
