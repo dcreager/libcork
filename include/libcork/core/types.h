@@ -179,6 +179,26 @@ typedef unsigned long  uintptr_t;
 #error "Cannot determine size of void *"
 #endif
 
+
+/**
+ * @brief Return a pointer to a @c struct, given a pointer to one of its
+ * fields.
+ * @param[in] field  A pointer to @a field_name within a @c struct of
+ * type @a struct_type
+ * @param[in] struct_type  The type of the @c struct to return
+ * @param[in] field_name  The name of the field within @a struct_type
+ * @since 0.2
+ */
+
+#if defined(CORK_DOCUMENTATION)
+struct_type *
+cork_container_of(field_type *field, TYPE struct_type, FIELD field_name);
+#else
+#define cork_container_of(field, struct_type, field_name) \
+    ((struct_type *) (- offsetof(struct_type, field_name) + \
+                      (void *) (field)))
+#endif
+
 /* end of basic_types group */
 /**
  * @}

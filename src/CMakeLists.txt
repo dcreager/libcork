@@ -17,12 +17,18 @@ file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
 add_library(libcork SHARED ${LIBCORK_SRC})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 1.0.1)
-target_link_libraries(libcork)
+    SOVERSION 2.0.2)
 
 install(TARGETS libcork
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib)
+
+#-----------------------------------------------------------------------
+# Build a static library to simulate embedding libcork
+
+add_library(embedded_libcork STATIC ${LIBCORK_SRC})
+set_target_properties(embedded_libcork PROPERTIES
+    OUTPUT_NAME cork-embedded)
 
 #-----------------------------------------------------------------------
 # Generate the pkg-config file

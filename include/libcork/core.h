@@ -34,16 +34,41 @@
  * @ingroup core
  */
 
-/*** include all of the parts ***/
-
 /**
  * @defgroup compiler_attrs Compiler attributes
  * @ingroup core
  */
 
+/**
+ * @defgroup allocator Custom allocation
+ * @ingroup core
+ */
 
+/**
+ * @defgroup error Error conditions
+ * @ingroup core
+ */
+
+/**
+ * @defgroup hier_alloc Hierarchical allocation
+ * @ingroup core
+ */
+
+/**
+ * @defgroup hashing Hash values
+ * @ingroup core
+ */
+
+
+/*** include all of the parts ***/
+
+#include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
+#include <libcork/core/error.h>
+#include <libcork/core/hash.h>
+#include <libcork/core/net-addresses.h>
+#include <libcork/core/timestamp.h>
 #include <libcork/core/types.h>
 
 #endif /* LIBCORK_CORE_H */

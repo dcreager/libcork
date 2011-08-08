@@ -113,6 +113,31 @@
 #endif
 
 
+/**
+ * @brief Declare a function that takes in <tt>printf</tt>-like
+ * parameters.
+ *
+ * When the compiler supports this attribute, it will check the format
+ * string, and the following arguments, to make sure that they match.
+ *
+ * @param [in] format_index  The index of the parameter which is the
+ * format string
+ * @param [in] args_index  The index of the first parameter which
+ * contains the data to format
+ *
+ * @since 0.2
+ */
+
+#if defined(CORK_DOCUMENTATION)
+#define CORK_ATTR_PRINTF(format_index, args_index)
+#elif CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_ATTR_PRINTF(format_index, args_index) \
+    __attribute__((format(printf, format_index, args_index)))
+#else
+#define CORK_ATTR_PRINTF(format_index, args_index)
+#endif
+
+
 /* end of compiler_attrs group */
 /**
  * @}
