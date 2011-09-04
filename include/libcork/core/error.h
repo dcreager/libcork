@@ -37,21 +37,21 @@
  * @since 0.2
  */
 
-typedef uint32_t  cork_error_class_t;
+typedef uint32_t  cork_error_class;
 
 /**
  * @brief An error class that represents “no error”.
  * @since 0.2
  */
 
-#define CORK_ERROR_NONE  ((cork_error_class_t) 0)
+#define CORK_ERROR_NONE  ((cork_error_class) 0)
 
 /**
  * @brief An identifier for a particular type of error within a class.
  * @since 0.2
  */
 
-typedef unsigned int  cork_error_code_t;
+typedef unsigned int  cork_error_code;
 
 /**
  * @brief Records information about an error condition.
@@ -69,18 +69,17 @@ typedef unsigned int  cork_error_code_t;
  * @since 0.2
  */
 
-typedef struct cork_error_t
-{
+struct cork_error {
     /** @brief The class of this error. @private */
-    cork_error_class_t  error_class;
+    cork_error_class  error_class;
 
     /** @brief The code for this error. @private */
-    cork_error_code_t  error_code;
+    cork_error_code  error_code;
 
     /** @brief A @ref cork_buffer_t that stores the detailed message for
      * this error. @private */
-    cork_buffer_t  message;
-} cork_error_t;
+    struct cork_buffer  message;
+};
 
 /* end of error group */
 /**
@@ -89,30 +88,29 @@ typedef struct cork_error_t
 
 /**
  * @brief Test whether an error condition represents an actual error.
- * @param [in] ctx  A libcork context
  * @param [in] error  An error condition instance
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 bool
-cork_error_occurred(cork_context_t *ctx, const cork_error_t *error);
+cork_error_occurred(const struct cork_error *error);
 #else
-#define cork_error_occurred(ctx, error) \
+#define cork_error_occurred(error) \
     ((error)->error_class != CORK_ERROR_NONE)
 #endif
 
 /**
  * @brief Retrieve the class from an error condition.
  * @param [in] error  An error condition instance
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 cork_error_class_t
-cork_error_class(const cork_error_t *error);
+cork_error_class(const struct cork_error *error);
 #else
 #define cork_error_class(error)  ((error)->error_class)
 #endif
@@ -120,13 +118,13 @@ cork_error_class(const cork_error_t *error);
 /**
  * @brief Retrieve the code from an error condition.
  * @param [in] error  An error condition instance
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 cork_error_code_t
-cork_error_code(const cork_error_t *error);
+cork_error_code(const struct cork_error *error);
 #else
 #define cork_error_code(error)  ((error)->error_code)
 #endif
@@ -134,13 +132,13 @@ cork_error_code(const cork_error_t *error);
 /**
  * @brief Retrieve the message from an error condition.
  * @param [in] error  An error condition instance
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 const char *
-cork_error_message(const cork_error_t *error);
+cork_error_message(const struct cork_error *error);
 #else
 #define cork_error_message(error)  ((const char *) (error)->message.buf)
 #endif
@@ -149,23 +147,23 @@ cork_error_message(const cork_error_t *error);
  * @brief Initialize an error condition instance.
  * @param [in] alloc  A custom allocator
  * @param [out] error  The error condition to initialize
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 bool
-cork_error_init(cork_allocator_t *alloc, cork_error_t *error);
+cork_error_init(struct cork_alloc *alloc, struct cork_error *error);
 
 /**
  * @brief A static initializer for a new error condition instance.
  * @param [in] alloc  A custom allocator
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
-cork_error_t
-CORK_ERROR_INIT(cork_allocator_t *alloc);
+struct cork_error
+CORK_ERROR_INIT(struct cork_alloc *alloc);
 #else
 #define CORK_ERROR_INIT(alloc)  { CORK_ERROR_NONE, 0, CORK_BUFFER_INIT(alloc) }
 #endif
@@ -173,12 +171,12 @@ CORK_ERROR_INIT(cork_allocator_t *alloc);
 /**
  * @brief Finalize an error condition instance.
  * @param [out] error  The error condition to finalize
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 void
-cork_error_done(cork_error_t *error);
+cork_error_done(struct cork_error *error);
 
 /**
  * @brief Fill in an error condition instance.
@@ -193,14 +191,14 @@ cork_error_done(cork_error_t *error);
  * error's detailed message
  * @param [in] ...  Any additional parameters needed by the format
  * string
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 void
-cork_error_set(cork_error_t *error,
-               cork_error_class_t error_class,
-               cork_error_code_t error_code,
+cork_error_set(struct cork_error *error,
+               cork_error_class error_class,
+               cork_error_code error_code,
                const char *format, ...)
     CORK_ATTR_PRINTF(4,5);
 
@@ -211,12 +209,12 @@ cork_error_set(cork_error_t *error,
  * error condition to clear.
  *
  * @param [out] error  The error condition to clear
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 void
-cork_error_clear(cork_error_t *error);
+cork_error_clear(struct cork_error *error);
 
 /**
  * @brief Propagate an error condition from one instance to another.
@@ -229,13 +227,13 @@ cork_error_clear(cork_error_t *error);
  *
  * @param [out] error  The error condition to fill in
  * @param [in] suberror  The error condition to propagate
- * @public @memberof cork_error_t
+ * @public @memberof cork_error
  * @since 0.2
  */
 
 void
-cork_error_propagate(cork_error_t *error,
-                     cork_error_t *suberror);
+cork_error_propagate(struct cork_error *error,
+                     struct cork_error *suberror);
 
 
 #endif /* LIBCORK_CORE_ERROR_H */

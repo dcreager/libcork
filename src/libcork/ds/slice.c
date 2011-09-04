@@ -15,7 +15,7 @@
 
 
 void
-cork_slice_clear(cork_slice_t *slice)
+cork_slice_clear(struct cork_slice *slice)
 {
     slice->buf = NULL;
     slice->size = 0;
@@ -25,8 +25,8 @@ cork_slice_clear(cork_slice_t *slice)
 
 
 bool
-cork_slice_copy(cork_slice_t *dest,
-                cork_slice_t *slice,
+cork_slice_copy(struct cork_slice *dest,
+                struct cork_slice *slice,
                 size_t offset, size_t length)
 {
     if ((slice != NULL) &&
@@ -54,8 +54,8 @@ cork_slice_copy(cork_slice_t *dest,
 
 
 bool
-cork_slice_copy_offset(cork_slice_t *dest,
-                       cork_slice_t *slice,
+cork_slice_copy_offset(struct cork_slice *dest,
+                       struct cork_slice *slice,
                        size_t offset)
 {
     if (slice == NULL) {
@@ -69,7 +69,7 @@ cork_slice_copy_offset(cork_slice_t *dest,
 
 
 bool
-cork_slice_slice(cork_slice_t *slice,
+cork_slice_slice(struct cork_slice *slice,
                  size_t offset, size_t length)
 {
     if ((slice != NULL) &&
@@ -102,7 +102,7 @@ cork_slice_slice(cork_slice_t *slice,
 
 
 bool
-cork_slice_slice_offset(cork_slice_t *slice,
+cork_slice_slice_offset(struct cork_slice *slice,
                         size_t offset)
 {
     if (slice == NULL) {
@@ -115,7 +115,7 @@ cork_slice_slice_offset(cork_slice_t *slice,
 
 
 void
-cork_slice_finish(cork_slice_t *slice)
+cork_slice_finish(struct cork_slice *slice)
 {
     /*
     DEBUG("Finalizing <%p:%zu>", dest->buf, dest->size);
@@ -130,8 +130,8 @@ cork_slice_finish(cork_slice_t *slice)
 
 
 bool
-cork_slice_equal(const cork_slice_t *slice1,
-                 const cork_slice_t *slice2)
+cork_slice_equal(const struct cork_slice *slice1,
+                 const struct cork_slice *slice2)
 {
     if (slice1 == slice2) {
         return true;

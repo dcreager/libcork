@@ -24,13 +24,13 @@
  */
 
 struct flag_buffer {
-    cork_managed_buffer_t  parent;
-    cork_allocator_t  *alloc;
+    struct cork_managed_buffer  parent;
+    struct cork_alloc  *alloc;
     bool  *flag;
 };
 
 static void
-set_flag_on_free(cork_managed_buffer_t *mbuf)
+set_flag_on_free(struct cork_managed_buffer *mbuf)
 {
     struct flag_buffer  *fbuf =
         cork_container_of(mbuf, struct flag_buffer, parent);
@@ -38,12 +38,12 @@ set_flag_on_free(cork_managed_buffer_t *mbuf)
     cork_delete(fbuf->alloc, struct flag_buffer, fbuf);
 }
 
-static cork_managed_buffer_iface_t  FLAG__MANAGED_BUFFER = {
+static struct cork_managed_buffer_iface  FLAG__MANAGED_BUFFER = {
     set_flag_on_free
 };
 
-static cork_managed_buffer_t *
-flag_buffer_new(cork_allocator_t *alloc,
+static struct cork_managed_buffer *
+flag_buffer_new(struct cork_alloc *alloc,
                 const void *buf, size_t size,
                 bool *flag)
 {
@@ -65,7 +65,7 @@ flag_buffer_new(cork_allocator_t *alloc,
 
 START_TEST(test_managed_buffer_refcount)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     bool  flag = false;
 
@@ -74,10 +74,10 @@ START_TEST(test_managed_buffer_refcount)
      * verify that the free function got called.
      */
 
-    cork_managed_buffer_t  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
-    cork_managed_buffer_t  *pb1 = cork_managed_buffer_ref(pb0);
-    cork_managed_buffer_t  *pb2 = cork_managed_buffer_ref(pb0);
-    cork_managed_buffer_t  *pb3 = cork_managed_buffer_ref(pb2);
+    struct cork_managed_buffer  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
+    struct cork_managed_buffer  *pb1 = cork_managed_buffer_ref(pb0);
+    struct cork_managed_buffer  *pb2 = cork_managed_buffer_ref(pb0);
+    struct cork_managed_buffer  *pb3 = cork_managed_buffer_ref(pb2);
 
     cork_managed_buffer_unref(pb0);
     cork_managed_buffer_unref(pb1);
@@ -94,7 +94,7 @@ END_TEST
 
 START_TEST(test_managed_buffer_bad_refcount)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     bool  flag = false;
 
@@ -103,10 +103,10 @@ START_TEST(test_managed_buffer_bad_refcount)
      * and then verify that the free function didn't called.
      */
 
-    cork_managed_buffer_t  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
-    cork_managed_buffer_t  *pb1 = cork_managed_buffer_ref(pb0);
-    cork_managed_buffer_t  *pb2 = cork_managed_buffer_ref(pb0);
-    cork_managed_buffer_t  *pb3 = cork_managed_buffer_ref(pb2);
+    struct cork_managed_buffer  *pb0 = flag_buffer_new(alloc, NULL, 0, &flag);
+    struct cork_managed_buffer  *pb1 = cork_managed_buffer_ref(pb0);
+    struct cork_managed_buffer  *pb2 = cork_managed_buffer_ref(pb0);
+    struct cork_managed_buffer  *pb3 = cork_managed_buffer_ref(pb2);
 
     cork_managed_buffer_unref(pb0);
     cork_managed_buffer_unref(pb1);
@@ -134,7 +134,7 @@ START_TEST(test_slice)
      * Try to slice a NULL buffer.
      */
 
-    cork_slice_t  ps1;
+    struct cork_slice  ps1;
 
     fail_if(cork_managed_buffer_slice(&ps1, NULL, 0, 0),
             "Shouldn't be able to slice a NULL buffer");
@@ -155,7 +155,7 @@ END_TEST
 
 START_TEST(test_slice_refcount)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     bool  flag = false;
 
@@ -168,11 +168,11 @@ START_TEST(test_slice_refcount)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
+    struct cork_managed_buffer  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
 
-    cork_slice_t  ps1;
-    cork_slice_t  ps2;
-    cork_slice_t  ps3;
+    struct cork_slice  ps1;
+    struct cork_slice  ps2;
+    struct cork_slice  ps3;
 
     cork_managed_buffer_slice(&ps1, pb, 0, 7);
     cork_managed_buffer_slice(&ps2, pb, 1, 1);
@@ -193,7 +193,7 @@ END_TEST
 
 START_TEST(test_slice_bad_refcount)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     bool  flag = false;
 
@@ -206,11 +206,11 @@ START_TEST(test_slice_bad_refcount)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
+    struct cork_managed_buffer  *pb = flag_buffer_new(alloc, BUF, LEN, &flag);
 
-    cork_slice_t  ps1;
-    cork_slice_t  ps2;
-    cork_slice_t  ps3;
+    struct cork_slice  ps1;
+    struct cork_slice  ps2;
+    struct cork_slice  ps3;
 
     cork_managed_buffer_slice(&ps1, pb, 0, 7);
     cork_managed_buffer_slice(&ps2, pb, 1, 1);
@@ -237,7 +237,7 @@ END_TEST
 
 START_TEST(test_slice_equals_01)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     /*
      * Make a bunch of slices, finish them all, and then verify that
@@ -248,10 +248,11 @@ START_TEST(test_slice_equals_01)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = cork_managed_buffer_new_copy(alloc, BUF, LEN);
+    struct cork_managed_buffer  *pb =
+        cork_managed_buffer_new_copy(alloc, BUF, LEN);
 
-    cork_slice_t  ps1;
-    cork_slice_t  ps2;
+    struct cork_slice  ps1;
+    struct cork_slice  ps2;
 
     cork_managed_buffer_slice_offset(&ps1, pb, 0);
     cork_managed_buffer_slice(&ps2, pb, 0, LEN);
@@ -270,7 +271,7 @@ END_TEST
 
 START_TEST(test_slice_equals_02)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     /*
      * Make a bunch of slices, finish them all, and then verify that
@@ -281,11 +282,12 @@ START_TEST(test_slice_equals_02)
         "abcdefg";
     static size_t  LEN = 7;
 
-    cork_managed_buffer_t  *pb = cork_managed_buffer_new_copy(alloc, BUF, LEN);
+    struct cork_managed_buffer  *pb =
+        cork_managed_buffer_new_copy(alloc, BUF, LEN);
 
-    cork_slice_t  ps1;
-    cork_slice_t  ps2;
-    cork_slice_t  ps3;
+    struct cork_slice  ps1;
+    struct cork_slice  ps2;
+    struct cork_slice  ps3;
 
     cork_managed_buffer_slice(&ps1, pb, 3, 3);
 

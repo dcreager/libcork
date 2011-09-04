@@ -36,7 +36,7 @@
  */
 
 
-typedef struct cork_allocator_t  cork_allocator_t;
+struct cork_alloc;
 
 
 /**
@@ -73,8 +73,8 @@ typedef struct cork_allocator_t  cork_allocator_t;
  */
 
 typedef void *
-(*cork_alloc_func_t)(cork_allocator_t *alloc, void *ptr,
-                     size_t osize, size_t nsize);
+(*cork_alloc_func)(struct cork_alloc *alloc, void *ptr,
+                   size_t osize, size_t nsize);
 
 
 /**
@@ -84,33 +84,31 @@ typedef void *
  * function, you can create a subclass of this struct:
  *
  * @code
- * typedef struct custom_allocator
- * {
- *     cork_allocator_t  parent;
+ * struct custom_allocator {
+ *     struct cork_alloc  parent;
  *     // any additional state here
- * } custom_allocator_t;
+ * };
  * @endcode
  *
  * @since 0.2
  */
 
-struct cork_allocator_t
-{
+struct cork_alloc {
     /**
      * @brief An allocation function.
      *
-     * See @ref cork_alloc_func_t for details on the function's
+     * See @ref cork_alloc_func for details on the function's
      * interface.
      */
 
-    const cork_alloc_func_t  alloc;
+    const cork_alloc_func  alloc;
 
     /**
      * @brief A function that can free this allocator object.
      */
 
     void
-    (*free)(cork_allocator_t *alloc);
+    (*free)(struct cork_alloc *alloc);
 };
 
 /* end of allocator group */
@@ -123,11 +121,11 @@ struct cork_allocator_t
  * @brief Create a new allocator object that uses the standard @c
  * malloc, @c realloc, and @c free functions.
  *
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
-cork_allocator_t *
+struct cork_alloc *
 cork_allocator_new_malloc(void);
 
 
@@ -138,11 +136,11 @@ cork_allocator_new_malloc(void);
  * @note This function is useful for test cases, but probably shouldn't
  * be used in production code.
  *
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
-cork_allocator_t *
+struct cork_alloc *
 cork_allocator_new_debug(void);
 
 
@@ -151,28 +149,28 @@ cork_allocator_new_debug(void);
  * function.
  *
  * This function provides a simpler interface if you don't need to
- * include extra fields in a @c cork_allocator_t subclass.
+ * include extra fields in a @c struct cork_alloc subclass.
  *
  * @param[in] alloc_func  The custom allocation function to use with
  * this context.
  *
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
-cork_allocator_t *
-cork_allocator_new(cork_alloc_func_t alloc_func);
+struct cork_alloc *
+cork_allocator_new(cork_alloc_func alloc_func);
 
 
 /**
  * @brief Finalizes and frees an allocator object.
  * @param[in] alloc  The allocator object to free.
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 void
-cork_allocator_free(cork_allocator_t *alloc);
+cork_allocator_free(struct cork_alloc *alloc);
 
 
 /*-----------------------------------------------------------------------
@@ -185,13 +183,13 @@ cork_allocator_free(cork_allocator_t *alloc);
  * @param[in] size  The requested size of the new memory region
  * @returns A pointer to the new memory region, or @c NULL if the region
  * can't be allocated.
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void *
-cork_malloc(cork_allocator_t *alloc, size_t size);
+cork_malloc(struct cork_alloc *alloc, size_t size);
 #else
 #define cork_malloc(_alloc, sz) \
     ((_alloc)->alloc((_alloc), NULL, 0, (sz)))
@@ -206,13 +204,13 @@ cork_malloc(cork_allocator_t *alloc, size_t size);
  * @param[in] nsize  The requested new size of the memory region
  * @returns A pointer to the resized memory region (which may or may not
  * be the same as @a ptr), or @c NULL if the region can't be resized.
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void *
-cork_realloc(cork_allocator_t *alloc, void *ptr,
+cork_realloc(struct cork_alloc *alloc, void *ptr,
              size_t osize, size_t nsize);
 #else
 #define cork_realloc(_alloc, ptr, osz, nsz) \
@@ -225,13 +223,13 @@ cork_realloc(cork_allocator_t *alloc, void *ptr,
  * @param[in] alloc  The custom allocator to use
  * @param[in] ptr  The memory region to free
  * @param[in] osize  The old size of the memory region
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void
-cork_free(cork_allocator_t *alloc, void *ptr, size_t osize);
+cork_free(struct cork_alloc *alloc, void *ptr, size_t osize);
 #else
 #define cork_free(_alloc, ptr, osz) \
     ((_alloc)->alloc((_alloc), (ptr), (osz), 0))
@@ -244,12 +242,12 @@ cork_free(cork_allocator_t *alloc, void *ptr, size_t osize);
  * @param[in] type  The name of the object type to instantiate
  * @returns A pointer to a new, empty instance of the given type, or @c
  * NULL if the instance can't be allocated.
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
-type *cork_new(cork_allocator_t *alloc, TYPE_NAME type);
+type *cork_new(struct cork_alloc *alloc, TYPE_NAME type);
 #else
 #define cork_new(alloc, type) \
     ((type *) cork_malloc(alloc, sizeof(type)))
@@ -261,12 +259,12 @@ type *cork_new(cork_allocator_t *alloc, TYPE_NAME type);
  * @param[in] alloc  The custom allocator to use
  * @param[in] type  The name of the object type to free
  * @param[in] instance  The object instance to free
- * @public @memberof cork_allocator_t
+ * @public @memberof cork_alloc
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
-void cork_delete(cork_allocator_t *alloc,
+void cork_delete(struct cork_alloc *alloc,
                  TYPE_NAME type, type *instance);
 #else
 #define cork_delete(alloc, type, instance) \
@@ -290,10 +288,10 @@ void cork_delete(cork_allocator_t *alloc,
  * In addition, you can assign a destructor object that will be called
  * when each object is freed.
  *
- * Each object is created using a @ref cork_allocator_t custom
- * allocator.  When creating an object with no parent, you must provide
- * the allocator object explicitly; when creating an object with a
- * parent, we use the same allocator as the parent object.
+ * Each object is created using a @ref cork_alloc custom allocator.
+ * When creating an object with no parent, you must provide the
+ * allocator object explicitly; when creating an object with a parent,
+ * we use the same allocator as the parent object.
  *
  * This API is based on the BSD-licensed <a
  * href="http://swapped.cc/halloc/">halloc</a> project.
@@ -310,7 +308,7 @@ void cork_delete(cork_allocator_t *alloc,
  * @since 0.2
  */
 
-typedef void  cork_halloc_t;
+typedef void  cork_halloc;
 
 
 /**
@@ -321,8 +319,8 @@ typedef void  cork_halloc_t;
  * @since 0.2
  */
 
-cork_halloc_t *
-cork_halloc_new_root(cork_allocator_t *alloc);
+cork_halloc *
+cork_halloc_new_root(struct cork_alloc *alloc);
 
 
 /**
@@ -335,7 +333,7 @@ cork_halloc_new_root(cork_allocator_t *alloc);
  */
 
 void *
-cork_halloc_malloc(cork_halloc_t *parent, size_t size);
+cork_halloc_malloc(cork_halloc *parent, size_t size);
 
 
 /**
@@ -351,7 +349,7 @@ cork_halloc_malloc(cork_halloc_t *parent, size_t size);
  */
 
 void *
-cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize);
+cork_halloc_realloc(cork_halloc *ptr, size_t nsize);
 
 
 /**
@@ -364,7 +362,7 @@ cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize);
  */
 
 #if defined(CORK_DOCUMENTATION)
-type *cork_halloc_new(cork_halloc_t *parent, TYPE_NAME type);
+type *cork_halloc_new(cork_halloc *parent, TYPE_NAME type);
 #else
 #define cork_halloc_new(parent, type) \
     ((type *) cork_halloc_malloc(parent, sizeof(type)))
@@ -377,7 +375,7 @@ type *cork_halloc_new(cork_halloc_t *parent, TYPE_NAME type);
  */
 
 typedef void
-(*cork_halloc_destructor_t)(cork_halloc_t *ptr);
+(*cork_halloc_destructor)(cork_halloc *ptr);
 
 /**
  * @brief Assign a destructor function to a memory object.
@@ -387,8 +385,8 @@ typedef void
  */
 
 void
-cork_halloc_set_destructor(cork_halloc_t *ptr,
-                           cork_halloc_destructor_t destructor);
+cork_halloc_set_destructor(cork_halloc *ptr,
+                           cork_halloc_destructor destructor);
 
 
 /**
@@ -398,7 +396,7 @@ cork_halloc_set_destructor(cork_halloc_t *ptr,
  */
 
 void
-cork_halloc_free(cork_halloc_t *ptr);
+cork_halloc_free(cork_halloc *ptr);
 
 /* end of hier_alloc group */
 /**

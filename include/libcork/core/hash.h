@@ -37,7 +37,7 @@
  * @since 0.2
  */
 
-typedef uint32_t  cork_hash_t;
+typedef uint32_t  cork_hash;
 
 /**
  * @brief Incorporate the contents of the given binary buffer to the
@@ -49,8 +49,8 @@ typedef uint32_t  cork_hash_t;
  * @since 0.2
  */
 
-cork_hash_t
-cork_hash_buffer(cork_hash_t seed, const void *src, size_t len);
+cork_hash
+cork_hash_buffer(cork_hash seed, const void *src, size_t len);
 
 /**
  * @brief Incorporate the contents of a variable into the hash value.
@@ -64,8 +64,8 @@ cork_hash_buffer(cork_hash_t seed, const void *src, size_t len);
  */
 
 #if defined(CORK_DOCUMENTATION)
-cork_hash_t
-cork_hash_variable(cork_hash_t seed, TYPE val);
+cork_hash
+cork_hash_variable(cork_hash seed, TYPE val);
 #else
 #define cork_hash_variable(seed, val) \
     (cork_hash_buffer((seed), &(val), sizeof((val))))

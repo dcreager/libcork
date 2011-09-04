@@ -40,23 +40,21 @@
  * typedef struct person_t {
  *     const char  *first_name;
  *     const char  *last_name;
- *     cork_dllist_item_t  list;
+ *     struct cork_dllist_item  list;
  * } person_t;
  * @endcode
  *
  * You can then use the @ref cork_container_of macro to obtain a pointer to the
- * @c person_t, if you're given a pointer to the @c cork_dllist_item_t.
+ * @c person_t, if you're given a pointer to the @c struct cork_dllist_item.
  *
  * @since 0.2
  */
 
-typedef struct cork_dllist_item_t  cork_dllist_item_t;
-
-struct cork_dllist_item_t {
+struct cork_dllist_item {
     /** @brief A pointer to the next element in the list. @private */
-    cork_dllist_item_t  *next;
+    struct cork_dllist_item  *next;
     /** @brief A pointer to the previous element in the list. @private */
-    cork_dllist_item_t  *prev;
+    struct cork_dllist_item  *prev;
 };
 
 
@@ -70,10 +68,10 @@ struct cork_dllist_item_t {
  * @since 0.2
  */
 
-typedef struct cork_dllist_t {
+struct cork_dllist {
     /** @brief The sentinel element for this list. @private */
-    cork_dllist_item_t  head;
-} cork_dllist_t;
+    struct cork_dllist_item  head;
+};
 
 /* end of dllist group */
 /**
@@ -87,12 +85,12 @@ typedef struct cork_dllist_t {
  * The list will initially be empty.
  *
  * @param[in] list  The list to initialize
- * @public @memberof cork_dllist_t
+ * @public @memberof cork_dllist
  * @since 0.2
  */
 
 void
-cork_dllist_init(cork_dllist_t *list);
+cork_dllist_init(struct cork_dllist *list);
 
 
 /**
@@ -104,32 +102,32 @@ cork_dllist_init(cork_dllist_t *list);
  */
 
 typedef void
-(*cork_dllist_map_func_t)(cork_dllist_item_t *element, void *user_data);
+(*cork_dllist_map_func)(struct cork_dllist_item *element, void *user_data);
 
 /**
  * @brief Apply a function to each element of a doubly-linked list.
  * @param[in] list  A doubly-linked list
  * @param[in] func  The function to apply to each element
  * @param[in] user_data  An additional parameter to pass to the function
- * @public @memberof cork_dllist_t
+ * @public @memberof cork_dllist
  * @since 0.2
  */
 
 void
-cork_dllist_map(cork_dllist_t *list,
-                cork_dllist_map_func_t func, void *user_data);
+cork_dllist_map(struct cork_dllist *list,
+                cork_dllist_map_func func, void *user_data);
 
 
 /**
  * @brief Return the number of elements in a doubly-linked list.
  * @param[in] list  A doubly-linked list
  * @returns The number of elements in the list
- * @public @memberof cork_dllist_t
+ * @public @memberof cork_dllist
  * @since 0.2
  */
 
 size_t
-cork_dllist_size(const cork_dllist_t *list);
+cork_dllist_size(const struct cork_dllist *list);
 
 
 /**
@@ -145,12 +143,12 @@ cork_dllist_size(const cork_dllist_t *list);
  * @param[in] list  A doubly-linked list
  * @param[in] element  A list element
  *
- * @public @memberof cork_dllist_t
+ * @public @memberof cork_dllist
  * @since 0.2
  */
 
 void
-cork_dllist_add(cork_dllist_t *list, cork_dllist_item_t *element);
+cork_dllist_add(struct cork_dllist *list, struct cork_dllist_item *element);
 
 
 /**
@@ -162,12 +160,12 @@ cork_dllist_add(cork_dllist_t *list, cork_dllist_item_t *element);
  *
  * @param[in] element  A list element
  *
- * @public @memberof cork_dllist_item_t
+ * @public @memberof cork_dllist_item
  * @since 0.2
  */
 
 void
-cork_dllist_remove(cork_dllist_item_t *element);
+cork_dllist_remove(struct cork_dllist_item *element);
 
 
 #endif /* LIBCORK_DS_DLLIST_H */

@@ -31,7 +31,7 @@
  * representation, the upper 32 bits of a timestamp value represent the
  * timestamp truncated (towards zero) to seconds.
  *
- * For the basic @ref cork_timestamp_t type, we don't concern ourselves
+ * For the basic @ref cork_timestamp type, we don't concern ourselves
  * with any higher-level issues of clock synchronization.  Timestamps
  * can be used to represent any time quantity, regardless of which time
  * standard (UTC, GMT, TAI) you use, or whether it takes into account
@@ -45,7 +45,7 @@
  * @since 0.2
  */
 
-typedef uint64_t  cork_timestamp_t;
+typedef uint64_t  cork_timestamp;
 
 /* end of timestamp group */
 /**
@@ -59,13 +59,13 @@ typedef uint64_t  cork_timestamp_t;
  * @param [out] ts  A timestamp
  * @param [in] sec  The seconds portion of the timestamp
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void
-cork_timestamp_init_sec(cork_timestamp_t *ts, uint32_t sec);
+cork_timestamp_init_sec(cork_timestamp *ts, uint32_t sec);
 #else
 #define cork_timestamp_init_sec(ts, sec) \
     do { \
@@ -82,13 +82,13 @@ cork_timestamp_init_sec(cork_timestamp_t *ts, uint32_t sec);
  * @param [in] sec  The seconds portion of the timestamp
  * @param [in] msec  The milliseconds portion of the timestamp
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void
-cork_timestamp_init_msec(cork_timestamp_t *ts, uint32_t sec, uint32_t msec);
+cork_timestamp_init_msec(cork_timestamp *ts, uint32_t sec, uint32_t msec);
 #else
 #define cork_timestamp_init_msec(ts, sec, msec) \
     do { \
@@ -106,13 +106,13 @@ cork_timestamp_init_msec(cork_timestamp_t *ts, uint32_t sec, uint32_t msec);
  * @param [in] sec  The seconds portion of the timestamp
  * @param [in] usec  The microseconds portion of the timestamp
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void
-cork_timestamp_init_usec(cork_timestamp_t *ts, uint32_t sec, uint32_t usec);
+cork_timestamp_init_usec(cork_timestamp *ts, uint32_t sec, uint32_t usec);
 #else
 #define cork_timestamp_init_usec(ts, sec, usec) \
     do { \
@@ -129,25 +129,25 @@ cork_timestamp_init_usec(cork_timestamp_t *ts, uint32_t sec, uint32_t usec);
  *
  * @param [out] ts  A timestamp
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 void
-cork_timestamp_init_now(cork_timestamp_t *ts);
+cork_timestamp_init_now(cork_timestamp *ts);
 
 
 /**
  * @brief Extract the seconds portion of a timestamp.
  * @param [in] ts  A timestamp
  * @returns The timestamp truncated to an integral number of seconds.
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 uint32_t
-cork_timestamp_sec(const cork_timestamp_t ts);
+cork_timestamp_sec(const cork_timestamp ts);
 #else
 #define cork_timestamp_sec(ts)  ((uint32_t) ((ts) >> 32))
 #endif
@@ -157,13 +157,13 @@ cork_timestamp_sec(const cork_timestamp_t ts);
  * @brief Extract the fractional portion of a timestamp.
  * @param [in] ts  A timestamp
  * @returns The fractional portion of a timestamp, in gammaseconds.
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 uint32_t
-cork_timestamp_gsec(const cork_timestamp_t ts);
+cork_timestamp_gsec(const cork_timestamp ts);
 #else
 #define cork_timestamp_gsec(ts)  ((uint32_t) ((ts) & 0xFFFFFFFF))
 #endif
@@ -178,12 +178,12 @@ cork_timestamp_gsec(const cork_timestamp_t ts);
  * @param [in] size  The size of @a buf
  * @returns Whether we successfully formatted the timestamp.
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 bool
-cork_timestamp_format_utc(const cork_timestamp_t ts,
+cork_timestamp_format_utc(const cork_timestamp ts,
                           const char *format,
                           char *buf, size_t size);
 
@@ -197,12 +197,12 @@ cork_timestamp_format_utc(const cork_timestamp_t ts,
  * @param [in] size  The size of @a buf
  * @returns Whether we successfully formatted the timestamp.
  *
- * @public @memberof cork_timestamp_t
+ * @public @memberof cork_timestamp
  * @since 0.2
  */
 
 bool
-cork_timestamp_format_local(const cork_timestamp_t ts,
+cork_timestamp_format_local(const cork_timestamp ts,
                             const char *format,
                             char *buf, size_t size);
 

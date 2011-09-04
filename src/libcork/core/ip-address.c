@@ -24,14 +24,15 @@
 /*** IPv4 ***/
 
 bool
-cork_ipv4_copy(cork_ipv4_t *addr, const void *src)
+cork_ipv4_copy(struct cork_ipv4 *addr, const void *src)
 {
-    memcpy(addr, src, sizeof(cork_ipv4_t));
+    memcpy(addr, src, sizeof(struct cork_ipv4));
     return true;
 }
 
 bool
-cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error)
+cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
+               struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET, str, addr);
 
@@ -55,13 +56,13 @@ cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error)
 }
 
 bool
-cork_ipv4_equal(const cork_ipv4_t *addr1, const cork_ipv4_t *addr2)
+cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(cork_ipv4_t)) == 0);
+    return (memcmp(addr1, addr2, sizeof(struct cork_ipv4)) == 0);
 }
 
 void
-cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest)
+cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
 {
     snprintf(dest, CORK_IPV4_STRING_LENGTH, "%u.%u.%u.%u",
              addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
@@ -70,14 +71,15 @@ cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest)
 /*** IPv6 ***/
 
 bool
-cork_ipv6_copy(cork_ipv6_t *addr, const void *src)
+cork_ipv6_copy(struct cork_ipv6 *addr, const void *src)
 {
-    memcpy(addr, src, sizeof(cork_ipv6_t));
+    memcpy(addr, src, sizeof(struct cork_ipv6));
     return true;
 }
 
 bool
-cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error)
+cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
+               struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET6, str, addr);
 
@@ -101,17 +103,16 @@ cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error)
 }
 
 bool
-cork_ipv6_equal(const cork_ipv6_t *addr1,
-                const cork_ipv6_t *addr2)
+cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(cork_ipv6_t)) == 0);
+    return (memcmp(addr1, addr2, sizeof(struct cork_ipv6)) == 0);
 }
 
 #define NS_IN6ADDRSZ 16
 #define NS_INT16SZ 2
 
 void
-cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest)
+cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
 {
     const uint8_t  *src = addr->u8;
 
@@ -195,21 +196,21 @@ cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest)
 /*** IP ***/
 
 bool
-cork_ip_from_ipv4(cork_ip_t *addr, const void *src)
+cork_ip_from_ipv4(struct cork_ip *addr, const void *src)
 {
     addr->version = 4;
     return cork_ipv4_copy(&addr->ip.v4, src);
 }
 
 bool
-cork_ip_from_ipv6(cork_ip_t *addr, const void *src)
+cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
 {
     addr->version = 6;
     return cork_ipv6_copy(&addr->ip.v6, src);
 }
 
 bool
-cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
+cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
 {
     int  rc;
 
@@ -256,8 +257,8 @@ cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
 }
 
 bool
-cork_ip_equal(const cork_ip_t *addr1,
-              const cork_ip_t *addr2)
+cork_ip_equal(const struct cork_ip *addr1,
+              const struct cork_ip *addr2)
 {
     if (addr1 == addr2) {
         return true;
@@ -284,7 +285,7 @@ cork_ip_equal(const cork_ip_t *addr1,
 }
 
 void
-cork_ip_to_raw_string(const cork_ip_t *addr, char *dest)
+cork_ip_to_raw_string(const struct cork_ip *addr, char *dest)
 {
     switch (addr->version) {
         case 4:

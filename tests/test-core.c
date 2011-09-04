@@ -202,7 +202,7 @@ END_TEST
 
 START_TEST(test_default_allocator)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_malloc();
+    struct cork_alloc  *alloc = cork_allocator_new_malloc();
 
     void  *buf = cork_malloc(alloc, 100);
     fail_if(buf == NULL, "Couldn't allocate buffer");
@@ -221,7 +221,7 @@ END_TEST
 
 START_TEST(test_debug_allocator)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     void  *buf = cork_malloc(alloc, 100);
     fail_if(buf == NULL, "Couldn't allocate buffer");
@@ -247,7 +247,7 @@ struct halloc_value {
 };
 
 static void
-decrement_count(cork_halloc_t *ptr)
+decrement_count(cork_halloc *ptr)
 {
     struct halloc_value  *u = ptr;
     (*u->count)--;
@@ -255,8 +255,8 @@ decrement_count(cork_halloc_t *ptr)
 
 START_TEST(test_halloc)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
-    cork_halloc_t  *root = cork_halloc_new_root(alloc);
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
+    cork_halloc  *root = cork_halloc_new_root(alloc);
 
     size_t  count = 4;
     struct halloc_value  *val1;
@@ -303,8 +303,8 @@ START_TEST(test_ipv4_address)
 {
 #define ROUND_TRIP(str) \
     { \
-        cork_ipv4_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ipv4  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         bool result = cork_ipv4_init(&addr, str, &error); \
         fail_unless(result, \
                     "Could not initialize IPv4 address from %s: %s", \
@@ -316,7 +316,7 @@ START_TEST(test_ipv4_address)
                     "got %s, expected %s", \
                     actual, str); \
         \
-        cork_ipv4_t  addr2; \
+        struct cork_ipv4  addr2; \
         cork_ipv4_init(&addr2, str, NULL); \
         fail_unless(cork_ipv4_equal(&addr, &addr2), \
                     "IPv4 cork_eq_t instances should be equal"); \
@@ -324,15 +324,15 @@ START_TEST(test_ipv4_address)
 
 #define BAD(str) \
     { \
-        cork_ipv4_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ipv4  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         fail_if(cork_ipv4_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IPv4 address from %s", \
                 str); \
         cork_error_done(&error); \
     }
 
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("192.168.1.100");
     BAD("192.168.0.");
@@ -352,8 +352,8 @@ START_TEST(test_ipv6_address)
 {
 #define ROUND_TRIP(str) \
     { \
-        cork_ipv6_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ipv6  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         bool result = cork_ipv6_init(&addr, str, &error); \
         fail_unless(result, \
                     "Could not initialize IPv6 address from %s: %s", \
@@ -365,7 +365,7 @@ START_TEST(test_ipv6_address)
                     "got %s, expected %s", \
                     actual, str); \
         \
-        cork_ipv6_t  addr2; \
+        struct cork_ipv6  addr2; \
         cork_ipv6_init(&addr2, str, NULL); \
         fail_unless(cork_ipv6_equal(&addr, &addr2), \
                     "IPv6 cork_eq_t instances should be equal"); \
@@ -373,15 +373,15 @@ START_TEST(test_ipv6_address)
 
 #define BAD(str) \
     { \
-        cork_ipv6_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ipv6  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         fail_if(cork_ipv6_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IPv6 address from %s", \
                 str); \
         cork_error_done(&error); \
     }
 
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("fe80::1");
     ROUND_TRIP("::ffff:192.168.1.100");
@@ -400,12 +400,12 @@ END_TEST
 
 START_TEST(test_ip_address)
 {
-    cork_ip_t  addr;
+    struct cork_ip  addr;
 
 #define ROUND_TRIP(str) \
     { \
-        cork_ip_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ip  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         bool result = cork_ip_init(&addr, str, &error); \
         fail_unless(result, \
                     "Could not initialize IP address from %s: %s", \
@@ -417,7 +417,7 @@ START_TEST(test_ip_address)
                     "got %s, expected %s", \
                     actual, str); \
         \
-        cork_ip_t  addr2; \
+        struct cork_ip  addr2; \
         cork_ip_init(&addr2, str, NULL); \
         fail_unless(cork_ip_equal(&addr, &addr2), \
                     "IP cork_eq_t instances should be equal"); \
@@ -425,15 +425,15 @@ START_TEST(test_ip_address)
 
 #define BAD(str) \
     { \
-        cork_ip_t  addr; \
-        cork_error_t  error = CORK_ERROR_INIT(alloc); \
+        struct cork_ip  addr; \
+        struct cork_error  error = CORK_ERROR_INIT(alloc); \
         fail_if(cork_ip_init(&addr, str, &error), \
                 "Shouldn't be able to initialize IP address from %s", \
                 str); \
         cork_error_done(&error); \
     }
 
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     ROUND_TRIP("192.168.1.100");
     ROUND_TRIP("fe80::1");
@@ -446,8 +446,8 @@ START_TEST(test_ip_address)
 #undef ROUND_TRIP
 #undef BAD
 
-    cork_ipv4_t  addr4;
-    cork_ipv6_t  addr6;
+    struct cork_ipv4  addr4;
+    struct cork_ipv6  addr6;
 
     cork_ip_init(&addr, "192.168.1.1", NULL);
     cork_ipv4_init(&addr4, "192.168.1.1", NULL);
@@ -488,7 +488,7 @@ START_TEST(test_timestamp)
     static const uint32_t  TEST_TIME_3 = 1305180745;
     static const char  *FORMATTED_TIME_3 = "2011-05-12 06:12:25";
 
-    cork_timestamp_t  ts;
+    cork_timestamp  ts;
 
 #define test(unit, expected) \
     fail_unless(cork_timestamp_##unit(ts) == expected, \

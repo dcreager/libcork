@@ -33,7 +33,7 @@
  *   <li><i>Copying</i> initializes a new slice object to point at the
  *   same underlying buffer as the current slice.  Depending on how the
  *   underlying buffer is implemented, this doesn't necessarily involve
- *   actual copying; for instance, the @ref cork_managed_buffer_t type
+ *   actual copying; for instance, the @ref cork_managed_buffer type
  *   implements this operation by incrementing the reference count of
  *   the managed buffer.</li>
  *
@@ -53,7 +53,7 @@
  * Slices
  */
 
-typedef struct cork_slice_t  cork_slice_t;
+struct cork_slice;
 
 /**
  * @brief The interface of methods that slice implementations must
@@ -61,8 +61,7 @@ typedef struct cork_slice_t  cork_slice_t;
  * @since 0.2
  */
 
-typedef struct cork_slice_iface_t
-{
+struct cork_slice_iface {
     /**
      * @brief Free the slice.
      *
@@ -71,7 +70,7 @@ typedef struct cork_slice_iface_t
      */
 
     void
-    (*free)(cork_slice_t *self);
+    (*free)(struct cork_slice *self);
 
     /**
      * @brief Create a copy of a slice.
@@ -82,7 +81,7 @@ typedef struct cork_slice_iface_t
      */
 
     bool
-    (*copy)(cork_slice_t *self, cork_slice_t *dest,
+    (*copy)(struct cork_slice *self, struct cork_slice *dest,
             size_t offset, size_t length);
 
     /**
@@ -99,8 +98,8 @@ typedef struct cork_slice_iface_t
      */
 
     bool
-    (*slice)(cork_slice_t *self, size_t offset, size_t length);
-} cork_slice_iface_t;
+    (*slice)(struct cork_slice *self, size_t offset, size_t length);
+};
 
 
 /**
@@ -120,8 +119,7 @@ typedef struct cork_slice_iface_t
  * @since 0.2
  */
 
-struct cork_slice_t
-{
+struct cork_slice {
     /**
      * @brief The beginning of the sliced portion of the buffer.
      */
@@ -136,7 +134,7 @@ struct cork_slice_t
      * @brief The slice implementation of the underlying buffer.
      * @private
      */
-    cork_slice_iface_t  *iface;
+    struct cork_slice_iface  *iface;
 
     /**
      * @brief An opaque pointer used by the slice implementation to
@@ -162,25 +160,25 @@ struct cork_slice_t
  *
  * @param [in] slice  The slice instance to clear
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 void
-cork_slice_clear(cork_slice_t *slice);
+cork_slice_clear(struct cork_slice *slice);
 
 
 /**
  * @brief Return whether a slice is empty.
  * @param [in] slice  A slice instance
  * @returns Whether the slice instance is empty
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 bool
-cork_slice_is_empty(cork_slice_t *slice);
+cork_slice_is_empty(struct cork_slice *slice);
 #else
 #define cork_slice_is_empty(slice)  ((slice)->buf == NULL)
 #endif
@@ -207,13 +205,13 @@ cork_slice_is_empty(cork_slice_t *slice);
  * @returns @c true if @a buffer, @a offset, and @a length refer to a
  * valid portion of the slice; @c false otherwise.
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 bool
-cork_slice_copy(cork_slice_t *dest,
-                cork_slice_t *slice,
+cork_slice_copy(struct cork_slice *dest,
+                struct cork_slice *slice,
                 size_t offset, size_t length);
 
 
@@ -235,13 +233,13 @@ cork_slice_copy(cork_slice_t *dest,
  * @returns @c true if @a buffer and @a offset refer to a valid portion
  * of the slice; @c false otherwise.
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 bool
-cork_slice_copy_offset(cork_slice_t *dest,
-                       cork_slice_t *slice,
+cork_slice_copy_offset(struct cork_slice *dest,
+                       struct cork_slice *slice,
                        size_t offset);
 
 
@@ -260,12 +258,12 @@ cork_slice_copy_offset(cork_slice_t *dest,
  * @returns @c true if @a buffer, @a offset, and @a length refer to a
  * valid portion of the slice; @c false otherwise.
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 bool
-cork_slice_slice(cork_slice_t *slice,
+cork_slice_slice(struct cork_slice *slice,
                  size_t offset, size_t length);
 
 
@@ -283,12 +281,12 @@ cork_slice_slice(cork_slice_t *slice,
  * @returns @c true if @a buffer and @a offset refer to a valid portion
  * of the slice; @c false otherwise.
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 bool
-cork_slice_slice_offset(cork_slice_t *slice,
+cork_slice_slice_offset(struct cork_slice *slice,
                         size_t offset);
 
 
@@ -297,12 +295,12 @@ cork_slice_slice_offset(cork_slice_t *slice,
  *
  * @param [in] slice  A slice instance
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 void
-cork_slice_finish(cork_slice_t *slice);
+cork_slice_finish(struct cork_slice *slice);
 
 
 /**
@@ -315,13 +313,13 @@ cork_slice_finish(cork_slice_t *slice);
  * @param [in] slice2  A slice instance
  * @returns Whether the contents of the two slices are identical.
  *
- * @public @memberof cork_slice_t
+ * @public @memberof cork_slice
  * @since 0.2
  */
 
 bool
-cork_slice_equal(const cork_slice_t *slice1,
-                 const cork_slice_t *slice2);
+cork_slice_equal(const struct cork_slice *slice1,
+                 const struct cork_slice *slice2);
 
 
 #endif /* LIBCORK_DS_SLICE_H */

@@ -47,7 +47,7 @@
  * @brief A resizable binary buffer.
  *
  * This class is not reference counted; we assume that there's a single
- * owner of the buffer.  The contents of a cork_buffer_t are fully
+ * owner of the buffer.  The contents of a struct cork_buffer are fully
  * mutable.  If you want to turn the buffer into something that's safe
  * to pass between threads, you can use the @ref cork_buffer_to_slice or
  * @ref cork_buffer_to_managed_buffer functions to create an immutable
@@ -61,13 +61,12 @@
  * @note Note that this class always creates its own copy of any data
  * added to the buffer; there aren't any methods for wrapping existing
  * buffers without copying.  If you want to do that, you need the @ref
- * cork_managed_buffer_t class.
+ * cork_managed_buffer class.
  *
  * @since 0.2
  */
 
-typedef struct cork_buffer_t
-{
+struct cork_buffer {
     /** @brief The current contents of the buffer. */
     void  *buf;
 
@@ -79,8 +78,8 @@ typedef struct cork_buffer_t
 
     /** @brief The allocator to use to manage the internal buffer.
      * @private */
-    cork_allocator_t  *alloc;
-} cork_buffer_t;
+    struct cork_alloc  *alloc;
+};
 
 /* end of buffer group */
 /**
@@ -92,23 +91,23 @@ typedef struct cork_buffer_t
  * @brief Initialize a new buffer.
  * @param [in] alloc  A custom allocator
  * @param [in] buffer  An uninitialized buffer
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 void
-cork_buffer_init(cork_allocator_t *alloc, cork_buffer_t *buffer);
+cork_buffer_init(struct cork_alloc *alloc, struct cork_buffer *buffer);
 
 /**
  * @brief A static initializer for a buffer allocated on the stack.
  * @param [in] alloc  A custom allocator
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 #if CORK_DOCUMENTATION
-cork_buffer_t
-CORK_BUFFER_INIT(cork_allocator_t *alloc);
+struct cork_buffer
+CORK_BUFFER_INIT(struct cork_alloc *alloc);
 #else
 #define CORK_BUFFER_INIT(alloc)  { NULL, 0, 0, (alloc) }
 #endif
@@ -117,34 +116,34 @@ CORK_BUFFER_INIT(cork_allocator_t *alloc);
  * @brief Allocate and initialize a new buffer.
  * @param [in] alloc  A custom allocator
  * @return A new buffer, or @c NULL if the buffer couldn't be allocated.
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
-cork_buffer_t *
-cork_buffer_new(cork_allocator_t *alloc);
+struct cork_buffer *
+cork_buffer_new(struct cork_alloc *alloc);
 
 
 /**
  * @brief Finalize a buffer, freeing any content that it contains.
  * @param [in] buffer  A buffer
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 void
-cork_buffer_done(cork_buffer_t *buffer);
+cork_buffer_done(struct cork_buffer *buffer);
 
 /**
  * @brief Finalize and deallocate a buffer, freeing any content that it
  * contains.
  * @param [in] buffer  A buffer
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 void
-cork_buffer_free(cork_buffer_t *buffer);
+cork_buffer_free(struct cork_buffer *buffer);
 
 
 /**
@@ -152,12 +151,13 @@ cork_buffer_free(cork_buffer_t *buffer);
  * @param [in] buffer1  A buffer
  * @param [in] buffer2  A buffer
  * @returns Whether the contents of the two buffers are identical.
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_equal(const cork_buffer_t *buffer1, const cork_buffer_t *buffer2);
+cork_buffer_equal(const struct cork_buffer *buffer1,
+                  const struct cork_buffer *buffer2);
 
 
 /**
@@ -174,23 +174,23 @@ cork_buffer_equal(const cork_buffer_t *buffer1, const cork_buffer_t *buffer2);
  * @returns @c true if we can ensure that the internal storage is at
  * least as big as @a size; @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_ensure_size(cork_buffer_t *buffer, size_t desired_size);
+cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size);
 
 
 /**
  * @brief Clears a buffer.
  * @param [in] buffer  A buffer
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 void
-cork_buffer_clear(cork_buffer_t *buffer);
+cork_buffer_clear(struct cork_buffer *buffer);
 
 
 /*-----------------------------------------------------------------------
@@ -213,12 +213,12 @@ cork_buffer_clear(cork_buffer_t *buffer);
  * @returns @c true if the array is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length);
+cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
 
 
 /**
@@ -237,12 +237,12 @@ cork_buffer_set(cork_buffer_t *buffer, const void *src, size_t length);
  * @returns @c true if the array is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_append(cork_buffer_t *buffer, const void *src, size_t length);
+cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length);
 
 
 /**
@@ -257,12 +257,12 @@ cork_buffer_append(cork_buffer_t *buffer, const void *src, size_t length);
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_set_string(cork_buffer_t *buffer, const char *str);
+cork_buffer_set_string(struct cork_buffer *buffer, const char *str);
 
 
 /**
@@ -277,12 +277,12 @@ cork_buffer_set_string(cork_buffer_t *buffer, const char *str);
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_append_string(cork_buffer_t *buffer, const char *str);
+cork_buffer_append_string(struct cork_buffer *buffer, const char *str);
 
 
 /**
@@ -296,12 +296,12 @@ cork_buffer_append_string(cork_buffer_t *buffer, const char *str);
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
+cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
     CORK_ATTR_PRINTF(2,3);
 
 /**
@@ -315,12 +315,12 @@ cork_buffer_printf(cork_buffer_t *buffer, const char *format, ...)
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_vprintf(cork_buffer_t *buffer, const char *format, va_list args)
+cork_buffer_vprintf(struct cork_buffer *buffer, const char *format, va_list args)
     CORK_ATTR_PRINTF(2,0);
 
 
@@ -335,12 +335,12 @@ cork_buffer_vprintf(cork_buffer_t *buffer, const char *format, va_list args)
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_append_printf(cork_buffer_t *buffer, const char *format, ...)
+cork_buffer_append_printf(struct cork_buffer *buffer, const char *format, ...)
     CORK_ATTR_PRINTF(2,3);
 
 /**
@@ -354,12 +354,12 @@ cork_buffer_append_printf(cork_buffer_t *buffer, const char *format, ...)
  * @returns @c true if the string is successfully copied into the buffer;
  * @c false otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_append_vprintf(cork_buffer_t *buffer,
+cork_buffer_append_vprintf(struct cork_buffer *buffer,
                            const char *format, va_list args)
     CORK_ATTR_PRINTF(2,0);
 
@@ -384,12 +384,12 @@ cork_buffer_append_vprintf(cork_buffer_t *buffer,
  * @returns A new managed buffer, or @c NULL if the managed buffer
  * couldn't be allocated.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
-cork_managed_buffer_t *
-cork_buffer_to_managed_buffer(cork_buffer_t *buffer);
+struct cork_managed_buffer *
+cork_buffer_to_managed_buffer(struct cork_buffer *buffer);
 
 
 /**
@@ -405,7 +405,7 @@ cork_buffer_to_managed_buffer(cork_buffer_t *buffer);
  *
  * The slice points into the contents of a new managed buffer instance.
  * The managed buffer isn't returned directly, though you can create
- * additional slices into it using the usual cork_slice_t methods.
+ * additional slices into it using the usual cork_slice methods.
  *
  * Regardless of whether we can initialize the slice successfully, you
  * @b must ensure that you call @ref cork_slice_finish when you are done
@@ -417,12 +417,12 @@ cork_buffer_to_managed_buffer(cork_buffer_t *buffer);
  * @returns @c true if we can initialize the new slice; @c false
  * otherwise.
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
 bool
-cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice);
+cork_buffer_to_slice(struct cork_buffer *buffer, struct cork_slice *slice);
 
 
 /*-----------------------------------------------------------------------
@@ -431,7 +431,7 @@ cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice);
 
 /**
  * @brief Create a new stream consumer that appends the binary data into
- * a @ref cork_buffer_t
+ * a @ref cork_buffer
  *
  * We do @b not take control of @a buffer.  You retain responsibility
  * for freeing the buffer, though you must ensure that it remains
@@ -439,12 +439,12 @@ cork_buffer_to_slice(cork_buffer_t *buffer, cork_slice_t *slice);
  *
  * @param [in] buffer  A buffer
  *
- * @public @memberof cork_buffer_t
+ * @public @memberof cork_buffer
  * @since 0.2
  */
 
-cork_stream_consumer_t *
-cork_buffer_to_stream_consumer(cork_buffer_t *buffer);
+struct cork_stream_consumer *
+cork_buffer_to_stream_consumer(struct cork_buffer *buffer);
 
 
 #endif /* LIBCORK_DS_BUFFER_H */

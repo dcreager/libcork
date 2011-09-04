@@ -15,7 +15,7 @@
 #include "libcork/core/types.h"
 
 void
-cork_timestamp_init_now(cork_timestamp_t *ts)
+cork_timestamp_init_now(cork_timestamp *ts)
 {
     struct timeval  tp;
     gettimeofday(&tp, NULL);
@@ -24,7 +24,7 @@ cork_timestamp_init_now(cork_timestamp_t *ts)
 
 
 bool
-cork_timestamp_format_utc(const cork_timestamp_t ts,
+cork_timestamp_format_utc(const cork_timestamp ts,
                           const char *format,
                           char *buf, size_t size)
 {
@@ -38,7 +38,7 @@ cork_timestamp_format_utc(const cork_timestamp_t ts,
 
 
 bool
-cork_timestamp_format_local(const cork_timestamp_t ts,
+cork_timestamp_format_local(const cork_timestamp ts,
                             const char *format,
                             char *buf, size_t size)
 {

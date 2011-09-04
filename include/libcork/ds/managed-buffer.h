@@ -26,15 +26,15 @@
  * <tt>#%include \<libcork/ds/managed-buffer.h\></tt>
  *
  * This section defines an interface for handling reference-counted
- * binary buffers.  The @ref cork_managed_buffer_t type wraps a buffer
+ * binary buffers.  The @ref cork_managed_buffer type wraps a buffer
  * with a simple reference count, and takes care of freeing the
  * necessary resources when the reference count drops to zero.  There
- * should only be a single instance of @ref cork_managed_buffer_t for
+ * should only be a single instance of @ref cork_managed_buffer for
  * any given buffer, regardless of how many threads or functions access
  * that buffer.  Each thread or function that uses the buffer does so
- * via a @ref cork_slice_t instance.  This type is meant to be allocated
+ * via a @ref cork_slice instance.  This type is meant to be allocated
  * directly on the stack (or in some other managed storage), and keeps a
- * pointer to the @ref cork_managed_buffer_t instance that it slices.
+ * pointer to the @ref cork_managed_buffer instance that it slices.
  * As its name implies, a slice can refer to a subset of the buffer.
  *
  * @{
@@ -44,7 +44,7 @@
  * Managed buffers
  */
 
-typedef struct cork_managed_buffer_t  cork_managed_buffer_t;
+struct cork_managed_buffer;
 
 /**
  * @brief The interface of methods that a managed buffer implementation
@@ -52,16 +52,15 @@ typedef struct cork_managed_buffer_t  cork_managed_buffer_t;
  * @since 0.2
  */
 
-typedef struct cork_managed_buffer_iface_t
-{
+struct cork_managed_buffer_iface {
     /**
      * @brief Free the contents of a managed buffer, and the managed
      * buffer object itself.
      * @since 0.2
      */
     void
-    (*free)(cork_managed_buffer_t *buf);
-} cork_managed_buffer_iface_t;
+    (*free)(struct cork_managed_buffer *buf);
+};
 
 /**
  * @brief A “managed buffer”, which wraps a buffer with a simple
@@ -70,18 +69,17 @@ typedef struct cork_managed_buffer_iface_t
  * We take care of freeing the underlying buffer when the reference
  * count drops to zero.
  *
- * There should only be a single instance of @ref cork_managed_buffer_t
+ * There should only be a single instance of @ref cork_managed_buffer
  * for any given buffer, regardless of how many threads access that
  * buffer.  One implication of this is that you will not use this class
  * to access the data contained within the buffer.  Instead, each thread
  * or function that accesses data within the buffer will have its own
- * @ref cork_slice_t referring to this buffer.
+ * @ref cork_slice referring to this buffer.
  *
  * @since 0.2
  */
 
-struct cork_managed_buffer_t
-{
+struct cork_managed_buffer {
     /** @brief The buffer that this instance manages */
     const void  *buf;
 
@@ -99,7 +97,7 @@ struct cork_managed_buffer_t
      * @brief The managed buffer implementation for this instance.
      * @private
      */
-    cork_managed_buffer_iface_t  *iface;
+    struct cork_managed_buffer_iface  *iface;
 };
 
 /* end of managed_buffer group */
@@ -109,7 +107,7 @@ struct cork_managed_buffer_t
 
 
 /**
- * @brief Allocate a new @c cork_managed_buffer_t to manage a copy of a
+ * @brief Allocate a new @c struct cork_managed_buffer to manage a copy of a
  * buffer.
  *
  * @param [in] alloc  A custom allocator
@@ -119,12 +117,12 @@ struct cork_managed_buffer_t
  * @returns A new buffer, or @c NULL if the buffer couldn't be
  * allocated.
  *
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
-cork_managed_buffer_t *
-cork_managed_buffer_new_copy(cork_allocator_t *alloc,
+struct cork_managed_buffer *
+cork_managed_buffer_new_copy(struct cork_alloc *alloc,
                              const void *buf, size_t size);
 
 
@@ -134,11 +132,11 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
  */
 
 typedef void
-(*cork_managed_buffer_free_t)(cork_allocator_t *alloc,
-                              void *buf, size_t size);
+(*cork_managed_buffer_freer)(struct cork_alloc *alloc,
+                             void *buf, size_t size);
 
 /**
- * @brief Allocate a new @c cork_managed_buffer_t to manage an existing
+ * @brief Allocate a new @c cork_managed_buffer to manage an existing
  * buffer.
  *
  * The buffer is not copied; when the buffer is no longer needed, the @a
@@ -147,7 +145,7 @@ typedef void
  * managed buffer object.
  *
  * @note The @a free function is @i not responsible for freeing the @c
- * cork_managed_buffer_t instance itself.
+ * cork_managed_buffer instance itself.
  *
  * @param [in] alloc  A custom allocator
  * @param [in] buf  The buffer to manage
@@ -158,14 +156,14 @@ typedef void
  * @returns A new buffer, or @c NULL if the buffer couldn't be
  * allocated.
  *
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
-cork_managed_buffer_t *
-cork_managed_buffer_new(cork_allocator_t *alloc,
+struct cork_managed_buffer *
+cork_managed_buffer_new(struct cork_alloc *alloc,
                         const void *buf, size_t size,
-                        cork_managed_buffer_free_t free);
+                        cork_managed_buffer_freer free);
 
 
 /**
@@ -173,12 +171,12 @@ cork_managed_buffer_new(cork_allocator_t *alloc,
  * This function is thread-safe.
  * @param [in] buf  A managed buffer
  * @returns A reference to the managed buffer.
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
-cork_managed_buffer_t *
-cork_managed_buffer_ref(cork_managed_buffer_t *buf);
+struct cork_managed_buffer *
+cork_managed_buffer_ref(struct cork_managed_buffer *buf);
 
 
 /**
@@ -186,12 +184,12 @@ cork_managed_buffer_ref(cork_managed_buffer_t *buf);
  * If the reference count falls to 0, the instance is freed.  This
  * function is thread-safe.
  * @param [in] buf  A managed buffer
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
 void
-cork_managed_buffer_unref(cork_managed_buffer_t *buf);
+cork_managed_buffer_unref(struct cork_managed_buffer *buf);
 
 
 /**
@@ -215,13 +213,13 @@ cork_managed_buffer_unref(cork_managed_buffer_t *buf);
  * @returns @c true if @a buffer, @a offset, and @a length refer to a
  * valid portion of a managed buffer; @c false otherwise.
  *
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
 bool
-cork_managed_buffer_slice(cork_slice_t *dest,
-                          cork_managed_buffer_t *buffer,
+cork_managed_buffer_slice(struct cork_slice *dest,
+                          struct cork_managed_buffer *buffer,
                           size_t offset, size_t length);
 
 
@@ -243,13 +241,13 @@ cork_managed_buffer_slice(cork_slice_t *dest,
  * @returns @c true if @a buffer and @a offset refer to a valid portion
  * of a managed buffer; @c false otherwise.
  *
- * @public @memberof cork_managed_buffer_t
+ * @public @memberof cork_managed_buffer
  * @since 0.2
  */
 
 bool
-cork_managed_buffer_slice_offset(cork_slice_t *dest,
-                                 cork_managed_buffer_t *buffer,
+cork_managed_buffer_slice_offset(struct cork_slice *dest,
+                                 struct cork_managed_buffer *buffer,
                                  size_t offset);
 
 

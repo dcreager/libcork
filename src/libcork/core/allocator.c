@@ -17,37 +17,36 @@
 
 
 /**
- * @brief A copy of cork_allocator_t that lets us assign to the @a alloc
+ * @brief A copy of struct cork_alloc that lets us assign to the @a alloc
  * field.
  */
 
-typedef struct cork_mutable_allocator_t
-{
-    cork_alloc_func_t  alloc;
-} cork_mutable_allocator_t;
+struct cork_mutable_alloc {
+    cork_alloc_func  alloc;
+};
 
 
 /**
- * @brief A default free function for the cork_allocator_t class.
+ * @brief A default free function for the struct cork_alloc class.
  */
 
 static void
-cork_allocator_default_free(cork_allocator_t *alloc)
+cork_allocator_default_free(struct cork_alloc *alloc)
 {
-    cork_delete(alloc, cork_allocator_t, alloc);
+    cork_delete(alloc, struct cork_alloc, alloc);
 }
 
 
-cork_allocator_t *
-cork_allocator_new(cork_alloc_func_t alloc_func)
+struct cork_alloc *
+cork_allocator_new(cork_alloc_func alloc_func)
 {
-    cork_allocator_t  *alloc =
-        alloc_func(NULL, NULL, 0, sizeof(cork_allocator_t));
+    struct cork_alloc  *alloc =
+        alloc_func(NULL, NULL, 0, sizeof(struct cork_alloc));
     if (alloc == NULL) {
         return NULL;
     }
 
-    cork_mutable_allocator_t  *m_alloc = (cork_mutable_allocator_t *) alloc;
+    struct cork_mutable_alloc  *m_alloc = (struct cork_mutable_alloc *) alloc;
     m_alloc->alloc = alloc_func;
     alloc->free = cork_allocator_default_free;
     return alloc;
@@ -60,7 +59,7 @@ cork_allocator_new(cork_alloc_func_t alloc_func)
  */
 
 static void *
-cork_malloc_alloc_func(cork_allocator_t *alloc,
+cork_malloc_alloc_func(struct cork_alloc *alloc,
                        void *ptr, size_t osize, size_t nsize)
 {
     if (nsize == 0) {
@@ -76,7 +75,7 @@ cork_malloc_alloc_func(cork_allocator_t *alloc,
  */
 
 static void
-cork_default_alloc_free(cork_allocator_t *alloc)
+cork_default_alloc_free(struct cork_alloc *alloc)
 {
     /* nothing to do, the object is static! */
 }
@@ -86,17 +85,17 @@ cork_default_alloc_free(cork_allocator_t *alloc)
  * function.
  */
 
-static cork_allocator_t  cork_malloc_allocator =
+static struct cork_alloc  CORK_MALLOC_ALLOCATOR =
 {
     cork_malloc_alloc_func,
     cork_default_alloc_free
 };
 
 
-cork_allocator_t *
+struct cork_alloc *
 cork_allocator_new_malloc(void)
 {
-    return &cork_malloc_allocator;
+    return &CORK_MALLOC_ALLOCATOR;
 }
 
 
@@ -107,7 +106,7 @@ cork_allocator_new_malloc(void)
  */
 
 static void *
-cork_debug_alloc_func(cork_allocator_t *alloc,
+cork_debug_alloc_func(struct cork_alloc *alloc,
                       void *ptr, size_t osize, size_t nsize)
 {
     if (nsize == 0) {
@@ -147,22 +146,22 @@ cork_debug_alloc_func(cork_allocator_t *alloc,
  * @brief An debug allocator object.
  */
 
-static cork_allocator_t  cork_debug_allocator =
+static struct cork_alloc  CORK_DEBUG_ALLOCATOR =
 {
     cork_debug_alloc_func,
     cork_default_alloc_free
 };
 
 
-cork_allocator_t *
+struct cork_alloc *
 cork_allocator_new_debug(void)
 {
-    return &cork_debug_allocator;
+    return &CORK_DEBUG_ALLOCATOR;
 }
 
 
 void
-cork_allocator_free(cork_allocator_t *alloc)
+cork_allocator_free(struct cork_alloc *alloc)
 {
     alloc->free(alloc);
 }

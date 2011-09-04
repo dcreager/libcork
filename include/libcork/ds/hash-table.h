@@ -42,8 +42,8 @@
  * @since 0.2
  */
 
-typedef cork_hash_t
-(*cork_hash_table_hasher_t)(const void *key);
+typedef cork_hash
+(*cork_hash_table_hasher)(const void *key);
 
 
 /**
@@ -57,17 +57,16 @@ typedef cork_hash_t
  */
 
 typedef bool
-(*cork_hash_table_comparator_t)(const void *key1, const void *key2);
+(*cork_hash_table_comparator)(const void *key1, const void *key2);
 
 
 /**
  * @brief The contents of each entry in a hash table.
  */
 
-typedef struct cork_hash_table_entry_t
-{
+struct cork_hash_table_entry {
     /** @brief The hash of this entry's key. */
-    cork_hash_t  hash;
+    cork_hash  hash;
 
     /** @brief This entry's key */
     void  *key;
@@ -79,8 +78,8 @@ typedef struct cork_hash_table_entry_t
      * @brief A link to the other entries in the same hash bucket.
      * @private
      */
-    cork_dllist_item_t  siblings;
-} cork_hash_table_entry_t;
+    struct cork_dllist_item  siblings;
+};
 
 
 /**
@@ -89,13 +88,12 @@ typedef struct cork_hash_table_entry_t
  * @since 0.2
  */
 
-typedef struct cork_hash_table_t
-{
+struct cork_hash_table {
     /**
      * @brief The current array of bins in the hash table.
      * @private
      */
-    cork_dllist_t  *bins;
+    struct cork_dllist  *bins;
 
     /**
      * @brief The number of bins in the hash table.
@@ -113,20 +111,20 @@ typedef struct cork_hash_table_t
      * @brief A hashing function.
      * @private
      */
-    cork_hash_table_hasher_t  hasher;
+    cork_hash_table_hasher  hasher;
 
     /**
      * @brief A comparator function.
      * @private
      */
-    cork_hash_table_comparator_t  comparator;
+    cork_hash_table_comparator  comparator;
 
     /**
      * @brief The custom allocator to use with this hash table.
      * @private
      */
-    cork_allocator_t  *alloc;
-} cork_hash_table_t;
+    struct cork_alloc  *alloc;
+};
 
 /* end of hash_table group */
 /**
@@ -146,16 +144,16 @@ typedef struct cork_hash_table_t
  * @param [in] comparator  A comparator function
  * @returns Whether we could successfully allocate the hash table.
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 bool
-cork_hash_table_init(cork_allocator_t *alloc,
-                     cork_hash_table_t *table,
+cork_hash_table_init(struct cork_alloc *alloc,
+                     struct cork_hash_table *table,
                      size_t initial_size,
-                     cork_hash_table_hasher_t hasher,
-                     cork_hash_table_comparator_t comparator);
+                     cork_hash_table_hasher hasher,
+                     cork_hash_table_comparator comparator);
 
 /**
  * @brief Allocate and initialize a new hash table.
@@ -170,15 +168,15 @@ cork_hash_table_init(cork_allocator_t *alloc,
  * @returns A new hash table, or @c NULL if the hash table couldn't be
  * allocated.
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
-cork_hash_table_t *
-cork_hash_table_new(cork_allocator_t *alloc,
+struct cork_hash_table *
+cork_hash_table_new(struct cork_alloc *alloc,
                     size_t initial_size,
-                    cork_hash_table_hasher_t hasher,
-                    cork_hash_table_comparator_t comparator);
+                    cork_hash_table_hasher hasher,
+                    cork_hash_table_comparator comparator);
 
 
 /**
@@ -190,12 +188,12 @@ cork_hash_table_new(cork_allocator_t *alloc,
  *
  * @param [in] table  A hash table
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 void
-cork_hash_table_done(cork_hash_table_t *table);
+cork_hash_table_done(struct cork_hash_table *table);
 
 /**
  * @brief Finalize and deallocate a hash table.
@@ -206,12 +204,12 @@ cork_hash_table_done(cork_hash_table_t *table);
  *
  * @param [in] table  A hash table
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 void
-cork_hash_table_free(cork_hash_table_t *table);
+cork_hash_table_free(struct cork_hash_table *table);
 
 
 /**
@@ -224,12 +222,12 @@ cork_hash_table_free(cork_hash_table_t *table);
  *
  * @param [in] table  A hash table
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 void
-cork_hash_table_clear(cork_hash_table_t *table);
+cork_hash_table_clear(struct cork_hash_table *table);
 
 
 /**
@@ -243,12 +241,12 @@ cork_hash_table_clear(cork_hash_table_t *table);
  * @returns @c true if we were able to reserve enough space; @c false
  * otherwise.
  *
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 bool
-cork_hash_table_ensure_size(cork_hash_table_t *table,
+cork_hash_table_ensure_size(struct cork_hash_table *table,
                             size_t desired_count);
 
 
@@ -256,13 +254,13 @@ cork_hash_table_ensure_size(cork_hash_table_t *table,
  * @brief Return the number of elements in a hash table.
  * @param [in] table  A hash table
  * @returns The number of elements in the hash table
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 size_t
-cork_hash_table_size(const cork_hash_table_t *table);
+cork_hash_table_size(const struct cork_hash_table *table);
 #else
 #define cork_hash_table_size(table) ((table)->entry_count)
 #endif
@@ -277,12 +275,12 @@ cork_hash_table_size(const cork_hash_table_t *table);
  * @param [in] key  The key to search for
  * @returns A pointer to the corresponding value, or @c NULL if there is
  * no entry with the given key.
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 void *
-cork_hash_table_get(const cork_hash_table_t *table,
+cork_hash_table_get(const struct cork_hash_table *table,
                     const void *key);
 
 
@@ -297,12 +295,12 @@ cork_hash_table_get(const cork_hash_table_t *table,
  * @param [in] key  The key to search for
  * @returns A pointer to the corresponding entry, or @c NULL if there is
  * no entry with the given key.
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
-cork_hash_table_entry_t *
-cork_hash_table_get_entry(const cork_hash_table_t *table,
+struct cork_hash_table_entry *
+cork_hash_table_get_entry(const struct cork_hash_table *table,
                           const void *key);
 
 
@@ -324,12 +322,12 @@ cork_hash_table_get_entry(const cork_hash_table_t *table,
  *
  * @returns The entry for the given key, or @c NULL if we needed to
  * create a new entry and could not
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
-cork_hash_table_entry_t *
-cork_hash_table_get_or_create(cork_hash_table_t *table,
+struct cork_hash_table_entry *
+cork_hash_table_get_or_create(struct cork_hash_table *table,
                               void *key, bool *is_new);
 
 /**
@@ -347,12 +345,12 @@ cork_hash_table_get_or_create(cork_hash_table_t *table,
  * @param [out] old_value  The previous entry's value, if any
  *
  * @returns Whether the entry was successfully added to the table.
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 bool
-cork_hash_table_put(cork_hash_table_t *table,
+cork_hash_table_put(struct cork_hash_table *table,
                     void *key, void *value,
                     void **old_key, void **old_value);
 
@@ -365,24 +363,23 @@ cork_hash_table_put(cork_hash_table_t *table,
  * @param [out] deleted_value  The value from the deleted entry
  *
  * @returns Whether there was an entry to remove.
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 bool
-cork_hash_table_delete(cork_hash_table_t *table, const void *key,
+cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value);
 
 
 /**
- * @brief The return value from a @ref cork_hash_table_mapper_t
+ * @brief The return value from a @ref cork_hash_table_mapper
  * function.
  * @ingroup hash_table
  * @since 0.2
  */
 
-typedef enum cork_hash_table_map_result_t
-{
+enum cork_hash_table_map_result {
     /** @brief Abort the current @ref cork_hash_table_map operation. */
     CORK_HASH_TABLE_MAP_ABORT = 0,
     /** @brief Continue on to the next entry in the hash table. */
@@ -390,33 +387,33 @@ typedef enum cork_hash_table_map_result_t
     /** @brief Delete the entry that was just processed, and then
      * continue on to the next entry in the hash table. */
     CORK_HASH_TABLE_MAP_DELETE = 2
-} cork_hash_table_map_result_t;
+};
 
 /**
  * @brief A function that can be applied to each entry in a hash table.
  * @param [in] entry  A hash table entry
- * @returns A @ref cork_hash_table_map_result_t value, indicating
+ * @returns A @ref cork_hash_table_map_result value, indicating
  * whether we should abort or continue the map operation, and whether we
  * should delete the current entry before proceeding.
  * @ingroup hash_table
  * @since 0.2
  */
 
-typedef cork_hash_table_map_result_t
-(*cork_hash_table_mapper_t)(cork_hash_table_entry_t *entry, void *user_data);
+typedef enum cork_hash_table_map_result
+(*cork_hash_table_mapper)(struct cork_hash_table_entry *entry, void *user_data);
 
 /**
  * @brief Apply a function to each entry in a hash table.
  * @param [in] table  A hash table
  * @param [in] mapper  The function to apply to each entry
  * @param [in] user_data  An additional parameter to pass into @a mapper
- * @public @memberof cork_hash_table_t
+ * @public @memberof cork_hash_table
  * @since 0.2
  */
 
 void
-cork_hash_table_map(cork_hash_table_t *table,
-                    cork_hash_table_mapper_t mapper, void *user_data);
+cork_hash_table_map(struct cork_hash_table *table,
+                    cork_hash_table_mapper mapper, void *user_data);
 
 
 #endif /* LIBCORK_DS_HASH_TABLE_H */

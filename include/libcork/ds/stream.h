@@ -45,10 +45,9 @@
  * @since 0.2
  */
 
-typedef struct cork_stream_consumer_t  cork_stream_consumer_t;
+struct cork_stream_consumer;
 
-struct cork_stream_consumer_t
-{
+struct cork_stream_consumer {
     /**
      * @brief Implementation of the @ref cork_stream_consumer_data
      * method
@@ -57,8 +56,8 @@ struct cork_stream_consumer_t
      */
 
     bool
-    (*data)(cork_stream_consumer_t *consumer,
-            cork_slice_t *slice, bool is_first_chunk);
+    (*data)(struct cork_stream_consumer *consumer,
+            struct cork_slice *slice, bool is_first_chunk);
 
     /**
      * @brief Implementation of the @ref cork_stream_consumer_eof method
@@ -67,7 +66,7 @@ struct cork_stream_consumer_t
      */
 
     bool
-    (*eof)(cork_stream_consumer_t *consumer);
+    (*eof)(struct cork_stream_consumer *consumer);
 
     /**
      * @brief Frees the stream consumer instance
@@ -76,7 +75,7 @@ struct cork_stream_consumer_t
      */
 
     void
-    (*free)(cork_stream_consumer_t *consumer);
+    (*free)(struct cork_stream_consumer *consumer);
 };
 
 /* end of stream group */
@@ -98,14 +97,14 @@ struct cork_stream_consumer_t
  * stream
  * @returns @c true if this chunk was processed successfully, @c false
  * otherwise.
- * @public @memberof cork_stream_consumer_t
+ * @public @memberof cork_stream_consumer
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 bool
-cork_stream_consumer_data(cork_stream_consumer_t *consumer,
-                          cork_slice_t *slice, bool is_first_chunk);
+cork_stream_consumer_data(struct cork_stream_consumer *consumer,
+                          struct cork_slice *slice, bool is_first_chunk);
 #else
 #define cork_stream_consumer_data(consumer, slice, is_first) \
     ((consumer)->data((consumer), (slice), (is_first)))
@@ -121,13 +120,13 @@ cork_stream_consumer_data(cork_stream_consumer_t *consumer,
  * @param [in] consumer  A stream consumer
  * @returns @c true if this stream was processed successfully, @c false
  * otherwise.
- * @public @memberof cork_stream_consumer_t
+ * @public @memberof cork_stream_consumer
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 bool
-cork_stream_consumer_eof(cork_stream_consumer_t *consumer);
+cork_stream_consumer_eof(struct cork_stream_consumer *consumer);
 #else
 #define cork_stream_consumer_eof(consumer) ((consumer)->eof((consumer)))
 #endif
@@ -135,13 +134,13 @@ cork_stream_consumer_eof(cork_stream_consumer_t *consumer);
 /**
  * @brief Finalize and deallocate a stream consumer.
  * @param [in] consumer  A stream consumer
- * @public @memberof cork_stream_consumer_t
+ * @public @memberof cork_stream_consumer
  * @since 0.2
  */
 
 #if defined(CORK_DOCUMENTATION)
 void
-cork_stream_consumer_free(cork_stream_consumer_t *consumer);
+cork_stream_consumer_free(struct cork_stream_consumer *consumer);
 #else
 #define cork_stream_consumer_free(consumer) ((consumer)->free((consumer)))
 #endif

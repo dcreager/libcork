@@ -35,18 +35,18 @@ uint64_equals(const void *va, const void *vb)
     return *a == *b;
 }
 
-static cork_hash_t
+static cork_hash
 uint64_hash(const void *velement)
 {
     const uint64_t  *element = velement;
 #if 0
     printf("Hashing %p (%" PRIu64 ")\n", element, *element);
 #endif
-    return (cork_hash_t) *element;
+    return (cork_hash) *element;
 }
 
-static cork_hash_table_map_result_t
-uint64_sum(cork_hash_table_entry_t *entry, void *vsum)
+static enum cork_hash_table_map_result
+uint64_sum(struct cork_hash_table_entry *entry, void *vsum)
 {
     uint64_t  *sum = vsum;
     uint64_t  *value = entry->value;
@@ -54,10 +54,10 @@ uint64_sum(cork_hash_table_entry_t *entry, void *vsum)
     return CORK_HASH_TABLE_MAP_CONTINUE;
 }
 
-static cork_hash_table_map_result_t
-uint64_map_free(cork_hash_table_entry_t *entry, void *valloc)
+static enum cork_hash_table_map_result
+uint64_map_free(struct cork_hash_table_entry *entry, void *valloc)
 {
-    cork_allocator_t  *alloc = valloc;
+    struct cork_alloc  *alloc = valloc;
     cork_delete(alloc, uint64_t, entry->key);
     cork_delete(alloc, uint64_t, entry->value);
     return CORK_HASH_TABLE_MAP_DELETE;
@@ -65,9 +65,9 @@ uint64_map_free(cork_hash_table_entry_t *entry, void *valloc)
 
 START_TEST(test_hash_table)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
-    cork_hash_table_t  *table =
+    struct cork_hash_table  *table =
         cork_hash_table_new(alloc, 0, uint64_hash, uint64_equals);
     fail_if(table == NULL,
             "Couldn't allocate new hash table");
@@ -76,7 +76,7 @@ START_TEST(test_hash_table)
     void  *v_key, *v_value;
     uint64_t  *value_ptr, *old_value;
     bool  is_new;
-    cork_hash_table_entry_t  *entry;
+    struct cork_hash_table_entry  *entry;
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Hash table should start empty");

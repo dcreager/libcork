@@ -30,32 +30,30 @@
  * @since 0.2
  */
 
-typedef struct cork_halloc_header_t  cork_halloc_header_t;
-
-struct cork_halloc_header_t {
-    cork_dllist_item_t  siblings;
-    cork_dllist_t  children;
-    cork_halloc_header_t  *parent;
-    cork_allocator_t  *allocator;
-    cork_halloc_destructor_t  destructor;
+struct cork_halloc_header {
+    struct cork_dllist_item  siblings;
+    struct cork_dllist  children;
+    struct cork_halloc_header  *parent;
+    struct cork_alloc  *allocator;
+    cork_halloc_destructor  destructor;
     size_t  size;
 };
 
 #define cork_halloc_header_from_ptr(ptr) \
-    ((cork_halloc_header_t *) \
-     (((char *) (ptr)) - sizeof(cork_halloc_header_t)))
+    ((struct cork_halloc_header *) \
+     (((char *) (ptr)) - sizeof(struct cork_halloc_header)))
 
 #define cork_halloc_ptr_from_header(header) \
     ((void *) \
-     (((char *) (header)) + sizeof(cork_halloc_header_t)))
+     (((char *) (header)) + sizeof(struct cork_halloc_header)))
 
 
 void *
-cork_halloc_new_root(cork_allocator_t *alloc)
+cork_halloc_new_root(struct cork_alloc *alloc)
 {
-    size_t  real_size = sizeof(cork_halloc_header_t);
+    size_t  real_size = sizeof(struct cork_halloc_header);
     DEBUG("---\nAllocating root (size=%zu)\n", real_size);
-    cork_halloc_header_t  *header = cork_malloc(alloc, real_size);
+    struct cork_halloc_header  *header = cork_malloc(alloc, real_size);
     if (header == NULL) {
         return NULL;
     }
@@ -73,17 +71,17 @@ cork_halloc_new_root(cork_allocator_t *alloc)
 
 
 void *
-cork_halloc_malloc(cork_halloc_t *vparent, size_t size)
+cork_halloc_malloc(cork_halloc *vparent, size_t size)
 {
     if (vparent == NULL) {
         return NULL;
     }
 
-    cork_halloc_header_t  *parent = cork_halloc_header_from_ptr(vparent);
+    struct cork_halloc_header  *parent = cork_halloc_header_from_ptr(vparent);
     DEBUG("---\nParent is %p[%p]\n", vparent, parent);
-    size_t  real_size = size + sizeof(cork_halloc_header_t);
+    size_t  real_size = size + sizeof(struct cork_halloc_header);
     DEBUG("Allocating child (size=%zu)\n", real_size);
-    cork_halloc_header_t  *header = cork_malloc(parent->allocator, real_size);
+    struct cork_halloc_header  *header = cork_malloc(parent->allocator, real_size);
     if (header == NULL) {
         return NULL;
     }
@@ -100,21 +98,21 @@ cork_halloc_malloc(cork_halloc_t *vparent, size_t size)
 
 
 static void
-cork_halloc_set_new_parent(cork_dllist_item_t *vchild, void *user_data)
+cork_halloc_set_new_parent(struct cork_dllist_item *vchild, void *user_data)
 {
-    cork_halloc_header_t  *child =
-        cork_container_of(vchild, cork_halloc_header_t, siblings);
+    struct cork_halloc_header  *child =
+        cork_container_of(vchild, struct cork_halloc_header, siblings);
     child->parent = user_data;
 }
 
 void *
-cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize)
+cork_halloc_realloc(cork_halloc *ptr, size_t nsize)
 {
-    cork_halloc_header_t  *header = cork_halloc_header_from_ptr(ptr);
+    struct cork_halloc_header  *header = cork_halloc_header_from_ptr(ptr);
     DEBUG("---\nObject is %p[%p]\n", ptr, header);
-    size_t  real_nsize = nsize + sizeof(cork_halloc_header_t);
+    size_t  real_nsize = nsize + sizeof(struct cork_halloc_header);
     DEBUG("Reallocating [new size=%zu]\n", real_nsize);
-    cork_halloc_header_t  *new_header =
+    struct cork_halloc_header  *new_header =
         cork_realloc(header->allocator, header, header->size, real_nsize);
     if (new_header == NULL) {
         cork_halloc_free(ptr);
@@ -139,27 +137,27 @@ cork_halloc_realloc(cork_halloc_t *ptr, size_t nsize)
 
 
 void
-cork_halloc_set_destructor(cork_halloc_t *ptr,
-                           cork_halloc_destructor_t destructor)
+cork_halloc_set_destructor(cork_halloc *ptr,
+                           cork_halloc_destructor destructor)
 {
-    cork_halloc_header_t  *header = cork_halloc_header_from_ptr(ptr);
+    struct cork_halloc_header  *header = cork_halloc_header_from_ptr(ptr);
     header->destructor = destructor;
 }
 
 
 static void
-cork_halloc_free_child(cork_dllist_item_t *vchild, void *user_data)
+cork_halloc_free_child(struct cork_dllist_item *vchild, void *user_data)
 {
-    cork_halloc_header_t  *child =
-        cork_container_of(vchild, cork_halloc_header_t, siblings);
-    cork_halloc_t  *child_ptr = cork_halloc_ptr_from_header(child);
+    struct cork_halloc_header  *child =
+        cork_container_of(vchild, struct cork_halloc_header, siblings);
+    cork_halloc  *child_ptr = cork_halloc_ptr_from_header(child);
     cork_halloc_free(child_ptr);
 }
 
 void
-cork_halloc_free(cork_halloc_t *ptr)
+cork_halloc_free(cork_halloc *ptr)
 {
-    cork_halloc_header_t  *header = cork_halloc_header_from_ptr(ptr);
+    struct cork_halloc_header  *header = cork_halloc_header_from_ptr(ptr);
     if (header->destructor != NULL) {
         header->destructor(ptr);
         header->destructor = NULL;

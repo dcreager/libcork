@@ -64,46 +64,43 @@ enum cork_net_address_error_t
  * @since 0.2
  */
 
-typedef struct cork_ipv4_t
-{
+struct cork_ipv4 {
     /** @brief The individual octets of the address. @private */
     uint8_t  u8[4];
-} cork_ipv4_t;
+};
 
 /**
  * @brief An IPv6 address.
  * @since 0.2
  */
 
-typedef struct cork_ipv6_t
-{
+struct cork_ipv6 {
     /** @brief The individual octets of the address. @private */
     uint8_t  u8[16];
-} cork_ipv6_t;
+};
 
 /**
  * @brief A generic IP address.
  * @since 0.2
  */
 
-typedef struct cork_ip_t
-{
+struct cork_ip {
     /** @brief Which version of IP address this is. */
     unsigned int  version;
 #if defined(CORK_DOCUMENTATION)
     /** @brief A union defining the possible IP address fields in a @ref
-     * cork_ip_t. */
+     * cork_ip. */
     union addr {
 #else
     union {
 #endif
         /** @brief An IPv4 address. */
-        cork_ipv4_t  v4;
+        struct cork_ipv4  v4;
         /** @brief An IPv6 address. */
-        cork_ipv6_t  v6;
+        struct cork_ipv6  v6;
     } ip;
     /**< @brief The actual underlying address. */
-} cork_ip_t;
+};
 
 /**
  * @brief The maximum length of an IPv4 string, including NUL
@@ -146,12 +143,12 @@ typedef struct cork_ip_t
  * @param [in] addr  The address to initialize
  * @param [in] src  The source memory location
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ipv4_t
+ * @public @memberof cork_ipv4
  * @since 0.2
  */
 
 bool
-cork_ipv4_copy(cork_ipv4_t *addr, const void *src);
+cork_ipv4_copy(struct cork_ipv4 *addr, const void *src);
 
 /**
  * @brief Initialize an IPv4 address from a string.
@@ -163,24 +160,25 @@ cork_ipv4_copy(cork_ipv4_t *addr, const void *src);
  * @param [in] str  The string to parse
  * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ipv4_t
+ * @public @memberof cork_ipv4
  * @since 0.2
  */
 
 bool
-cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error);
+cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
+               struct cork_error *error);
 
 /**
  * @brief Check two IPv4 addresses for equality.
  * @param [in] addr1  An IPv4 address
  * @param [in] addr2  An IPv4 address
  * @return Whether the two addresses are equal.
- * @public @memberof cork_ipv4_t
+ * @public @memberof cork_ipv4
  * @since 0.2
  */
 
 bool
-cork_ipv4_equal(const cork_ipv4_t *addr1, const cork_ipv4_t *addr2);
+cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
 
 /**
  * @brief Return the string representation of an IPv4 address.
@@ -189,12 +187,12 @@ cork_ipv4_equal(const cork_ipv4_t *addr1, const cork_ipv4_t *addr2);
  * @param [in] addr  An IPv4 address
  * @param [out] dest  The @c char array to place the string
  * representation into
- * @public @memberof cork_ipv4_t
+ * @public @memberof cork_ipv4
  * @since 0.2
  */
 
 void
-cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest);
+cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
 
 
 /*** IPv6 ***/
@@ -206,12 +204,12 @@ cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest);
  * @param [in] addr  The address to initialize
  * @param [in] src  The source memory location
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ipv6_t
+ * @public @memberof cork_ipv6
  * @since 0.2
  */
 
 bool
-cork_ipv6_copy(cork_ipv6_t *addr, const void *src);
+cork_ipv6_copy(struct cork_ipv6 *addr, const void *src);
 
 /**
  * @brief Initialize an IPv6 address from a string.
@@ -223,25 +221,25 @@ cork_ipv6_copy(cork_ipv6_t *addr, const void *src);
  * @param [in] str  The string to parse
  * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ipv6_t
+ * @public @memberof cork_ipv6
  * @since 0.2
  */
 
 bool
-cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error);
+cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
+               struct cork_error *error);
 
 /**
  * @brief Check two IPv6 addresses for equality.
  * @param [in] addr1  An IPv6 address
  * @param [in] addr2  An IPv6 address
  * @return Whether the two addresses are equal.
- * @public @memberof cork_ipv6_t
+ * @public @memberof cork_ipv6
  * @since 0.2
  */
 
 bool
-cork_ipv6_equal(const cork_ipv6_t *addr1,
-                const cork_ipv6_t *addr2);
+cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
 
 /**
  * @brief Return the string representation of an IPv6 address.
@@ -250,12 +248,12 @@ cork_ipv6_equal(const cork_ipv6_t *addr1,
  * @param [in] addr  An IPv6 address
  * @param [out] dest  The @c char array to place the string
  * representation into
- * @public @memberof cork_ipv6_t
+ * @public @memberof cork_ipv6
  * @since 0.2
  */
 
 void
-cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest);
+cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest);
 
 
 /*** Generic IP ***/
@@ -268,12 +266,12 @@ cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest);
  * @param [in] addr  The address to initialize
  * @param [in] src  The source IPv4 memory location
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ip_t
+ * @public @memberof cork_ip
  * @since 0.2
  */
 
 bool
-cork_ip_from_ipv4(cork_ip_t *addr, const void *src);
+cork_ip_from_ipv4(struct cork_ip *addr, const void *src);
 
 /**
  * @brief Initialize a generic IP address from an existing IPv6 address
@@ -283,12 +281,12 @@ cork_ip_from_ipv4(cork_ip_t *addr, const void *src);
  * @param [in] addr  The address to initialize
  * @param [in] src  The source IPv6 memory location
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ip_t
+ * @public @memberof cork_ip
  * @since 0.2
  */
 
 bool
-cork_ip_from_ipv6(cork_ip_t *addr, const void *src);
+cork_ip_from_ipv6(struct cork_ip *addr, const void *src);
 
 /**
  * @brief Initialize a generic IP address from a string.
@@ -300,25 +298,24 @@ cork_ip_from_ipv6(cork_ip_t *addr, const void *src);
  * @param [in] str  The string to parse
  * @param [in] error  An error instance
  * @returns Whether the address was successfully initialized.
- * @public @memberof cork_ip_t
+ * @public @memberof cork_ip
  * @since 0.2
  */
 
 bool
-cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error);
+cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error);
 
 /**
  * @brief Check two generic IP addresses for equality.
  * @param [in] addr1  An IP address
  * @param [in] addr2  An IP address
  * @return Whether the two addresses are equal.
- * @public @memberof cork_ip_t
+ * @public @memberof cork_ip
  * @since 0.2
  */
 
 bool
-cork_ip_equal(const cork_ip_t *addr1,
-              const cork_ip_t *addr2);
+cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2);
 
 /**
  * @brief Return the string representation of a generic IP address.
@@ -327,12 +324,12 @@ cork_ip_equal(const cork_ip_t *addr1,
  * @param [in] addr  An IP address
  * @param [out] dest  The @c char array to place the string
  * representation into
- * @public @memberof cork_ip_t
+ * @public @memberof cork_ip
  * @since 0.2
  */
 
 void
-cork_ip_to_raw_string(const cork_ip_t *addr, char *dest);
+cork_ip_to_raw_string(const struct cork_ip *addr, char *dest);
 
 
 #endif /* LIBCORK_CORE_NET_ADDRESSES_H */
