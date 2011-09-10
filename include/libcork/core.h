@@ -59,6 +59,11 @@
  * @ingroup core
  */
 
+/**
+ * @defgroup gc Reference-counted garbage collection
+ * @ingroup core
+ */
+
 
 /*** include all of the parts ***/
 
@@ -66,6 +71,7 @@
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
 #include <libcork/core/error.h>
+#include <libcork/core/gc.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/net-addresses.h>
 #include <libcork/core/timestamp.h>
