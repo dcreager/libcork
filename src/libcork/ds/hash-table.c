@@ -36,7 +36,7 @@
  * @brief The default initial number of bins to allocate in a new table.
  */
 
-#define CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE  11
+#define CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE  8
 
 /**
  * @brief The default number of entries per bin to allow before
