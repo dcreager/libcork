@@ -132,6 +132,19 @@ START_TEST(test_hash_table)
                 "Unexpected sum, got %lu, expected %lu",
                 (unsigned long) sum, (unsigned long) 34);
 
+    sum = 0;
+    struct cork_hash_table_iterator  iterator;
+    cork_hash_table_iterator_init(table, &iterator);
+    for (entry = cork_hash_table_iterator_next(table, &iterator);
+         entry != NULL;
+         entry = cork_hash_table_iterator_next(table, &iterator)) {
+        value_ptr = entry->value;
+        sum += *value_ptr;
+    }
+    fail_unless(sum == 34,
+                "Unexpected iterator sum, got %lu, expected %lu",
+                (unsigned long) sum, (unsigned long) 34);
+
     key = 0;
     fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
                 "Couldn't delete {0=>32}");

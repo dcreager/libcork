@@ -83,6 +83,19 @@ struct cork_hash_table_entry {
 
 
 /**
+ * @brief An iterator for hash tables.
+ * @since 0.2-dev
+ */
+
+struct cork_hash_table_iterator {
+    /** @brief The index of the current bin @private */
+    size_t  bin_index;
+    /** @brief The current element within the bin @private */
+    struct cork_dllist_item  *curr;
+};
+
+
+/**
  * @brief A hash table class.
  *
  * @since 0.2
@@ -414,6 +427,34 @@ typedef enum cork_hash_table_map_result
 void
 cork_hash_table_map(struct cork_hash_table *table,
                     cork_hash_table_mapper mapper, void *user_data);
+
+
+/**
+ * @brief Initialize a new hash table iterator.
+ * @param [in] table  A hash table
+ * @param [in] iterator  A hash table iterator
+ * @public @memberof cork_hash_table_iterator
+ * @since 0.2-dev
+ */
+
+void
+cork_hash_table_iterator_init(struct cork_hash_table *table,
+                              struct cork_hash_table_iterator *iterator);
+
+
+/**
+ * @brief Return the next entry in the hash table iterator.
+ * @param [in] table  A hash table
+ * @param [in] iterator  A hash table iterator
+ * @returns The next entry in the iterator, or @c NULL if there are no
+ * more entries.
+ * @public @memberof cork_hash_table_iterator
+ * @since 0.2-dev
+ */
+
+struct cork_hash_table_entry *
+cork_hash_table_iterator_next(struct cork_hash_table *table,
+                              struct cork_hash_table_iterator *iterator);
 
 
 #endif /* LIBCORK_DS_HASH_TABLE_H */

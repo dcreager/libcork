@@ -506,3 +506,41 @@ cork_hash_table_map(struct cork_hash_table *table,
         }
     }
 }
+
+
+void
+cork_hash_table_iterator_init(struct cork_hash_table *table,
+                              struct cork_hash_table_iterator *iterator)
+{
+    struct cork_dllist  *bin = &table->bins[0];
+    iterator->bin_index = 0;
+    iterator->curr = bin->head.next;
+}
+
+
+struct cork_hash_table_entry *
+cork_hash_table_iterator_next(struct cork_hash_table *table,
+                              struct cork_hash_table_iterator *iterator)
+{
+    struct cork_dllist  *bin = &table->bins[iterator->bin_index];
+    while (iterator->curr == &bin->head) {
+        /*
+         * We've made it to the end of this bin.  Move to the next bin
+         * and try it.  If we run out of bins, then there aren't any
+         * more elements.
+         */
+
+        iterator->bin_index++;
+        if (iterator->bin_index >= table->bin_count) {
+            return NULL;
+        }
+
+        bin = &table->bins[iterator->bin_index];
+        iterator->curr = bin->head.next;
+    }
+
+    struct cork_hash_table_entry  *result =
+        cork_container_of(iterator->curr, struct cork_hash_table_entry, siblings);
+    iterator->curr = iterator->curr->next;
+    return result;
+}
