@@ -138,6 +138,26 @@
 #endif
 
 
+/**
+ * @brief Declare a var-arg function whose last parameter must be a @c
+ * NULL sentinel value.
+ *
+ * When the compiler supports this attribute, it will check the actual
+ * parameters whenever this function is called, and ensure that the
+ * last parameter is a @c NULL.
+ *
+ * @since 0.2-dev
+ */
+
+#if defined(CORK_DOCUMENTATION)
+#define CORK_ATTR_SENTINEL
+#elif CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_ATTR_SENTINEL  __attribute__((sentinel))
+#else
+#define CORK_ATTR_SENTINEL
+#endif
+
+
 /* end of compiler_attrs group */
 /**
  * @}
