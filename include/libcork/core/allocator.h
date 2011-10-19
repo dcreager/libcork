@@ -271,6 +271,29 @@ void cork_delete(struct cork_alloc *alloc,
     cork_free(alloc, instance, sizeof(type))
 #endif
 
+/**
+ * @brief Allocate a copy of a C string.
+ *
+ * You must use @ref cork_strfree to free the string.
+ *
+ * @param[in] alloc The custom allocator to use
+ * @param[in] str The string to copy
+ * @public @memberof cork_alloc
+ * @since 0.2-dev
+ */
+const char *
+cork_strdup(struct cork_alloc *alloc, const char *str);
+
+/**
+ * @brief Free a string created using @ref cork_strdup
+ * @param[in] alloc The custom allocator to use
+ * @param[in] str The string to free
+ * @public @memberof cork_alloc
+ * @since 0.2-dev
+ */
+void
+cork_strfree(struct cork_alloc *alloc, const char *str);
+
 
 /*-----------------------------------------------------------------------
  * Hierarchical allocation

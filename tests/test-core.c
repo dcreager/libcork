@@ -200,10 +200,9 @@ END_TEST
  * Allocation
  */
 
-START_TEST(test_default_allocator)
+static void
+allocator_tests(struct cork_alloc *alloc)
 {
-    struct cork_alloc  *alloc = cork_allocator_new_malloc();
-
     void  *buf = cork_malloc(alloc, 100);
     fail_if(buf == NULL, "Couldn't allocate buffer");
     buf = cork_realloc(alloc, buf, 100, 200);
@@ -214,6 +213,17 @@ START_TEST(test_default_allocator)
     fail_if(d == NULL, "Couldn't allocate new double");
     cork_delete(alloc, double, d);
 
+    const char  *str_src = "hello there";
+    const char  *str_copied = cork_strdup(alloc, str_src);
+    fail_unless(strcmp(str_src, str_copied) == 0,
+                "Strings not equal");
+    cork_strfree(alloc, str_copied);
+}
+
+START_TEST(test_default_allocator)
+{
+    struct cork_alloc  *alloc = cork_allocator_new_malloc();
+    allocator_tests(alloc);
     cork_allocator_free(alloc);
 }
 END_TEST
@@ -222,17 +232,7 @@ END_TEST
 START_TEST(test_debug_allocator)
 {
     struct cork_alloc  *alloc = cork_allocator_new_debug();
-
-    void  *buf = cork_malloc(alloc, 100);
-    fail_if(buf == NULL, "Couldn't allocate buffer");
-    buf = cork_realloc(alloc, buf, 100, 200);
-    fail_if(buf == NULL, "Couldn't reallocate buffer");
-    cork_free(alloc, buf, 200);
-
-    double  *d = cork_new(alloc, double);
-    fail_if(d == NULL, "Couldn't allocate new double");
-    cork_delete(alloc, double, d);
-
+    allocator_tests(alloc);
     cork_allocator_free(alloc);
 }
 END_TEST

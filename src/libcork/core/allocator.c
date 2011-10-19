@@ -165,3 +165,29 @@ cork_allocator_free(struct cork_alloc *alloc)
 {
     alloc->free(alloc);
 }
+
+
+const char *
+cork_strdup(struct cork_alloc *alloc, const char *str)
+{
+    size_t  len = strlen(str);
+    size_t  allocated_size = len + sizeof(size_t) + 1;
+    size_t  *new_str = cork_malloc(alloc, allocated_size);
+    if (new_str == NULL) {
+        return NULL;
+    }
+
+    *new_str = allocated_size;
+    char  *dest = (char *) (void *) (new_str + 1);
+    strncpy(dest, str, len + 1);
+    return dest;
+}
+
+
+void
+cork_strfree(struct cork_alloc *alloc, const char *str)
+{
+    size_t  *base = ((size_t *) str) - 1;
+    size_t  allocated_size = *base;
+    cork_free(alloc, base, allocated_size);
+}
