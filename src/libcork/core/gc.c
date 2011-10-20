@@ -200,7 +200,7 @@ static void
 cork_gc_release(struct cork_gc_header *header)
 {
     if (header->iface->free != NULL) {
-        header->iface->free(header->gc->alloc, cork_gc_get_object(header));
+        header->iface->free(header->gc, cork_gc_get_object(header));
     }
     cork_gc_recurse(header, cork_gc_decref_step);
     cork_gc_set_color(header, GC_BLACK);
@@ -370,7 +370,7 @@ cork_gc_collect_white(void *obj, void *ud)
             !cork_gc_get_buffered(header)) {
             DEBUG("  Releasing %p\n", obj);
             if (header->iface->free != NULL) {
-                header->iface->free(header->gc->alloc, cork_gc_get_object(header));
+                header->iface->free(header->gc, cork_gc_get_object(header));
             }
             cork_gc_set_color(header, GC_BLACK);
             cork_gc_recurse(header, cork_gc_collect_white);

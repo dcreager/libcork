@@ -101,7 +101,7 @@ struct cork_gc_obj_iface {
      * @since 0.2-dev
      */
     void
-    (*free)(struct cork_alloc *alloc, void *obj);
+    (*free)(struct cork_gc *gc, void *obj);
 
     /**
      * @brief Inform the garbage collector of any child reference in an
