@@ -102,6 +102,9 @@ struct cork_gc_header {
 
 #define cork_gc_free(hdr) \
     do { \
+        if ((hdr)->iface->free != NULL) { \
+            (hdr)->iface->free((hdr)->gc, cork_gc_get_object((hdr))); \
+        } \
         cork_free((hdr)->gc->alloc, (hdr), (hdr)->allocated_size); \
     } while (0)
 
@@ -199,9 +202,6 @@ cork_gc_decref_step(void *obj, void *ud);
 static void
 cork_gc_release(struct cork_gc_header *header)
 {
-    if (header->iface->free != NULL) {
-        header->iface->free(header->gc, cork_gc_get_object(header));
-    }
     cork_gc_recurse(header, cork_gc_decref_step);
     cork_gc_set_color(header, GC_BLACK);
     if (!cork_gc_get_buffered(header)) {
@@ -369,9 +369,6 @@ cork_gc_collect_white(void *obj, void *ud)
         if (cork_gc_get_color(header) == GC_WHITE &&
             !cork_gc_get_buffered(header)) {
             DEBUG("  Releasing %p\n", obj);
-            if (header->iface->free != NULL) {
-                header->iface->free(header->gc, cork_gc_get_object(header));
-            }
             cork_gc_set_color(header, GC_BLACK);
             cork_gc_recurse(header, cork_gc_collect_white);
             DEBUG("  Freeing %p\n", header);
