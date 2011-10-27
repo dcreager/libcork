@@ -59,12 +59,18 @@
  * @ingroup ds
  */
 
+/**
+ * @defgroup ring_buffer Ring buffers
+ * @ingroup ds
+ */
+
 /*** include all of the parts ***/
 
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/hash-table.h>
 #include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/ring-buffer.h>
 #include <libcork/ds/slice.h>
 #include <libcork/ds/stream.h>
 
