@@ -147,8 +147,18 @@ cork_dllist_size(const struct cork_dllist *list);
  * @since 0.2
  */
 
+#if defined(CORK_DOCUMENTATION)
 void
 cork_dllist_add(struct cork_dllist *list, struct cork_dllist_item *element);
+#else
+#define cork_dllist_add(list, element) \
+    do { \
+        (list)->head.prev->next = (element); \
+        (element)->prev = (list)->head.prev; \
+        (list)->head.prev = (element); \
+        (element)->next = &(list)->head; \
+    } while (0)
+#endif
 
 
 /**
@@ -164,8 +174,122 @@ cork_dllist_add(struct cork_dllist *list, struct cork_dllist_item *element);
  * @since 0.2
  */
 
+#if defined(CORK_DOCUMENTATION)
 void
 cork_dllist_remove(struct cork_dllist_item *element);
+#else
+#define cork_dllist_remove(element) \
+    do { \
+        (element)->prev->next = (element)->next; \
+        (element)->next->prev = (element)->prev; \
+    } while (0)
+#endif
+
+
+/**
+ * @brief Return whether the list is empty.
+ * @param[in] list  A doubly-linked list
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+bool
+cork_dllist_is_empty(struct cork_dllist *list);
+#else
+#define cork_dllist_is_empty(list) \
+    (cork_is_end((list), cork_dllist_start((list))))
+#endif
+
+
+/**
+ * @brief Return the element at the head of the list, if present.
+ * @param[in] list  A doubly-linked list
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+struct cork_dllist_item *
+cork_dllist_head(struct cork_dllist *list);
+#else
+#define cork_dllist_head(list) \
+    (((list)->head.next == &(list)->head)? NULL: (list)->head.next)
+#endif
+
+/**
+ * @brief Return the element at the tail of the list, if present.
+ * @param[in] list  A doubly-linked list
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+struct cork_dllist_item *
+cork_dllist_tail(struct cork_dllist *list);
+#else
+#define cork_dllist_tail(list) \
+    (((list)->head.prev == &(list)->head)? NULL: (list)->head.prev)
+#endif
+
+
+/**
+ * @brief Return the element at the head of the list.
+ * @param[in] list  A doubly-linked list
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+struct cork_dllist_item *
+cork_dllist_start(struct cork_dllist *list);
+#else
+#define cork_dllist_start(list) \
+    ((list)->head.next)
+#endif
+
+/**
+ * @brief Return the element at the tail of the list.
+ * @param[in] list  A doubly-linked list
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+struct cork_dllist_item *
+cork_dllist_end(struct cork_dllist *list);
+#else
+#define cork_dllist_end(list) \
+    ((list)->head.prev)
+#endif
+
+
+/**
+ * @brief Return whether the given list element marks the start of the
+ * list.
+ * @param[in] list  A doubly-linked list
+ * @param[in] element  A list element
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+bool
+cork_dllist_is_start(struct cork_dllist *list, struct cork_dllist_item *element);
+#else
+#define cork_dllist_is_start(list, element) \
+    ((element) == &(list)->head)
+#endif
+
+/**
+ * @brief Return whether the given list element marks the end of the
+ * list.
+ * @param[in] list  A doubly-linked list
+ * @param[in] element  A list element
+ * @public @memberof cork_dllist_item
+ * @since 0.2-dev
+ */
+#if defined(CORK_DOCUMENTATION)
+bool
+cork_dllist_is_end(struct cork_dllist *list, struct cork_dllist_item *element);
+#else
+#define cork_dllist_is_end(list, element) \
+    ((element) == &(list)->head)
+#endif
 
 
 #endif /* LIBCORK_DS_DLLIST_H */
