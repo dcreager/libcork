@@ -255,63 +255,6 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
- * Hierarchical allocator
- */
-
-struct halloc_value {
-    size_t  *count;
-};
-
-static void
-decrement_count(cork_halloc *ptr)
-{
-    struct halloc_value  *u = ptr;
-    (*u->count)--;
-}
-
-START_TEST(test_halloc)
-{
-    struct cork_alloc  *alloc = cork_allocator_new_debug();
-    cork_halloc  *root = cork_halloc_new_root(alloc);
-
-    size_t  count = 4;
-    struct halloc_value  *val1;
-    struct halloc_value  *val2;
-    struct halloc_value  *val3;
-    struct halloc_value  *val4;
-
-    val1 = cork_halloc_new(root, struct halloc_value);
-    cork_halloc_set_destructor(val1, decrement_count);
-    val1->count = &count;
-
-    val2 = cork_halloc_new(val1, struct halloc_value);
-    cork_halloc_set_destructor(val2, decrement_count);
-    val2->count = &count;
-
-    val3 = cork_halloc_new(val1, struct halloc_value);
-    cork_halloc_set_destructor(val3, decrement_count);
-    val3->count = &count;
-
-    val4 = cork_halloc_new(val3, struct halloc_value);
-    cork_halloc_set_destructor(val4, decrement_count);
-    val4->count = &count;
-
-    /* Reallocate one of the pointers to make sure we can update the
-     * tree state correctly. */
-    val1 = cork_halloc_realloc(val1, sizeof(struct halloc_value) * 2);
-
-    /* Free the root and make sure that all destructors were called. */
-    cork_halloc_free(root);
-    fail_unless(count == 0,
-                "Unexpected final count: got %zu, expected 0",
-                count);
-
-    cork_allocator_free(alloc);
-}
-END_TEST
-
-
-/*-----------------------------------------------------------------------
  * IP addresses
  */
 
@@ -572,7 +515,6 @@ test_suite()
     TCase  *tc_allocation = tcase_create("allocator");
     tcase_add_test(tc_allocation, test_default_allocator);
     tcase_add_test(tc_allocation, test_debug_allocator);
-    tcase_add_test(tc_allocation, test_halloc);
     suite_add_tcase(s, tc_allocation);
 
     TCase  *tc_addresses = tcase_create("net-addresses");
