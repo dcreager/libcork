@@ -25,7 +25,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = ['sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -40,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'APPNAME'
-copyright = u'2011, COMPANY'
+project = u'libcork'
+copyright = u'2011, RedJack, LLC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -69,7 +69,8 @@ release = '0.0'
 exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
-#default_role = None
+default_role = 'c:func'
+primary_domain = 'c'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -166,7 +167,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'APPNAME-doc'
+htmlhelp_basename = 'libcork-doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -185,8 +186,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'APPNAME.tex', u'APPNAME Documentation',
-   u'COMPANY', 'manual'),
+  ('index', 'libcork.tex', u'libcork documentation',
+   u'RedJack, LLC', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -215,8 +216,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'APPNAME', u'APPNAME Documentation',
-     [u'COMPANY'], 1)
+    ('index', 'libcork', u'libcork documentation',
+     [u'RedJack, LLC'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -229,8 +230,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'APPNAME', u'APPNAME Documentation',
-   u'COMPANY', 'APPNAME', 'One line description of project.',
+  ('index', 'libcork', u'libcork documentation',
+   u'RedJack, LLC', 'libcork', 'One line description of project.',
    'Miscellaneous'),
 ]
 

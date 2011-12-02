@@ -11,13 +11,6 @@
 #ifndef LIBCORK_CONFIG_MACOSX_H
 #define LIBCORK_CONFIG_MACOSX_H
 
-/**
- * @file
- * @brief Mac OS X-specific configuration auto-detection
- */
-
-#if !defined(CORK_DOCUMENTATION)
-
 
 /*-----------------------------------------------------------------------
  * Endianness
@@ -36,5 +29,4 @@
 #endif
 
 
-#endif /* !CORK_DOCUMENTATION */
 #endif /* LIBCORK_CONFIG_MACOSX_H */

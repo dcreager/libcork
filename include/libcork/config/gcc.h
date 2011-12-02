@@ -11,13 +11,6 @@
 #ifndef LIBCORK_CONFIG_GCC_H
 #define LIBCORK_CONFIG_GCC_H
 
-/**
- * @file
- * @brief GCC-specific configuration auto-detection
- */
-
-#if !defined(CORK_DOCUMENTATION)
-
 /* Figure out the GCC version */
 
 #if defined(__GNUC_PATCHLEVEL__)
@@ -45,5 +38,4 @@
 #endif
 
 
-#endif /* !CORK_DOCUMENTATION */
 #endif /* LIBCORK_CONFIG_GCC_H */
