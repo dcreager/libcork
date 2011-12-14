@@ -16,24 +16,23 @@
 #include "libcork/core/types.h"
 
 
-/**
- * @brief A copy of struct cork_alloc that lets us assign to the @a alloc
- * field.
- */
-
-struct cork_mutable_alloc {
-    cork_alloc_func  alloc;
-};
-
-
-/**
- * @brief A default free function for the struct cork_alloc class.
- */
+/* A default free function for allocators that don't maintain extra
+ * state.  (So we know that the actual type of the allocator is struct
+ * cork_alloc) */
 
 static void
 cork_allocator_default_free(struct cork_alloc *alloc)
 {
     cork_delete(alloc, struct cork_alloc, alloc);
+}
+
+
+/* A free function for static allocator objects */
+
+static void
+cork_default_alloc_free(struct cork_alloc *alloc)
+{
+    /* nothing to do, the object is static! */
 }
 
 
@@ -46,17 +45,22 @@ cork_allocator_new(cork_alloc_func alloc_func)
         return NULL;
     }
 
-    struct cork_mutable_alloc  *m_alloc = (struct cork_mutable_alloc *) alloc;
-    m_alloc->alloc = alloc_func;
+    /* We need this trick since the alloc field is const in struct
+     * cork_alloc.  (And by using a union, we don't violate any strict
+     * aliasing rules.) */
+    union {
+        struct cork_alloc  *original;
+        cork_alloc_func  *alloc;
+    } mutable;
+    mutable.original = alloc;
+    *mutable.alloc = alloc_func;
+
     alloc->free = cork_allocator_default_free;
     return alloc;
 }
 
 
-/**
- * @brief An allocator function that uses the standard @c realloc
- * function.
- */
+/* A custom allocator that uses the standard realloc function. */
 
 static void *
 cork_malloc_alloc_func(struct cork_alloc *alloc,
@@ -70,27 +74,11 @@ cork_malloc_alloc_func(struct cork_alloc *alloc,
     }
 }
 
-/**
- * @brief A free function for @ref cork_default_allocator.
- */
-
-static void
-cork_default_alloc_free(struct cork_alloc *alloc)
-{
-    /* nothing to do, the object is static! */
-}
-
-/**
- * @brief An allocator object that uses the standard @c realloc
- * function.
- */
-
 static struct cork_alloc  CORK_MALLOC_ALLOCATOR =
 {
     cork_malloc_alloc_func,
     cork_default_alloc_free
 };
-
 
 struct cork_alloc *
 cork_allocator_new_malloc(void)
@@ -99,11 +87,9 @@ cork_allocator_new_malloc(void)
 }
 
 
-/**
- * @brief A debugging allocator function that verifies that the @a osize
- * passed in for reallocs and frees matches what was given to the
- * corresponding malloc.
- */
+/* A debugging allocator function that verifies that the osize passed in
+ * for realloc and free matches what was given to the corresponding
+ * malloc. */
 
 static void *
 cork_debug_alloc_func(struct cork_alloc *alloc,
@@ -142,16 +128,11 @@ cork_debug_alloc_func(struct cork_alloc *alloc,
     }
 }
 
-/**
- * @brief An debug allocator object.
- */
-
 static struct cork_alloc  CORK_DEBUG_ALLOCATOR =
 {
     cork_debug_alloc_func,
     cork_default_alloc_free
 };
-
 
 struct cork_alloc *
 cork_allocator_new_debug(void)

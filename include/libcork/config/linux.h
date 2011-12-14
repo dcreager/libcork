@@ -11,14 +11,6 @@
 #ifndef LIBCORK_CONFIG_LINUX_H
 #define LIBCORK_CONFIG_LINUX_H
 
-/**
- * @file
- * @brief Linux-specific configuration auto-detection
- */
-
-#if !defined(CORK_DOCUMENTATION)
-
-
 /*-----------------------------------------------------------------------
  * Endianness
  */
@@ -36,5 +28,4 @@
 #endif
 
 
-#endif /* !CORK_DOCUMENTATION */
 #endif /* LIBCORK_CONFIG_LINUX_H */

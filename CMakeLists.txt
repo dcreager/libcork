@@ -26,6 +26,8 @@ endif(VERSION_RESULT)
 # This causes an annoying extra prompt in ccmake.
 # message("Current version: " ${VERSION})
 
+string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
+
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
 

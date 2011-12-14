@@ -27,31 +27,18 @@
 
 
 struct cork_gc_header {
-    /**
-     * @brief The current reference count for this object, along with
-     * its color during the mark/sweep process.
-     * @private
-     */
+    /* The current reference count for this object, along with its color
+     * during the mark/sweep process. */
     volatile int  ref_count_color;
 
-    /**
-     * @brief The allocated size of this garbage-collected object
-     * (including the header)
-     * @private
-     */
+    /* The allocated size of this garbage-collected object (including
+     * the header). */
     size_t  allocated_size;
 
-    /**
-     * @brief The garbage collection context that this object belongs
-     * to.
-     * @private
-     */
+    /* The garbage collection context that this object belongs to. */
     struct cork_gc  *gc;
 
-    /**
-     * @brief The garbage collection interface for this object.
-     * @private
-     */
+    /* The garbage collection interface for this object. */
     struct cork_gc_obj_iface  *iface;
 };
 
@@ -117,13 +104,13 @@ struct cork_gc_header {
     } while (0)
 
 enum cork_gc_color {
-    /** @brief In use or free */
+    /* In use or free */
     GC_BLACK = 0,
-    /** @brief Possible member of garbage cycle */
+    /* Possible member of garbage cycle */
     GC_GRAY = 1,
-    /** @brief Member of garbage cycle */
+    /* Member of garbage cycle */
     GC_WHITE = 2,
-    /** @brief Possible root of garbage cycle */
+    /* Possible root of garbage cycle */
     GC_PURPLE = 3
 };
 

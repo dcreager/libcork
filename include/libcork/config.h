@@ -11,15 +11,6 @@
 #ifndef LIBCORK_CONFIG_H
 #define LIBCORK_CONFIG_H
 
-/**
- * @file
- * @brief Pulls in all features of the @ref config
- */
-
-/**
- * @defgroup config Configuration module
- */
-
 /*** include all of the parts ***/
 
 #include <libcork/config/config.h>
