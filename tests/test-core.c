@@ -22,6 +22,8 @@
 #include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
 
+#include "helpers.h"
+
 
 /*-----------------------------------------------------------------------
  * Core types
@@ -260,14 +262,12 @@ END_TEST
 
 START_TEST(test_ipv4_address)
 {
+    DESCRIBE_TEST;
+
 #define ROUND_TRIP(str) \
     { \
         struct cork_ipv4  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        bool result = cork_ipv4_init(&addr, str, &error); \
-        fail_unless(result, \
-                    "Could not initialize IPv4 address from %s: %s", \
-                    str, cork_error_message(&error)); \
+        fail_if_error(cork_ipv4_init(alloc, &addr, str, &err)); \
         char  actual[CORK_IPV4_STRING_LENGTH]; \
         cork_ipv4_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
@@ -276,7 +276,7 @@ START_TEST(test_ipv4_address)
                     actual, str); \
         \
         struct cork_ipv4  addr2; \
-        cork_ipv4_init(&addr2, str, NULL); \
+        cork_ipv4_init(alloc, &addr2, str, NULL); \
         fail_unless(cork_ipv4_equal(&addr, &addr2), \
                     "IPv4 cork_eq_t instances should be equal"); \
     }
@@ -284,11 +284,10 @@ START_TEST(test_ipv4_address)
 #define BAD(str) \
     { \
         struct cork_ipv4  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        fail_if(cork_ipv4_init(&addr, str, &error), \
-                "Shouldn't be able to initialize IPv4 address from %s", \
-                str); \
-        cork_error_done(&error); \
+        fail_unless_error \
+            (cork_ipv4_init(alloc, &addr, str, &err), \
+             "Shouldn't be able to initialize IPv4 address from %s", \
+             str); \
     }
 
     struct cork_alloc  *alloc = cork_allocator_new_debug();
@@ -309,14 +308,12 @@ END_TEST
 
 START_TEST(test_ipv6_address)
 {
+    DESCRIBE_TEST;
+
 #define ROUND_TRIP(str) \
     { \
         struct cork_ipv6  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        bool result = cork_ipv6_init(&addr, str, &error); \
-        fail_unless(result, \
-                    "Could not initialize IPv6 address from %s: %s", \
-                    str, cork_error_message(&error)); \
+        fail_if_error(cork_ipv6_init(alloc, &addr, str, &err)); \
         char  actual[CORK_IPV6_STRING_LENGTH]; \
         cork_ipv6_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
@@ -325,7 +322,7 @@ START_TEST(test_ipv6_address)
                     actual, str); \
         \
         struct cork_ipv6  addr2; \
-        cork_ipv6_init(&addr2, str, NULL); \
+        cork_ipv6_init(alloc, &addr2, str, NULL); \
         fail_unless(cork_ipv6_equal(&addr, &addr2), \
                     "IPv6 cork_eq_t instances should be equal"); \
     }
@@ -333,11 +330,10 @@ START_TEST(test_ipv6_address)
 #define BAD(str) \
     { \
         struct cork_ipv6  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        fail_if(cork_ipv6_init(&addr, str, &error), \
-                "Shouldn't be able to initialize IPv6 address from %s", \
-                str); \
-        cork_error_done(&error); \
+        fail_unless_error \
+            (cork_ipv6_init(alloc, &addr, str, &err), \
+             "Shouldn't be able to initialize IPv6 address from %s", \
+             str); \
     }
 
     struct cork_alloc  *alloc = cork_allocator_new_debug();
@@ -359,16 +355,13 @@ END_TEST
 
 START_TEST(test_ip_address)
 {
+    DESCRIBE_TEST;
     struct cork_ip  addr;
 
 #define ROUND_TRIP(str) \
     { \
         struct cork_ip  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        bool result = cork_ip_init(&addr, str, &error); \
-        fail_unless(result, \
-                    "Could not initialize IP address from %s: %s", \
-                    str, cork_error_message(&error)); \
+        fail_if_error(cork_ip_init(alloc, &addr, str, &err)); \
         char  actual[CORK_IP_STRING_LENGTH]; \
         cork_ip_to_raw_string(&addr, actual); \
         fail_unless(strcmp(actual, str) == 0, \
@@ -377,7 +370,7 @@ START_TEST(test_ip_address)
                     actual, str); \
         \
         struct cork_ip  addr2; \
-        cork_ip_init(&addr2, str, NULL); \
+        cork_ip_init(alloc, &addr2, str, NULL); \
         fail_unless(cork_ip_equal(&addr, &addr2), \
                     "IP cork_eq_t instances should be equal"); \
     }
@@ -385,11 +378,10 @@ START_TEST(test_ip_address)
 #define BAD(str) \
     { \
         struct cork_ip  addr; \
-        struct cork_error  error = CORK_ERROR_INIT(alloc); \
-        fail_if(cork_ip_init(&addr, str, &error), \
-                "Shouldn't be able to initialize IP address from %s", \
-                str); \
-        cork_error_done(&error); \
+        fail_unless_error \
+            (cork_ip_init(alloc, &addr, str, &err), \
+             "Shouldn't be able to initialize IP address from %s", \
+             str); \
     }
 
     struct cork_alloc  *alloc = cork_allocator_new_debug();
@@ -408,16 +400,16 @@ START_TEST(test_ip_address)
     struct cork_ipv4  addr4;
     struct cork_ipv6  addr6;
 
-    cork_ip_init(&addr, "192.168.1.1", NULL);
-    cork_ipv4_init(&addr4, "192.168.1.1", NULL);
+    cork_ip_init(alloc, &addr, "192.168.1.1", NULL);
+    cork_ipv4_init(alloc, &addr4, "192.168.1.1", NULL);
     fail_unless(addr.version == 4,
                 "Unexpected IP address version (expected 4, got %u)",
                 addr.version);
     fail_unless(cork_ipv4_equal(&addr.ip.v4, &addr4),
                 "IP addresses should be equal");
 
-    cork_ip_init(&addr, "fe80::1", NULL);
-    cork_ipv6_init(&addr6, "fe80::1", NULL);
+    cork_ip_init(alloc, &addr, "fe80::1", NULL);
+    cork_ipv6_init(alloc, &addr6, "fe80::1", NULL);
     fail_unless(addr.version == 6,
                 "Unexpected IP address version (expected 6, got %u)",
                 addr.version);

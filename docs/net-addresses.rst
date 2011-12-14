@@ -118,9 +118,30 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
      cork_ipv4_to_raw_string(&addr, buf);
 
 
+.. _net-address-errors:
+
+Error conditions
+~~~~~~~~~~~~~~~~
+
 .. macro:: CORK_NET_ADDRESS_ERROR
            CORK_NET_ADDRESS_UNKNOWN_ERROR
            CORK_NET_ADDRESS_PARSE_ERROR
 
    The error class and codes used for :ref:`error conditions <errors>`
    raised by the functions in this section.
+
+.. function:: int cork_ipv4_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
+              int cork_ipv6_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
+              int cork_ip_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
+
+   Fills in *err* to indicate that *invalid_str* doesn't represent a
+   valid IPv4, IPv6, or generic IP address.  The invalid string will be
+   included in the human-readable error message, so you must ensure that
+   *invalid_str* remains live for at least as long as *err* does.
+
+.. function:: int cork_ipv4_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
+              int cork_ipv6_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
+              int cork_ip_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
+
+   Fills in *err* to indicate that there was some unknown error while
+   parsing a IPv4, IPv6, or generic IP address.

@@ -15,6 +15,60 @@
 #include "libcork/core/error.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
+#include "libcork/ds/buffer.h"
+
+
+/*-----------------------------------------------------------------------
+ * Error handling
+ */
+
+#define DEFINE_ERRORS(ip_version) \
+static int \
+cork_ip##ip_version##_unknown_error \
+    (struct cork_alloc *alloc, struct cork_error *err, \
+     struct cork_buffer *dest) \
+{ \
+    return cork_buffer_set_string \
+        (dest, "Unknown error while parsing IP" #ip_version " address")? \
+        0: -1; \
+} \
+\
+int \
+cork_ip##ip_version##_unknown_error_set \
+    (struct cork_alloc *alloc, struct cork_error *err) \
+{ \
+    return cork_error_set(alloc, err, \
+                          CORK_NET_ADDRESS_ERROR, \
+                          CORK_NET_ADDRESS_UNKNOWN_ERROR, \
+                          cork_ip##ip_version##_unknown_error); \
+} \
+\
+static int \
+cork_ip##ip_version##_parse_error(struct cork_alloc *alloc, struct cork_error *err, \
+                      struct cork_buffer *dest) \
+{ \
+    const char  **str = cork_error_extra(err); \
+    return cork_buffer_printf \
+        (dest, "Invalid IP" #ip_version " address: %s", *str)? 0: -1; \
+} \
+\
+int \
+cork_ip##ip_version##_parse_error_set \
+    (struct cork_alloc *alloc, struct cork_error *err, \
+     const char *invalid_str) \
+{ \
+    return cork_error_set_extra(alloc, err, \
+                                CORK_NET_ADDRESS_ERROR, \
+                                CORK_NET_ADDRESS_UNKNOWN_ERROR, \
+                                cork_ip##ip_version##_parse_error, \
+                                invalid_str); \
+}
+
+DEFINE_ERRORS(v4)
+DEFINE_ERRORS(v6)
+DEFINE_ERRORS()
+
+#undef DEFINE_ERRORS
 
 
 /*-----------------------------------------------------------------------
@@ -31,8 +85,8 @@ cork_ipv4_copy(struct cork_ipv4 *addr, const void *src)
 }
 
 bool
-cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
-               struct cork_error *error)
+cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
+               const char *str, struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET, str, addr);
 
@@ -41,16 +95,10 @@ cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
         return true;
     } else if (rc == 0) {
         /* parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_PARSE_ERROR,
-                       "Invalid IPv4 address");
+        cork_ipv4_parse_error_set(alloc, error, str);
         return false;
     } else {
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IPv4 address");
+        cork_ipv4_unknown_error_set(alloc, error);
         return false;
     }
 }
@@ -78,8 +126,8 @@ cork_ipv6_copy(struct cork_ipv6 *addr, const void *src)
 }
 
 bool
-cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
-               struct cork_error *error)
+cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
+               const char *str, struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET6, str, addr);
 
@@ -88,16 +136,10 @@ cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
         return true;
     } else if (rc == 0) {
         /* parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_PARSE_ERROR,
-                       "Invalid IPv6 address");
+        cork_ipv6_parse_error_set(alloc, error, str);
         return false;
     } else {
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IPv6 address");
+        cork_ipv6_unknown_error_set(alloc, error);
         return false;
     }
 }
@@ -210,7 +252,8 @@ cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
 }
 
 bool
-cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
+cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
+             const char *str, struct cork_error *error)
 {
     int  rc;
 
@@ -224,10 +267,7 @@ cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
         return true;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IP address");
+        cork_ip_unknown_error_set(alloc, error);
         return false;
     }
 
@@ -241,18 +281,12 @@ cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
         return true;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IP address");
+        cork_ip_unknown_error_set(alloc, error);
         return false;
     }
 
     /* Parse error for both address types */
-    cork_error_set(error,
-                   CORK_NET_ADDRESS_ERROR,
-                   CORK_NET_ADDRESS_PARSE_ERROR,
-                   "Invalid IP address");
+    cork_ip_parse_error_set(alloc, error, str);
     return false;
 }
 

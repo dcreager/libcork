@@ -30,6 +30,27 @@ enum cork_net_address_error {
     CORK_NET_ADDRESS_PARSE_ERROR
 };
 
+int
+cork_ipv4_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
+
+int
+cork_ipv6_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
+
+int
+cork_ip_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
+
+int
+cork_ipv4_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
+                          const char *invalid_str);
+
+int
+cork_ipv6_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
+                          const char *invalid_str);
+
+int
+cork_ip_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
+                        const char *invalid_str);
+
 
 /*-----------------------------------------------------------------------
  * IP addresses
@@ -66,8 +87,8 @@ bool
 cork_ipv4_copy(struct cork_ipv4 *addr, const void *src);
 
 bool
-cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
-               struct cork_error *error);
+cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
+               const char *str, struct cork_error *error);
 
 bool
 cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
@@ -83,8 +104,8 @@ bool
 cork_ipv6_copy(struct cork_ipv6 *addr, const void *src);
 
 bool
-cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
-               struct cork_error *error);
+cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
+               const char *str, struct cork_error *error);
 
 bool
 cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
@@ -104,7 +125,8 @@ bool
 cork_ip_from_ipv6(struct cork_ip *addr, const void *src);
 
 bool
-cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error);
+cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
+             const char *str, struct cork_error *error);
 
 bool
 cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2);
