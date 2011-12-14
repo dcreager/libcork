@@ -1,4 +1,5 @@
 /.lock-wscript
+/.build/
 /build/
 
 RELEASE-VERSION
