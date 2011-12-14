@@ -43,6 +43,7 @@ Contents
    allocation
    errors
    gc
+   ds
 
 
 Indices and tables

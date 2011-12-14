@@ -32,24 +32,15 @@
 #endif
 
 
-/**
- * @brief The default initial number of bins to allocate in a new table.
- */
-
+/* The default initial number of bins to allocate in a new table. */
 #define CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE  8
 
-/**
- * @brief The default number of entries per bin to allow before
- * increasing the number of bins.
- */
-
+/* The default number of entries per bin to allow before increasing the
+ * number of bins. */
 #define CORK_HASH_TABLE_MAX_DENSITY  5
 
-/**
- * @brief A table of prime numbers, each greater than a power of two.
- * @details @$ 2^n + a, 2 <= n <= 30 @$.
- */
-
+/* A table of prime numbers, each greater than a power of two.  @details
+ * @$ 2^n + a, 2 <= n <= 30 @$. */
 static size_t  CORK_HASH_TABLE_PRIMES[] =
 {
     8 + 3,
@@ -86,11 +77,8 @@ static size_t  CORK_HASH_TABLE_PRIMES[] =
 #define CORK_HASH_TABLE_PRIME_COUNT \
     (sizeof(CORK_HASH_TABLE_PRIMES) / sizeof(CORK_HASH_TABLE_PRIMES[0]))
 
-/**
- * @brief Return a prime number bin count that's at least as big as the
- * given requested size.
- */
-
+/* Return a prime number bin count that's at least as big as the given
+ * requested size. */
 static size_t
 cork_hash_table_new_size(size_t desired_count)
 {
@@ -105,13 +93,8 @@ cork_hash_table_new_size(size_t desired_count)
     return 0;
 }
 
-/**
- * @brief Allocates a new bins array in a hash table.
- *
- * We overwrite the old array, so make sure to stash it away somewhere
- * safe first.
- */
-
+/* Allocates a new bins array in a hash table.  We overwrite the old
+ * array, so make sure to stash it away somewhere safe first. */
 static bool
 cork_hash_table_allocate_bins(struct cork_hash_table *table,
                               size_t desired_count)
