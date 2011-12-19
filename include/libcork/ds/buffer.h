@@ -69,42 +69,35 @@ cork_buffer_clear(struct cork_alloc *alloc, struct cork_buffer *buffer);
 
 int
 cork_buffer_set(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                const void *src, size_t length,
-                struct cork_error *err);
+                const void *src, size_t length, struct cork_error *err);
 
 int
 cork_buffer_append(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                   const void *src, size_t length,
-                   struct cork_error *err);
+                   const void *src, size_t length, struct cork_error *err);
 
 
 int
 cork_buffer_set_string(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                       const char *str,
-                       struct cork_error *err);
+                       const char *str, struct cork_error *err);
 
 int
 cork_buffer_append_string(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                          const char *str,
-                          struct cork_error *err);
+                          const char *str, struct cork_error *err);
 
 
 int
 cork_buffer_printf(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                   struct cork_error *err,
-                   const char *format, ...)
+                   struct cork_error *err, const char *format, ...)
     CORK_ATTR_PRINTF(4,5);
 
 int
 cork_buffer_append_printf(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                          struct cork_error *err,
-                          const char *format, ...)
+                          struct cork_error *err, const char *format, ...)
     CORK_ATTR_PRINTF(4,5);
 
 int
 cork_buffer_vprintf(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                    const char *format, va_list args,
-                    struct cork_error *err)
+                    const char *format, va_list args, struct cork_error *err)
     CORK_ATTR_PRINTF(3,0);
 
 int

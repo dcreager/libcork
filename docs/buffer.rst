@@ -98,33 +98,14 @@ variants: a ``_set`` function, which clears the buffer before adding new
 content, and an ``_append`` function, which retains the old content,
 adding the new content to the end of the buffer.
 
-There are three main use cases to consider when using a ``cork_buffer``:
-
-* Constructing a C string piecemeal from existing C string data.
-
-* Constructing a C string from external content that isn't already a
-  valid C string.  (For instance, reading a length-prefixed string from
-  a binary file format.)
-
-* Handling arbitrary raw binary data.
-
-To simplify the buffer interface while supporting all of these use
-cases, we always ensure that the buffer is ``NUL``\ -terminated.
-However, this trailing ``NUL`` byte isn't always included in the
-:c:member:`size <cork_buffer.size>` of the buffer.  Each function's
-documentation will state whether it is or not; the rule of thumb is that
-functions that operate on C strings include the ``NUL`` byte in the
-size, while functions that operate on raw binary content do not.
-
-We think this design ensures that the buffer does the “right thing” for
-all three use cases.  When constructing a C string from existing C
-strings, we want to overwrite the trailing ``NUL`` byte each time that
-we append more content.  By always appending a ``NUL`` byte to the
-content, we ensure that the buffer contents can always be used as a C
-string, even if it's constructed from a non-C-string source.  However,
-when handling raw binary data, every byte in the content counts, and any
-trailing ``NUL`` byte must be retained, even if further data is
-appended.
+Each mutator function will automatically append an extra ``NUL`` byte to
+the end of whatever content is placed into the buffer.  However, this
+``NUL`` byte will **not** be included in the :c:member:`size
+<cork_buffer.size>` of the buffer.  This ensures that the contents of
+any ``cork_buffer`` can be used as a ``NUL``\ -terminated C string
+(assuming that there aren't any internal ``NUL``\ s), even if the buffer
+is constructed from a data source that doesn't include ``NUL``
+terminators.
 
 .. function:: void cork_buffer_clear(struct cork_alloc \*alloc, struct cork_buffer \*buffer)
 
@@ -139,10 +120,6 @@ appended.
    clears the buffer first, while the ``_append`` variant adds *src* to
    whatever content is already there.
 
-   We'll add a ``NUL`` byte after the new buffer contents (ensuring it
-   can be used as a C string), but this ``NUL`` byte **won't** be
-   included in the :c:member:`size <cork_buffer.size>` of the buffer.
-
 .. function:: int cork_buffer_set_string(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*str, struct cork_error \*err)
               int cork_buffer_append_string(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*str, struct cork_error \*err)
 
@@ -150,10 +127,6 @@ appended.
    string) into a buffer.  The ``_set`` variant clears the buffer first,
    while the ``_append`` variant adds *str* to whatever content is
    already there.
-
-   We'll copy the ``NUL`` byte from the end of *str* into the buffer,
-   ensuring it can be used as a C string.  This ``NUL`` byte **will** be
-   included in the :c:member:`size <cork_buffer.size>` of the buffer.
 
 .. function:: int cork_buffer_printf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_error \*err, const char \*format, ...)
               int cork_buffer_vprintf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*format, va_list args, struct cork_error \*err)

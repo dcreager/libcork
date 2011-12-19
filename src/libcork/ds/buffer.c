@@ -117,8 +117,7 @@ cork_buffer_clear(struct cork_alloc *alloc, struct cork_buffer *buffer)
 
 int
 cork_buffer_set(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                const void *src, size_t length,
-                struct cork_error *err)
+                const void *src, size_t length, struct cork_error *err)
 {
     rii_check(cork_buffer_ensure_size(alloc, buffer, length+1, err));
     memcpy(buffer->buf, src, length);
@@ -130,8 +129,7 @@ cork_buffer_set(struct cork_alloc *alloc, struct cork_buffer *buffer,
 
 int
 cork_buffer_append(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                   const void *src, size_t length,
-                   struct cork_error *err)
+                   const void *src, size_t length, struct cork_error *err)
 {
     rii_check(cork_buffer_ensure_size
               (alloc, buffer, buffer->size + length + 1, err));
@@ -144,42 +142,17 @@ cork_buffer_append(struct cork_alloc *alloc, struct cork_buffer *buffer,
 
 int
 cork_buffer_set_string(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                       const char *str,
-                       struct cork_error *err)
+                       const char *str, struct cork_error *err)
 {
-    size_t  length = strlen(str);
-    rii_check(cork_buffer_ensure_size(alloc, buffer, length+1, err));
-    memcpy(buffer->buf, str, length+1);
-    buffer->size = length+1;
-    return 0;
+    return cork_buffer_set(alloc, buffer, str, strlen(str), err);
 }
 
 
 int
 cork_buffer_append_string(struct cork_alloc *alloc, struct cork_buffer *buffer,
-                          const char *str,
-                          struct cork_error *err)
+                          const char *str, struct cork_error *err)
 {
-    size_t  new_size;
-    size_t  dest_offset;
-    size_t  length = strlen(str);
-
-    if ((buffer->size > 0) &&
-        ((char *) buffer->buf)[buffer->size-1] == '\0') {
-        /*
-         * Overwrite the existing NUL-terminator
-         */
-        new_size = buffer->size + length;
-        dest_offset = buffer->size - 1;
-    } else {
-        new_size = buffer->size + length + 1;
-        dest_offset = buffer->size;
-    }
-
-    rii_check(cork_buffer_ensure_size(alloc, buffer, new_size, err));
-    memcpy(buffer->buf + dest_offset, str, length+1);
-    buffer->size = new_size;
-    return 0;
+    return cork_buffer_append(alloc, buffer, str, strlen(str), err);
 }
 
 
@@ -188,28 +161,15 @@ cork_buffer_append_vprintf(struct cork_alloc *alloc, struct cork_buffer *buffer,
                            const char *format, va_list args,
                            struct cork_error *err)
 {
+    size_t  new_size;
     va_list  args1;
     va_copy(args1, args);
     size_t  formatted_length = vsnprintf(NULL, 0, format, args1);
     va_end(args1);
 
-    size_t  new_size;
-    size_t  dest_offset;
-
-    if ((buffer->size > 0) &&
-        ((char *) buffer->buf)[buffer->size-1] == '\0') {
-        /*
-         * Overwrite the existing NUL-terminator
-         */
-        new_size = buffer->size + formatted_length;
-        dest_offset = buffer->size - 1;
-    } else {
-        new_size = buffer->size + formatted_length + 1;
-        dest_offset = buffer->size;
-    }
-
+    new_size = buffer->size + formatted_length;
     rii_check(cork_buffer_ensure_size(alloc, buffer, new_size, err));
-    vsnprintf(buffer->buf + dest_offset, formatted_length+1, format, args);
+    vsnprintf(buffer->buf + buffer->size, formatted_length+1, format, args);
     buffer->size = new_size;
     return 0;
 }

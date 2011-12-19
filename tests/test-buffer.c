@@ -37,7 +37,7 @@ START_TEST(test_buffer)
 
     struct cork_buffer  buffer1;
     cork_buffer_init(alloc, &buffer1);
-    fail_if_error(cork_buffer_set(alloc, &buffer1, SRC, SRC_LEN+1, &err));
+    fail_if_error(cork_buffer_set(alloc, &buffer1, SRC, SRC_LEN, &err));
 
     struct cork_buffer  *buffer2;
     fail_if_error(buffer2 = cork_buffer_new(alloc, &err));
