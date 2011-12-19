@@ -50,20 +50,20 @@ implies, a slice can refer to a subset of the buffer.
       The managed buffer implementation for this instance.
 
 
-.. function:: struct cork_managed_buffer \*cork_managed_buffer_ref(struct cork_managed_buffer \*buf)
+.. function:: struct cork_managed_buffer \*cork_managed_buffer_ref(struct cork_alloc \*alloc, struct cork_managed_buffer \*buf)
 
    Atomically increase the reference count of a managed buffer.  This
    function is thread-safe.
 
 
-.. function:: void cork_managed_buffer_unref(struct cork_managed_buffer \*buf)
+.. function:: void cork_managed_buffer_unref(struct cork_alloc \*alloc, struct cork_managed_buffer \*buf)
 
    Atomically decrease the reference count of a managed buffer.  If the
    reference count falls to ``0``, the instance is freed.  This function
    is thread-safe.
 
-.. function:: bool cork_managed_buffer_slice(struct cork_slice \*dest, struct cork_managed_buffer \*buffer, size_t offset, size_t length)
-              bool cork_managed_buffer_slice_offset(struct cork_slice \*dest, struct cork_managed_buffer \*buffer, size_t offset)
+.. function:: int cork_managed_buffer_slice(struct cork_alloc \*alloc, struct cork_slice \*dest, struct cork_managed_buffer \*buffer, size_t offset, size_t length, struct cork_error \*err)
+              int cork_managed_buffer_slice_offset(struct cork_alloc \*alloc, struct cork_slice \*dest, struct cork_managed_buffer \*buffer, size_t offset, struct cork_error \*err)
 
    Initialize a new slice that refers to a subset of a managed buffer.
    The *offset* and *length* parameters identify the subset.  (For the
@@ -82,7 +82,7 @@ implies, a slice can refer to a subset of the buffer.
 Predefined managed buffer implementations
 -----------------------------------------
 
-.. function:: struct cork_managed_buffer \*cork_managed_buffer_new_copy(struct cork_alloc \*alloc, const void \*buf, size_t size)
+.. function:: struct cork_managed_buffer \*cork_managed_buffer_new_copy(struct cork_alloc \*alloc, const void \*buf, size_t size, struct cork_error \*err)
 
    Make a copy of *buf*, and allocate a new managed buffer to manage
    this copy.  The copy will automatically be freed when the managed
@@ -94,7 +94,7 @@ Predefined managed buffer implementations
    A finalization function for a managed buffer created by
    :c:func:`cork_managed_buffer_new()`.
 
-.. function:: struct cork_managed_buffer \*cork_managed_buffer_new(struct cork_alloc \*alloc, const void \*buf, size_t size, cork_managed_buffer_freer free)
+.. function:: struct cork_managed_buffer \*cork_managed_buffer_new(struct cork_alloc \*alloc, const void \*buf, size_t size, cork_managed_buffer_freer free, struct cork_error \*err)
 
    Allocate a new managed buffer to manage an existing buffer (*buf*).
    The existing buffer is *not* copied; the new managed buffer instance
@@ -119,7 +119,7 @@ Custom managed buffer implementations
    The interface of methods that managed buffer implementations must
    provide.
 
-   .. member:: void (\*free)(struct cork_managed_buffer \*self)
+   .. member:: void (\*free)(struct cork_alloc \*alloc, struct cork_managed_buffer \*self)
 
       Free the contents of a managed buffer, and the
       ``cork_managed_buffer`` instance itself.

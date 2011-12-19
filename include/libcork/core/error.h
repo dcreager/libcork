@@ -18,6 +18,11 @@
 #include <libcork/ds/buffer.h>
 
 
+/* Need to forward declare this since there's a circular dependency
+ * between buffer.h and error.h */
+struct cork_buffer;
+
+
 /* Should be a hash of a string representing the error class. */
 typedef uint32_t  cork_error_class;
 
@@ -25,8 +30,6 @@ typedef uint32_t  cork_error_class;
 #define CORK_ERROR_NONE  ((cork_error_class) 0)
 
 typedef unsigned int  cork_error_code;
-
-struct cork_error;
 
 /* A function that can format a particular error condition. */
 typedef int

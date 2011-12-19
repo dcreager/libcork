@@ -244,6 +244,183 @@ need to define your own ``cork_error`` instance, and then *clear* or
    :c:func:`cork_error_done` on *suberr* afterwards.
 
 
+Error-checking macros
+---------------------
+
+There can be a lot of repetitive code when calling functions that return
+:c:type:`cork_error` error conditions.  We provide a collection of
+helper macros that make it easier to write this code.
+
+.. note::
+
+   Unlike most libcork modules, these macros are **not** automatically
+   defined when you include the ``libcork/core.h`` header file.  Since
+   they're used so often, the macros don't include a ``cork_`` prefix,
+   saving a handful of keystrokes.  Because of this, we don't want to
+   pollute your namespace unless you ask for the macros.  To do so, you
+   must explicitly include their header file::
+
+     #include <libcork/core/checkers.h>
+
+Returning a default error code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you follow one of the standard function signature patterns described
+above, then your function will either return an ``int`` or some pointer
+type, and errors will be signalled by a return value of ``-1`` or
+``NULL``.  If so, you can use the macros in this section to
+automatically return the appropriate error return value if a nested
+function call returns an error.
+
+With these macros, you won't have a chance to inspect the error
+condition when an error occurs, so you should pass in your own *err*
+parameter when calling the nested function.
+
+(The mnemonic for remembering these macro names is that they all start
+with ``rXY_``.  The ``r`` indicates that they automatically “return”.
+The second character indicates whether *your* function returns an
+``int`` or a pointer.  The third character indicates whether the
+function you're *calling* returns an ``int`` or a pointer.)
+
+.. function:: void rii_check(call)
+
+   Call a function that returns an ``int`` error indicator, when your
+   function also returns an ``int``.  If the nested function call
+   returns an error, we propagate that error on.
+
+.. function:: void rip_check(call)
+
+   Call a function that returns a pointer, when your function returns an
+   ``int``.  If the nested function call returns an error, we propagate
+   that error on.
+
+.. function:: void rpi_check(call)
+
+   Call a function that returns an ``int`` error indicator, when your
+   function returns a pointer.  If the nested function call returns an
+   error, we propagate that error on.
+
+.. function:: void rpp_check(call)
+
+   Call a function that returns a pointer, when your function also
+   returns a pointer.  If the nested function call returns an error, we
+   propagate that error on.
+
+Returning a non-standard return value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your function doesn't have a standard signature, or it uses
+additional return values besides ``0``, ``1``, ``NULL``, and valid
+pointers, then you can use the macros in this section to return a custom
+return value in case of an error.
+
+With these macros, you won't have a chance to inspect the error
+condition when an error occurs, so you should pass in your own *err*
+parameter when calling the nested function.
+
+(The mnemonic for remembering these macro names is that they all start
+with ``xY_``.  The ``x`` doesn't standard for anything in particular.
+The second character indicates whether the function you're *calling*
+returns an ``int`` or a pointer.  We don't need separate macros for
+*your* function's return type, since you provide a return value
+explicitly.)
+
+.. function:: void xi_check(retval, call)
+
+   Call a function that returns an ``int`` error indicator.  If the
+   nested function call raises an error, we propagate that error on, and
+   return *retval* from the current function.
+
+.. function:: void xp_check(retval, call)
+
+   Call a function that returns a pointer.  If the nested function call
+   raises an error, we propagate that error on, and return *retval* from
+   the current function.
+
+Post-processing when an error occurs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to perform some post-processing when a nested function
+returns an error, you can use the functions in this section.  They will
+automatically jump to the current scope's ``error`` label whenever an
+error occurs.
+
+(The mnemonic for remembering these macro names is that they all start
+with ``eY_``.  The ``e`` indicates that they'll jump to the ``error``
+label.  The second character indicates whether the function you're
+*calling* returns an ``int`` or a pointer.  We don't need separate
+macros for *your* function's return type, since the macros won't
+automatically return anything.)
+
+.. function:: void ei_check(retval, call)
+
+   Call a function that returns an ``int`` error indicator.  If the
+   nested function call raises an error, we automatically jump to the
+   current scope's ``error`` label.
+
+.. function:: void ep_check(retval, call)
+
+   Call a function that returns a pointer.  If the nested function call
+   raises an error, we automatically jump to the current scope's
+   ``error`` label.
+
+Allocating new instances
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+All of the previous macros are used to propagate errors from within
+nested function calls.  Another common use case is to allocate a new
+instance of some type (using either a custom allocator or a garbage
+collection context), and to raise a new error if the allocation fails.
+The macros in this section make it easier to write this kind of code.
+
+.. function:: void e_check_new(type, var, desc)
+              void x_check_new(retval, type, var, desc)
+              void ri_check_new(type, var, desc)
+              void rp_check_new(type, var, desc)
+
+   Allocates a new instance using a custom allocator.  These macros
+   assume that you have a parameter or variable named ``alloc`` that
+   contains a custom allocator, a error condition parameter named
+   ``err``, and that you've already declared a variable named *var*, of
+   type *type*.  *desc* should be a human-readable name of the kind of
+   object you're trying to allocate.  We'll automatically allocate a new
+   instance, storing it into *var*.  If the allocation fails, we'll fill
+   in *err* with a :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error
+   condition.
+
+.. function:: void e_check_gc_new(type, var, desc)
+              void x_check_gc_new(retval, type, var, desc)
+              void ri_check_gc_new(type, var, desc)
+              void rp_check_gc_new(type, var, desc)
+
+   Allocates a new instance of a garbage-collected object.  These macros
+   assume that you have a parameter or variable named ``alloc`` that
+   contains a custom allocator, a error condition parameter named
+   ``err``, and that you've already declared a variable named *var*, of
+   type *type*.  They also assume that the garbage collection interface
+   for *type* is named ``[type]_gc_iface``.  *desc* should be a
+   human-readable name of the kind of object you're trying to allocate.
+   We'll automatically allocate a new instance, storing it into *var*.
+   If the allocation fails, we'll fill in *err* with a
+   :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+
+.. function:: void e_check_gc_inew(type, iface, var, desc)
+              void x_check_gc_inew(retval, type, iface, var, desc)
+              void ri_check_gc_inew(type, iface, var, desc)
+              void rp_check_gc_inew(type, iface, var, desc)
+
+   Allocates a new instance of a garbage-collected object.  These macros
+   assume that you have a parameter or variable named ``alloc`` that
+   contains a custom allocator, a error condition parameter named
+   ``err``, and that you've already declared a variable named *var*, of
+   type *type*.  They also assume that the garbage collection interface
+   for *type* is named *iface*.  *desc* should be a human-readable name
+   of the kind of object you're trying to allocate.  We'll automatically
+   allocate a new instance, storing it into *var*.  If the allocation
+   fails, we'll fill in *err* with a
+   :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+
+
 Defining a new error class
 --------------------------
 
@@ -324,7 +501,7 @@ string.  This is the case for ``CORK_NET_ADDRESS_UNKNOWN_ERROR``::
                         struct cork_buffer *dest)
   {
       return cork_buffer_set_string
-          (dest, "Unknown error while parsing IP address")?  0: -1;
+          (alloc, dest, "Unknown error while parsing IP address", NULL);
   }
 
   int
@@ -335,6 +512,12 @@ string.  This is the case for ``CORK_NET_ADDRESS_UNKNOWN_ERROR``::
                             CORK_NET_ADDRESS_UNKNOWN_ERROR,
                             cork_ip_unknown_error);
   }
+
+.. note::
+
+   Within the printer function, we ignore any additional errors that
+   occur, by passing in a ``NULL`` :c:type:`cork_error` parameter to
+   :c:func:`cork_buffer_set_string`.
 
 In this case, your printer function is just a wrapper around a call to
 :c:func:`cork_buffer_set_string()`, and your setter function is just a
@@ -393,7 +576,7 @@ include the malformed IP address in the error message::
   {
       const char  **str = cork_error_extra(err);
       return cork_buffer_printf
-          (dest, "Invalid IP address: %s", *str)? 0: -1;
+          (alloc, dest, NULL, "Invalid IP address: %s", *str);
   }
 
   int

@@ -56,14 +56,14 @@ automatically resizing the underlying buffer when necessary.
    used as a static initializer.
 
    The preallocated ``cork_buffer`` instance that you provide doesn't
-   include space for the content of the buffer; this will be allocated,
-   as needed, using the *alloc* custom allocator.
+   include space for the content of the buffer; this will be allocated
+   automatically as content is added.
 
-.. function:: struct cork_buffer \*cork_buffer_new(struct cork_alloc \*alloc)
+.. function:: struct cork_buffer \*cork_buffer_new(struct cork_alloc \*alloc, struct cork_error \*err)
 
    Allocate and initialize a new buffer instance.
 
-.. function:: void cork_buffer_done(struct cork_buffer \*buffer)
+.. function:: void cork_buffer_done(struct cork_alloc \*alloc, struct cork_buffer \*buffer)
 
    Finalize a buffer, freeing any content that it contains.  This
    function should only be used for buffers that you allocated yourself,
@@ -71,7 +71,7 @@ automatically resizing the underlying buffer when necessary.
    :c:func:`CORK_BUFFER_INIT()`.  You must **not** use this function to
    free a buffer allocated using :c:func:`cork_buffer_free()`.
 
-.. function:: void cork_buffer_free(struct cork_buffer \*buffer)
+.. function:: void cork_buffer_free(struct cork_alloc \*alloc, struct cork_buffer \*buffer)
 
    Finalize and deallocate a buffer, freeing any content that it
    contains.  This function should only be used for buffers allocated
@@ -83,7 +83,7 @@ automatically resizing the underlying buffer when necessary.
 
    Compare two buffers for equality.
 
-.. function:: bool cork_buffer_ensure_size(struct cork_buffer \*buffer, size_t desired_size)
+.. function:: int cork_buffer_ensure_size(struct cork_alloc \*alloc, struct cork_buffer \*buffer, size_t desired_size, struct cork_error \*err)
 
    Ensure that a buffer has allocated enough space to store at least
    *desired_size* bytes.  We won't shrink the size of the buffer's
@@ -95,7 +95,7 @@ Mutator functions
 
 Most of the mutator functions defined in this section come in two
 variants: a ``_set`` function, which clears the buffer before adding new
-content, and a ``_append`` function, which retains the old content,
+content, and an ``_append`` function, which retains the old content,
 adding the new content to the end of the buffer.
 
 There are three main use cases to consider when using a ``cork_buffer``:
@@ -114,7 +114,7 @@ However, this trailing ``NUL`` byte isn't always included in the
 :c:member:`size <cork_buffer.size>` of the buffer.  Each function's
 documentation will state whether it is or not; the rule of thumb is that
 functions that operate on C strings include the ``NUL`` byte in the
-size, while functions that operator on raw binary content do not.
+size, while functions that operate on raw binary content do not.
 
 We think this design ensures that the buffer does the “right thing” for
 all three use cases.  When constructing a C string from existing C
@@ -126,14 +126,14 @@ when handling raw binary data, every byte in the content counts, and any
 trailing ``NUL`` byte must be retained, even if further data is
 appended.
 
-.. function:: void cork_buffer_clear(struct cork_buffer \*buffer)
+.. function:: void cork_buffer_clear(struct cork_alloc \*alloc, struct cork_buffer \*buffer)
 
    Clears a buffer.  This does not free any storage that the buffer has
    allocated; this storage will be reused if you add contents back to
    the buffer.
 
-.. function:: bool cork_buffer_set(struct cork_buffer \*buffer, const void \*src, size_t length)
-              bool cork_buffer_append(struct cork_buffer \*buffer, const void \*src, size_t length)
+.. function:: int cork_buffer_set(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const void \*src, size_t length, struct cork_error \*err)
+              int cork_buffer_append(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const void \*src, size_t length, struct cork_error \*err)
 
    Copy the contents of *src* into a buffer.  The ``_set`` variant
    clears the buffer first, while the ``_append`` variant adds *src* to
@@ -141,10 +141,10 @@ appended.
 
    We'll add a ``NUL`` byte after the new buffer contents (ensuring it
    can be used as a C string), but this ``NUL`` byte **won't** be
-   included in the 
+   included in the :c:member:`size <cork_buffer.size>` of the buffer.
 
-.. function:: bool cork_buffer_set_string(struct cork_buffer \*buffer, const char \*str)
-              bool cork_buffer_append_string(struct cork_buffer \*buffer, const char \*str)
+.. function:: int cork_buffer_set_string(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*str, struct cork_error \*err)
+              int cork_buffer_append_string(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*str, struct cork_error \*err)
 
    Copy the contents of *str* (which must be a ``NUL``\ -terminated C
    string) into a buffer.  The ``_set`` variant clears the buffer first,
@@ -155,10 +155,10 @@ appended.
    ensuring it can be used as a C string.  This ``NUL`` byte **will** be
    included in the :c:member:`size <cork_buffer.size>` of the buffer.
 
-.. function:: bool cork_buffer_printf(struct cork_buffer \*buffer, const char \*format, ...)
-              bool cork_buffer_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
-              bool cork_buffer_append_printf(struct cork_buffer \*buffer, const char \*format, ...)
-              bool cork_buffer_append_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
+.. function:: int cork_buffer_printf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_error \*err, const char \*format, ...)
+              int cork_buffer_vprintf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*format, va_list args, struct cork_error \*err)
+              int cork_buffer_append_printf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_error \*err, const char \*format, ...)
+              int cork_buffer_append_vprintf(struct cork_alloc \*alloc, struct cork_buffer \*buffer, const char \*format, va_list args, struct cork_error \*err)
 
    Format data according to a ``printf`` format string, placing the
    result into a buffer.  The ``_append`` variants add the formatted
@@ -168,6 +168,12 @@ appended.
    as direct parameters.  The ``_vprintf`` variants can be used within
    another vararg function, and let you pass in the format string's data
    as a C99-standard ``va_list`` instance.
+
+   .. note::
+
+      For the vararg variants, the :c:type:`cork_error` parameter is in
+      an unusual location.  This is because the vararg ``...`` parameter
+      must be last in the parameter list.
 
 
 Other binary data structures
@@ -180,7 +186,7 @@ payload using a ``cork_buffer``, you can use the functions in this
 section to produce a corresponding instance of one of libcork's
 sharable, immutable binary data types.
 
-.. function:: struct cork_managed_buffer \*cork_buffer_to_managed_buffer(struct cork_buffer \*buffer)
+.. function:: struct cork_managed_buffer \*cork_buffer_to_managed_buffer(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_error \*err)
 
    Create a new :ref:`managed buffer <managed-buffer>` to manage the
    contents of a ``cork_buffer`` instance.  *buffer* must have been
@@ -190,7 +196,7 @@ sharable, immutable binary data types.
    :c:type:`cork_managed_buffer` instance.  You must **not** try to free
    *buffer* yourself.
 
-.. function:: bool cork_buffer_to_slice(struct cork_buffer \*buffer, struct cork_slice \*slice)
+.. function:: int cork_buffer_to_slice(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_slice \*slice, struct cork_error \*err)
 
    Initialize a new :ref:`slice <slice>` to manage the contents of
    *buffer*.  *buffer* must have been allocated on the heap (i.e., using
@@ -208,7 +214,7 @@ sharable, immutable binary data types.
    **must** call :c:func:`cork_slice_finish()` on *slice* when you're
    done with the slice.
 
-.. function:: struct cork_stream_consumer \*cork_buffer_to_stream_consumer(struct cork_buffer \*buffer)
+.. function:: struct cork_stream_consumer \*cork_buffer_to_stream_consumer(struct cork_alloc \*alloc, struct cork_buffer \*buffer, struct cork_error \*err)
 
    Create a new stream consumer that appends any received data into
    *buffer*.

@@ -41,8 +41,8 @@ you dispose of the hash table.
    should only you the functions described below to query or update the
    hash table.
 
-.. function:: bool cork_hash_table_init(struct cork_alloc \*alloc, struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
-              struct cork_hash_table \*cork_hash_table_new(struct cork_alloc \*alloc, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
+.. function:: int cork_hash_table_init(struct cork_alloc \*alloc, struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator, struct cork_error \*err)
+              struct cork_hash_table \*cork_hash_table_new(struct cork_alloc \*alloc, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator, struct cork_error \*err)
 
    Initializes a new hash table instance.  The ``_init`` variant should
    be used to initialize an instance that you've allocated yourself.
@@ -65,8 +65,8 @@ you dispose of the hash table.
    Compares two key pointers for equality.
 
 
-.. function:: void cork_hash_table_done(struct cork_hash_table \*table)
-              void cork_hash_table_free(struct cork_hash_table \*table)
+.. function:: void cork_hash_table_done(struct cork_alloc \*alloc, struct cork_hash_table \*table)
+              void cork_hash_table_free(struct cork_alloc \*alloc, struct cork_hash_table \*table)
 
    Finalizes a hash table.  The ``_done`` variant should be used to
    finalize an instance that you allocated yourself.  The ``_free``
@@ -108,7 +108,7 @@ from a hash table.  Each one has slightly different semantics; you
 should read through them all before deciding which one to use for a
 particular use case.
 
-.. function:: void \*cork_hash_table_get(const struct cork_hash_table \*table, const void \*key)
+.. function:: void \*cork_hash_table_get(struct cork_alloc \*alloc, const struct cork_hash_table \*table, const void \*key)
 
    Retrieves the value in *table* with the given *key*.  We return
    ``NULL`` if there's no corresponding entry in the table.  This means
@@ -117,7 +117,7 @@ particular use case.
    you need to distinguish those cases, you should use
    :c:func:`cork_hash_table_get_entry()` instead.
 
-.. function:: struct cork_hash_table_entry \*cork_hash_table_get_entry(const struct cork_hash_table \*table, const void \*key)
+.. function:: struct cork_hash_table_entry \*cork_hash_table_get_entry(struct cork_alloc \*alloc, const struct cork_hash_table \*table, const void \*key)
 
    Retrieves the entry in *table* with the given *key*.  We return
    ``NULL`` if there's no corresponding entry in the table.
@@ -129,7 +129,7 @@ particular use case.
    according to the hasher and comparator functions that you provided
    for this hash table.
 
-.. function:: struct cork_hash_table_entry \*cork_hash_table_get_or_create(struct cork_hash_table \*table, void \*key, bool \*is_new)
+.. function:: struct cork_hash_table_entry \*cork_hash_table_get_or_create(struct cork_alloc \*alloc, struct cork_hash_table \*table, void \*key, bool \*is_new, struct cork_error \*err)
 
    Retrieves the entry in *table* with the given *key*.  If there is no
    entry with the given key, it will be created.  (If we can't create
@@ -149,18 +149,18 @@ particular use case.
    if the entry is actually new, especially if there will be a lot
    successful lookups of existing keys.
 
-.. function:: bool cork_hash_table_put(struct cork_hash_table \*table, void \*key, void \*value, void \*\*old_key, void \*\*old_value)
+.. function:: int cork_hash_table_put(struct cork_alloc \*alloc, struct cork_hash_table \*table, void \*key, void \*value, bool \*is_new, void \*\*old_key, void \*\*old_value, struct cork_error \*err)
 
    Add an entry to a hash table.  If there is already an entry with the
    given key, we will overwrite its key and value with the *key* and
-   *value* parameters.  If the *old_key* and/or *old_value* parameters
-   are non-\ ``NULL``, we'll fill them in with the existing key and value.
-   This can be used, for instance, to finalize an overwritten key or
-   value object.
+   *value* parameters.  If the *is_new* parameter is non-\ ``NULL``,
+   we'll fill it in to indicate whether the entry is new or already
+   existed in the table.  If the *old_key* and/or *old_value* parameters
+   are non-\ ``NULL``, we'll fill them in with the existing key and
+   value.  This can be used, for instance, to finalize an overwritten
+   key or value object.
 
-   If there are any errors adding the entry, we'll return ``false``.
-
-.. function:: bool cork_hash_table_delete(struct cork_hash_table \*table, const void \*key, void \*\*deleted_key, void \*\*deleted_value)
+.. function:: bool cork_hash_table_delete(struct cork_alloc \*alloc, struct cork_hash_table \*table, const void \*key, void \*\*deleted_key, void \*\*deleted_value)
 
    Removes the entry with the given *key* from *table*.  If there isn't
    any entry with the given key, we'll return ``false``.  If the
@@ -177,7 +177,7 @@ Other operations
 
    Returns the number of entries in a hash table.
 
-.. function:: void cork_hash_table_clear(struct cork_hash_table \*table)
+.. function:: void cork_hash_table_clear(struct cork_alloc \*alloc, struct cork_hash_table \*table)
 
    Removes all of the entries in a hash table, without finalizing the
    hash table itself.
@@ -186,14 +186,13 @@ Other operations
    if they need to be finalized, you should do that yourself before
    calling this function.
 
-.. function:: bool cork_hash_table_ensure_size(struct cork_hash_table \*table, size_t desired_count)
+.. function:: int cork_hash_table_ensure_size(struct cork_alloc \*alloc, struct cork_hash_table \*table, size_t desired_count, struct cork_error \*err)
 
    Ensures that *table* has enough space to efficiently store a certain
    number of entries.  This can be used to reduce (or eliminate) the
    number of resizing operations needed to add a large number of entries
    to the table, when you know in advance roughly how many entries there
-   will be.  If there are any errors allocating the needed space, we'll
-   return ``false``.
+   will be.
 
 
 Iterating through a hash table
@@ -204,13 +203,13 @@ hash table: *mapping* and *iterating*.  With mapping, you write a
 mapping function, which will be applied to each entry in the table.  (In
 this case, libcork controls the loop that steps through each entry.)
 
-.. function:: void cork_hash_table_map(struct cork_hash_table \*table, cork_hash_table_mapper mapper, void \*user_data)
+.. function:: void cork_hash_table_map(struct cork_alloc \*alloc, struct cork_hash_table \*table, cork_hash_table_mapper mapper, void \*user_data)
 
    Applies the *mapper* function to each entry in a hash table.  The
    mapper function's :c:type:`cork_hash_table_map_result` return value
    can be used to influence the iteration.
 
-.. type:: enum cork_hash_table_map_result (\*cork_hash_table_mapper)(struct cork_hash_table_entry \*entry, void \*user_data)
+.. type:: enum cork_hash_table_map_result (\*cork_hash_table_mapper)(struct cork_alloc \*alloc, struct cork_hash_table_entry \*entry, void \*user_data)
 
    A function that can be applied to each entry in a hash table.  The
    function's return value can be used to influence the iteration:
@@ -240,16 +239,18 @@ table as follows (assuming you didn't want to use the built-in
 :c:func:`cork_hash_table_size()` function, of course)::
 
   static enum cork_hash_table_map_result
-  count_entries(struct cork_hash_table_entry *entry, void *ud)
+  count_entries(struct cork_alloc *alloc,
+                struct cork_hash_table_entry *entry, void *ud)
   {
       size_t  *count = ud;
       (*count)++;
       return CORK_HASH_TABLE_MAP_CONTINUE;
   }
 
+  struct cork_alloc  *alloc = /* from somewhere */;
   struct cork_hash_table  *table = /* from somewhere */;
   size_t  count = 0;
-  cork_hash_table_map(table, count_entries, &count);
+  cork_hash_table_map(alloc, table, count_entries, &count);
   /* the number of entries is now in count */
 
 

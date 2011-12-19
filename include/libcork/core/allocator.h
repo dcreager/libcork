@@ -14,8 +14,35 @@
 #include <libcork/core/types.h>
 
 
+/* Need to forward declare this since there's a circular dependency
+ * between allocator.h and error.h */
+struct cork_error;
+
 /* Forward declaration */
 struct cork_alloc;
+
+
+/*-----------------------------------------------------------------------
+ * Error handling
+ */
+
+/* hash of "libcork/core/allocator.h" */
+#define CORK_ALLOC_ERROR  0xa6f0c61b
+
+enum cork_alloc_error {
+    /* An error while allocating or reallocating some memory. */
+    CORK_ALLOC_CANNOT_ALLOCATE
+};
+
+int
+cork_alloc_cannot_allocate_set(struct cork_alloc *alloc,
+                               struct cork_error *err,
+                               const char *what);
+
+
+/*-----------------------------------------------------------------------
+ * Custom allocators
+ */
 
 /*
  * Should mimic:

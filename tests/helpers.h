@@ -21,7 +21,7 @@
             struct cork_buffer  buf = CORK_BUFFER_INIT(alloc); \
             cork_error_message(alloc, &err, &buf); \
             printf("%s\n", (char *) buf.buf); \
-            cork_buffer_done(&buf);
+            cork_buffer_done(alloc, &buf);
 #else
 #define print_expected_failure()  /* do nothing */
 #endif
@@ -39,7 +39,7 @@
             struct cork_buffer  buf = CORK_BUFFER_INIT(alloc); \
             cork_error_message(alloc, &err, &buf); \
             fail("%s", (char *) buf.buf); \
-            cork_buffer_done(&buf); \
+            cork_buffer_done(alloc, &buf); \
         } \
         cork_error_done(alloc, &err); \
     } while (0)

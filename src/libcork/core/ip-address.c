@@ -29,8 +29,9 @@ cork_ip##ip_version##_unknown_error \
      struct cork_buffer *dest) \
 { \
     return cork_buffer_set_string \
-        (dest, "Unknown error while parsing IP" #ip_version " address")? \
-        0: -1; \
+        (alloc, dest, \
+         "Unknown error while parsing IP" #ip_version " address", \
+         NULL); \
 } \
 \
 int \
@@ -49,7 +50,8 @@ cork_ip##ip_version##_parse_error(struct cork_alloc *alloc, struct cork_error *e
 { \
     const char  **str = cork_error_extra(err); \
     return cork_buffer_printf \
-        (dest, "Invalid IP" #ip_version " address: %s", *str)? 0: -1; \
+        (alloc, dest, NULL, \
+         "Invalid IP" #ip_version " address: %s", *str); \
 } \
 \
 int \

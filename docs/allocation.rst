@@ -122,6 +122,22 @@ String-related functions
    :c:func:`cork_strdup()`.
 
 
+Allocation errors
+-----------------
+
+.. macro:: CORK_ALLOC_ERROR
+           CORK_ALLOC_CANNOT_ALLOCATE
+
+   An error class and code that can be used to indicate allocation
+   failures.
+
+.. function:: int cork_cannot_allocate_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*what)
+
+   Fills in *err* to indicate that an allocation attempt failed.  *what*
+   should be the human-readable name of the object that you tried to
+   allocate.
+
+
 .. _builtin-allocators:
 
 Built-in allocators

@@ -59,8 +59,8 @@ cork_error_message(struct cork_alloc *alloc, struct cork_error *error,
 {
     if (error->printer == NULL) {
         return cork_buffer_printf
-            (dest, "Unknown error: class=0x%08" PRIx32 ", code=%u",
-             error->error_class, error->error_code)? 0: -1;
+            (alloc, dest, NULL, "Unknown error: class=0x%08" PRIx32 ", code=%u",
+             error->error_class, error->error_code);
     }
 
     else {

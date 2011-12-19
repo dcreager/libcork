@@ -19,24 +19,28 @@
 
 
 struct cork_stream_consumer {
-    bool
-    (*data)(struct cork_stream_consumer *consumer,
-            struct cork_slice *slice, bool is_first_chunk);
+    int
+    (*data)(struct cork_alloc *alloc, struct cork_stream_consumer *consumer,
+            struct cork_slice *slice, bool is_first_chunk,
+            struct cork_error *err);
 
-    bool
-    (*eof)(struct cork_stream_consumer *consumer);
+    int
+    (*eof)(struct cork_alloc *alloc, struct cork_stream_consumer *consumer,
+           struct cork_error *err);
 
     void
-    (*free)(struct cork_stream_consumer *consumer);
+    (*free)(struct cork_alloc *alloc, struct cork_stream_consumer *consumer);
 };
 
 
-#define cork_stream_consumer_data(consumer, slice, is_first) \
-    ((consumer)->data((consumer), (slice), (is_first)))
+#define cork_stream_consumer_data(alloc, consumer, slice, is_first, err) \
+    ((consumer)->data((alloc), (consumer), (slice), (is_first), (err)))
 
-#define cork_stream_consumer_eof(consumer) ((consumer)->eof((consumer)))
+#define cork_stream_consumer_eof(alloc, consumer, err) \
+    ((consumer)->eof((alloc), (consumer), (err)))
 
-#define cork_stream_consumer_free(consumer) ((consumer)->free((consumer)))
+#define cork_stream_consumer_free(alloc, consumer) \
+    ((consumer)->free((alloc), (consumer)))
 
 
 #endif /* LIBCORK_DS_STREAM_H */
