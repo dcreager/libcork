@@ -32,11 +32,12 @@ struct tree {
 };
 
 static void
-tree_recurse(void *vself, cork_gc_recurser recurse, void *ud)
+tree_recurse(struct cork_gc *gc, void *vself,
+             cork_gc_recurser recurse, void *ud)
 {
     struct tree  *self = vself;
-    recurse(self->left, ud);
-    recurse(self->right, ud);
+    recurse(gc, self->left, ud);
+    recurse(gc, self->right, ud);
 }
 
 static struct cork_gc_obj_iface TREE_IFACE = {

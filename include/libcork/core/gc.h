@@ -34,7 +34,7 @@ struct cork_gc {
 /* A callback for recursing through the children of a garbage-collected
  * object. */
 typedef void
-(*cork_gc_recurser)(void *obj, void *ud);
+(*cork_gc_recurser)(struct cork_gc *gc, void *obj, void *ud);
 
 /* An interface that each garbage-collected object must implement. */
 struct cork_gc_obj_iface {
@@ -44,7 +44,8 @@ struct cork_gc_obj_iface {
     (*free)(struct cork_gc *gc, void *obj);
 
     void
-    (*recurse)(void *self, cork_gc_recurser recurser, void *ud);
+    (*recurse)(struct cork_gc *gc, void *self,
+               cork_gc_recurser recurser, void *ud);
 };
 
 

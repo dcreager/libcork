@@ -267,7 +267,7 @@ Each garbage-collected class must provide an implementation of the
       If your class doesn't need any additional finalization steps, this
       entry in the callback interface can be ``NULL``.
 
-   .. member:: void (\*recurse)(void \*self, cork_gc_recurser recurse, void \*ud)
+   .. member:: void (\*recurse)(struct cork_gc \*gc, void \*self, cork_gc_recurser recurse, void \*ud)
 
       This callback is how you inform the garbage collector of your
       references to other garbage-collected objects.
@@ -276,18 +276,19 @@ Each garbage-collected class must provide an implementation of the
       traverse through a graph of object references.  Your
       implementation of this callback should just call *recurse* with
       each garbage-collected object that you hold a reference to.  You
-      must pass in *ud* as the second parameter to each call to
-      *recurse*.
+      must pass in *gc* as the first parameter to each call to
+      *recurse*, and *ud* as the third parameter.
 
       As an example, a tree class's implementation of this callback
       might be::
 
         static void
-        tree_recurser(void * vself, cork_gc_recurser recurse, void * ud)
+        tree_recurser(struct cork_gc * gc, void * vself,
+                      cork_gc_recurser recurse, void * ud)
         {
             struct tree * self = vself;
-            recurse(self->left, ud);
-            recurse(self->right, ud);
+            recurse(gc, self->left, ud);
+            recurse(gc, self->right, ud);
         }
 
       Note that it's fine to call *recurse* with a ``NULL`` object
@@ -298,7 +299,7 @@ Each garbage-collected class must provide an implementation of the
       garbage-collected objects, this entry in the callback interface
       can be ``NULL``.
 
-.. type:: void (\*cork_gc_recurser)(void \*obj, void \*ud)
+.. type:: void (\*cork_gc_recurser)(struct cork_gc \*gc, void \*obj, void \*ud)
 
    An opaque callback provided by the garbage collector when it calls an
    object's :c:member:`recurse <cork_gc_obj_iface.recurse>` method.

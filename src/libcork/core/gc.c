@@ -99,7 +99,7 @@ struct cork_gc_header {
     do { \
         if ((hdr)->iface->recurse != NULL) { \
             (hdr)->iface->recurse \
-                (cork_gc_get_object((hdr)), (recurser), NULL); \
+                ((hdr)->gc, cork_gc_get_object((hdr)), (recurser), NULL); \
         } \
     } while (0)
 
@@ -184,7 +184,7 @@ cork_gc_incref(struct cork_gc *gc, void *obj)
 }
 
 static void
-cork_gc_decref_step(void *obj, void *ud);
+cork_gc_decref_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
 cork_gc_release(struct cork_gc_header *header)
@@ -215,7 +215,7 @@ cork_gc_possible_root(struct cork_gc_header *header)
 }
 
 static void
-cork_gc_decref_step(void *obj, void *ud)
+cork_gc_decref_step(struct cork_gc *gc, void *obj, void *ud)
 {
     if (obj != NULL) {
         struct cork_gc_header  *header = cork_gc_get_header(obj);
@@ -234,12 +234,12 @@ cork_gc_decref_step(void *obj, void *ud)
 void
 cork_gc_decref(struct cork_gc *gc, void *obj)
 {
-    cork_gc_decref_step(obj, NULL);
+    cork_gc_decref_step(gc, obj, NULL);
 }
 
 
 static void
-cork_gc_mark_gray_step(void *obj, void *ud);
+cork_gc_mark_gray_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
 cork_gc_mark_gray(struct cork_gc_header *header)
@@ -252,7 +252,7 @@ cork_gc_mark_gray(struct cork_gc_header *header)
 }
 
 static void
-cork_gc_mark_gray_step(void *obj, void *ud)
+cork_gc_mark_gray_step(struct cork_gc *gc, void *obj, void *ud)
 {
     if (obj != NULL) {
         DEBUG("    cork_gc_mark_gray(%p)\n", obj);
@@ -290,7 +290,7 @@ cork_gc_mark_roots(struct cork_gc *gc)
 }
 
 static void
-cork_gc_scan_black_step(void *obj, void *ud);
+cork_gc_scan_black_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
 cork_gc_scan_black(struct cork_gc_header *header)
@@ -302,7 +302,7 @@ cork_gc_scan_black(struct cork_gc_header *header)
 }
 
 static void
-cork_gc_scan_black_step(void *obj, void *ud)
+cork_gc_scan_black_step(struct cork_gc *gc, void *obj, void *ud)
 {
     if (obj != NULL) {
         struct cork_gc_header  *header = cork_gc_get_header(obj);
@@ -316,7 +316,7 @@ cork_gc_scan_black_step(void *obj, void *ud)
 }
 
 static void
-cork_gc_scan(void *obj, void *ud)
+cork_gc_scan(struct cork_gc *gc, void *obj, void *ud)
 {
     if (obj != NULL) {
         DEBUG("  Scanning possible garbage cycle entry %p\n", obj);
@@ -343,13 +343,13 @@ cork_gc_scan_roots(struct cork_gc *gc)
     for (i = 0; i < gc->root_count; i++) {
         if (gc->roots[i] != NULL) {
             void  *obj = cork_gc_get_object(gc->roots[i]);
-            cork_gc_scan(obj, NULL);
+            cork_gc_scan(gc, obj, NULL);
         }
     }
 }
 
 static void
-cork_gc_collect_white(void *obj, void *ud)
+cork_gc_collect_white(struct cork_gc *gc, void *obj, void *ud)
 {
     if (obj != NULL) {
         struct cork_gc_header  *header = cork_gc_get_header(obj);
@@ -374,7 +374,7 @@ cork_gc_collect_roots(struct cork_gc *gc)
             void  *obj = cork_gc_get_object(header);
             cork_gc_set_buffered(header, false);
             DEBUG("Collecting cycles from garbage root %p\n", obj);
-            cork_gc_collect_white(obj, NULL);
+            cork_gc_collect_white(gc, obj, NULL);
             gc->roots[i] = NULL;
         }
     }
