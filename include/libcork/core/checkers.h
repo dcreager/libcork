@@ -91,6 +91,31 @@
 #define rpp_check(call)  xp_check(NULL, call)
 
 
+/* The following macros fill in err with a CORK_ALLOC_CANNOT_ALLOCATE
+ * error if they fail. */
+
+#define e_check_alloc(call, desc) \
+    do { \
+        const void  *__result = (call); \
+        if (__result == NULL) { \
+            cork_alloc_cannot_allocate_set(alloc, err, desc); \
+            goto error; \
+        } \
+    } while (0)
+
+#define x_check_alloc(result, call, desc) \
+    do { \
+        const void  *__result = (call); \
+        if (__result == NULL) { \
+            cork_alloc_cannot_allocate_set(alloc, err, desc); \
+            return result; \
+        } \
+    } while (0)
+
+#define ri_check_alloc(call, desc)  x_check_alloc(-1, call, desc)
+#define rp_check_alloc(call, desc)  x_check_alloc(NULL, call, desc)
+
+
 /* The following macros can be used to allocate a new variable from the
  * heap.  If the allocation fails, we'll automatically fill in your err
  * parameter, and perform some error response action (defined above).
@@ -98,22 +123,9 @@
  * custom allocator to use. */
 
 #define e_check_new(type, var, desc) \
-    do { \
-        var = cork_new(alloc, type); \
-        if (var == NULL) { \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
-            goto error; \
-        } \
-    } while (0)
-
+    e_check_alloc(var = cork_new(alloc, type), desc)
 #define x_check_new(result, type, var, desc) \
-    do { \
-        var = cork_new(alloc, type); \
-        if (var == NULL) { \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
-            return result; \
-        } \
-    } while (0)
+    x_check_alloc(result, var = cork_new(alloc, type), desc)
 
 #define ri_check_new(type, var, desc)  x_check_new(-1, type, var, desc)
 #define rp_check_new(type, var, desc)  x_check_new(NULL, type, var, desc)
@@ -129,22 +141,9 @@
  * interface name. */
 
 #define e_check_gc_inew(type, iface, var, desc) \
-    do { \
-        var = cork_gc_new(gc, type, iface); \
-        if (var == NULL) { \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
-            goto error; \
-        } \
-    } while (0)
-
+    e_check_alloc(var = cork_gc_new(gc, struct type, iface), desc)
 #define x_check_gc_inew(result, type, iface, var, desc) \
-    do { \
-        var = cork_gc_new(gc, type, iface); \
-        if (var == NULL) { \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
-            return result; \
-        } \
-    } while (0)
+    x_check_alloc(result, var = cork_gc_new(gc, struct type, iface), desc)
 
 #define ri_check_gc_inew(type, iface, var, desc) \
     x_check_gc_inew(-1, type, iface, var, desc)
@@ -152,16 +151,16 @@
     x_check_gc_inew(NULL, type, iface, var, desc)
 
 /* For these variants, we assume that your garbage collection interface
- * is called TYPE_NAME_gc_iface */
+ * is called TYPE_NAME_gc */
 
 #define e_check_gc_new(type, var, desc) \
-    e_check_gc_inew(type, &type##_gc_iface, var, desc)
+    e_check_gc_inew(type, &type##_gc, var, desc)
 #define x_check_gc_new(result, type, var, desc) \
-    x_check_gc_inew(result, type, &type##_gc_iface, var, desc)
+    x_check_gc_inew(result, type, &type##_gc, var, desc)
 #define ri_check_gc_new(type, var, desc) \
-    ri_check_gc_inew(type, &type##_gc_iface, var, desc)
+    ri_check_gc_inew(type, &type##_gc, var, desc)
 #define rp_check_gc_new(type, var, desc) \
-    rp_check_gc_inew(type, &type##_gc_iface, var, desc)
+    rp_check_gc_inew(type, &type##_gc, var, desc)
 
 
 #endif /* LIBCORK_CORE_CHECKERS_H */

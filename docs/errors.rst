@@ -380,7 +380,7 @@ The macros in this section make it easier to write this kind of code.
 
    Allocates a new instance using a custom allocator.  These macros
    assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, a error condition parameter named
+   contains a custom allocator, an error condition parameter named
    ``err``, and that you've already declared a variable named *var*, of
    type *type*.  *desc* should be a human-readable name of the kind of
    object you're trying to allocate.  We'll automatically allocate a new
@@ -395,7 +395,7 @@ The macros in this section make it easier to write this kind of code.
 
    Allocates a new instance of a garbage-collected object.  These macros
    assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, a error condition parameter named
+   contains a custom allocator, an error condition parameter named
    ``err``, and that you've already declared a variable named *var*, of
    type *type*.  They also assume that the garbage collection interface
    for *type* is named ``[type]_gc_iface``.  *desc* should be a
@@ -404,6 +404,13 @@ The macros in this section make it easier to write this kind of code.
    If the allocation fails, we'll fill in *err* with a
    :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
 
+   .. note::
+
+      Note that *type* should **not** contain the ``struct`` prefix of
+      your garbage-collected type.  We add that to the type name
+      automatically.  (This lets us construct the default garbage
+      collection interface name.)
+
 .. function:: void e_check_gc_inew(type, iface, var, desc)
               void x_check_gc_inew(retval, type, iface, var, desc)
               void ri_check_gc_inew(type, iface, var, desc)
@@ -411,7 +418,7 @@ The macros in this section make it easier to write this kind of code.
 
    Allocates a new instance of a garbage-collected object.  These macros
    assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, a error condition parameter named
+   contains a custom allocator, an error condition parameter named
    ``err``, and that you've already declared a variable named *var*, of
    type *type*.  They also assume that the garbage collection interface
    for *type* is named *iface*.  *desc* should be a human-readable name
@@ -419,6 +426,25 @@ The macros in this section make it easier to write this kind of code.
    allocate a new instance, storing it into *var*.  If the allocation
    fails, we'll fill in *err* with a
    :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+
+   .. note::
+
+      Note that *type* should **not** contain the ``struct`` prefix of
+      your garbage-collected type.  We add that to the type name
+      automatically.
+
+.. function:: void e_check_alloc(call, desc)
+              void x_check_alloc(retval, call, desc)
+              void ri_check_alloc(call, desc)
+              void rp_check_alloc(call, desc)
+
+   Checks the result of an arbitrary allocation.  *call* should be a
+   statement that allocates some new memory.  These macros assume that
+   you have a parameter or variable named ``alloc`` that contains a
+   custom allocator, and an error condition parameter named ``err``.
+   *desc* should be a human-readable name of the kind of object you're
+   trying to allocate.    If the allocation fails, we'll fill in *err*
+   with a :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
 
 
 Defining a new error class
