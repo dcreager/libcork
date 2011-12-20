@@ -57,7 +57,7 @@
 
 #define ep_check(call) \
     do { \
-        void  *__result = (call); \
+        const void  *__result = (call); \
         if (__result == NULL) { \
             goto error; \
         } \
@@ -76,7 +76,7 @@
 
 #define xp_check(result, call) \
     do { \
-        void  *__result = (call); \
+        const void  *__result = (call); \
         if (__result == NULL) { \
             return result; \
         } \
@@ -85,10 +85,10 @@
 
 /* return default error code */
 
-#define rii_check(call)  xi_check(__rc, call)
+#define rii_check(call)  xi_check(-1, call)
 #define rip_check(call)  xp_check(-1, call)
 #define rpi_check(call)  xi_check(NULL, call)
-#define rpp_check(call)  xp_check(__result, call)
+#define rpp_check(call)  xp_check(NULL, call)
 
 
 /* The following macros can be used to allocate a new variable from the
