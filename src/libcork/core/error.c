@@ -138,3 +138,24 @@ cork_error_propagate(struct cork_alloc *alloc,
         cork_error_init(alloc, suberror);
     }
 }
+
+
+static int
+cork_unknown_error(struct cork_alloc *alloc, struct cork_error *err,
+                   struct cork_buffer *dest)
+{
+    const char  **location = cork_error_extra(err);
+    return cork_buffer_printf
+        (alloc, dest, NULL, "Unknown error in %s", *location);
+}
+
+int
+cork_unknown_error_set_(struct cork_alloc *alloc, struct cork_error *err,
+                        const char *location)
+{
+    return cork_error_set_extra(alloc, err,
+                                CORK_BUILTIN_ERROR,
+                                CORK_UNKNOWN_ERROR,
+                                cork_unknown_error,
+                                location);
+}

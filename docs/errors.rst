@@ -482,8 +482,6 @@ following definitions for the error conditions in the
   #define CORK_NET_ADDRESS_ERROR  0x1f76fedf
 
   enum cork_net_address_error {
-      /* An unknown error while parsing a network address. */
-      CORK_NET_ADDRESS_UNKNOWN_ERROR,
       /* A parse error while parsing a network address. */
       CORK_NET_ADDRESS_PARSE_ERROR
   };
@@ -520,23 +518,23 @@ general IP address.
    Renders the human-readable description of *err* into *dest*.
 
 In the simplest case, the human-readable description will be a fixed
-string.  This is the case for ``CORK_NET_ADDRESS_UNKNOWN_ERROR``::
+string.  As an example::
 
   static int
-  cork_ip_unknown_error(struct cork_alloc *alloc, struct cork_error *err,
-                        struct cork_buffer *dest)
+  cork_basic_error(struct cork_alloc *alloc, struct cork_error *err,
+                     struct cork_buffer *dest)
   {
       return cork_buffer_set_string
-          (alloc, dest, "Unknown error while parsing IP address", NULL);
+          (alloc, dest, "Unknown error!", NULL);
   }
 
   int
-  cork_ip_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err)
+  cork_basic_error_set(struct cork_alloc *alloc, struct cork_error *err)
   {
       return cork_error_set(alloc, err,
-                            CORK_NET_ADDRESS_ERROR,
-                            CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                            cork_ip_unknown_error);
+                            CORK_BUILTIN_ERROR,
+                            CORK_UNKNOWN_ERROR,
+                            cork_basic_error);
   }
 
 .. note::
@@ -618,3 +616,21 @@ include the malformed IP address in the error message::
 
 Note that this printer function assumes that the malformed string will
 still be a live object when the printer function is called.
+
+Builtin errors
+--------------
+
+There are a few basic, builtin errors that you can use if no others are
+applicable.  In almost all cases, you'll want to define a more specific
+error class and code instead.
+
+.. macro:: CORK_BUILTIN_ERROR
+           CORK_UNKNOWN_ERROR
+
+   The error class and codes used for the error conditions described in
+   this section.
+
+.. function:: int cork_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
+
+   Fills in *err* to indicate that there was some unknown error.  The
+   error description will include the name of the current function.

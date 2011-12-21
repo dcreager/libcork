@@ -91,4 +91,24 @@ cork_error_propagate(struct cork_alloc *alloc,
                      struct cork_error *error, struct cork_error *suberror);
 
 
+/*-----------------------------------------------------------------------
+ * Built-in errors
+ */
+
+/* hash of "libcork/core/error.h" */
+#define CORK_BUILTIN_ERROR  0xd178dde5
+
+enum cork_builtin_error {
+    /* An unknown error */
+    CORK_UNKNOWN_ERROR
+};
+
+int
+cork_unknown_error_set_(struct cork_alloc *alloc, struct cork_error *err,
+                        const char *location);
+
+#define cork_unknown_error_set(alloc, err) \
+    cork_unknown_error_set_((alloc), (err), __func__)
+
+
 #endif /* LIBCORK_CORE_ERROR_H */

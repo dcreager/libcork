@@ -124,11 +124,10 @@ Error conditions
 ~~~~~~~~~~~~~~~~
 
 .. macro:: CORK_NET_ADDRESS_ERROR
-           CORK_NET_ADDRESS_UNKNOWN_ERROR
            CORK_NET_ADDRESS_PARSE_ERROR
 
-   The error class and codes used for :ref:`error conditions <errors>`
-   raised by the functions in this section.
+   The error class and codes used for the :ref:`error conditions
+   <errors>` described in this section.
 
 .. function:: int cork_ipv4_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
               int cork_ipv6_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)

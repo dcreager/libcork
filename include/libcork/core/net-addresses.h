@@ -24,20 +24,9 @@
 #define CORK_NET_ADDRESS_ERROR  0x1f76fedf
 
 enum cork_net_address_error {
-    /* An unknown error while parsing a network address. */
-    CORK_NET_ADDRESS_UNKNOWN_ERROR,
     /* A parse error while parsing a network address. */
     CORK_NET_ADDRESS_PARSE_ERROR
 };
-
-int
-cork_ipv4_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
-
-int
-cork_ipv6_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
-
-int
-cork_ip_unknown_error_set(struct cork_alloc *alloc, struct cork_error *err);
 
 int
 cork_ipv4_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,

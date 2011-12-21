@@ -24,27 +24,6 @@
 
 #define DEFINE_ERRORS(ip_version) \
 static int \
-cork_ip##ip_version##_unknown_error \
-    (struct cork_alloc *alloc, struct cork_error *err, \
-     struct cork_buffer *dest) \
-{ \
-    return cork_buffer_set_string \
-        (alloc, dest, \
-         "Unknown error while parsing IP" #ip_version " address", \
-         NULL); \
-} \
-\
-int \
-cork_ip##ip_version##_unknown_error_set \
-    (struct cork_alloc *alloc, struct cork_error *err) \
-{ \
-    return cork_error_set(alloc, err, \
-                          CORK_NET_ADDRESS_ERROR, \
-                          CORK_NET_ADDRESS_UNKNOWN_ERROR, \
-                          cork_ip##ip_version##_unknown_error); \
-} \
-\
-static int \
 cork_ip##ip_version##_parse_error(struct cork_alloc *alloc, struct cork_error *err, \
                       struct cork_buffer *dest) \
 { \
@@ -61,7 +40,7 @@ cork_ip##ip_version##_parse_error_set \
 { \
     return cork_error_set_extra(alloc, err, \
                                 CORK_NET_ADDRESS_ERROR, \
-                                CORK_NET_ADDRESS_UNKNOWN_ERROR, \
+                                CORK_NET_ADDRESS_PARSE_ERROR, \
                                 cork_ip##ip_version##_parse_error, \
                                 invalid_str); \
 }
@@ -100,7 +79,7 @@ cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
         cork_ipv4_parse_error_set(alloc, error, str);
         return false;
     } else {
-        cork_ipv4_unknown_error_set(alloc, error);
+        cork_unknown_error_set(alloc, error);
         return false;
     }
 }
@@ -141,7 +120,7 @@ cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
         cork_ipv6_parse_error_set(alloc, error, str);
         return false;
     } else {
-        cork_ipv6_unknown_error_set(alloc, error);
+        cork_unknown_error_set(alloc, error);
         return false;
     }
 }
@@ -269,7 +248,7 @@ cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
         return true;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_ip_unknown_error_set(alloc, error);
+        cork_unknown_error_set(alloc, error);
         return false;
     }
 
@@ -283,7 +262,7 @@ cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
         return true;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_ip_unknown_error_set(alloc, error);
+        cork_unknown_error_set(alloc, error);
         return false;
     }
 
