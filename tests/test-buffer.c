@@ -144,6 +144,7 @@ START_TEST(test_buffer_slicing)
 
     struct cork_slice  slice;
     fail_if_error(cork_buffer_to_slice(alloc, buffer, &slice, &err));
+    fail_if_error(cork_slice_slice_offset(alloc, &slice, buffer->size, &err));
     cork_slice_finish(alloc, &slice);
 
     cork_allocator_free(alloc);

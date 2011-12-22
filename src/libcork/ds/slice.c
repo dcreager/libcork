@@ -75,7 +75,7 @@ cork_slice_copy(struct cork_alloc *alloc, struct cork_slice *dest,
                 struct cork_error *err)
 {
     if ((slice != NULL) &&
-        (offset < slice->size) &&
+        (offset <= slice->size) &&
         ((offset + length) <= slice->size)) {
         /*
         DEBUG("Slicing <%p:%zu> at %zu:%zu, gives <%p:%zu>",
@@ -121,7 +121,7 @@ cork_slice_slice(struct cork_alloc *alloc, struct cork_slice *slice,
                  size_t offset, size_t length, struct cork_error *err)
 {
     if ((slice != NULL) &&
-        (offset < slice->size) &&
+        (offset <= slice->size) &&
         ((offset + length) <= slice->size)) {
         /*
         DEBUG("Slicing <%p:%zu> at %zu:%zu, gives <%p:%zu>",
