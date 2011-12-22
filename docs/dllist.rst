@@ -180,7 +180,7 @@ With these functions, manually counting the list elements looks like::
   struct cork_dllist  *list = /* from somewhere */;
   struct cork_dllist_item  *curr;
   size_t  count = 0;
-  for (curr = cork_dllist_head(list); !cork_dllist_is_end(list, curr);
+  for (curr = cork_dllist_start(list); !cork_dllist_is_end(list, curr);
        curr = curr->next) {
       count++;
   }
@@ -191,7 +191,7 @@ You can also count the elements in reverse order::
   struct cork_dllist  *list = /* from somewhere */;
   struct cork_dllist_item  *curr;
   size_t  count = 0;
-  for (curr = cork_dllist_tail(list); !cork_dllist_is_start(list, curr);
+  for (curr = cork_dllist_end(list); !cork_dllist_is_start(list, curr);
        curr = curr->prev) {
       count++;
   }
