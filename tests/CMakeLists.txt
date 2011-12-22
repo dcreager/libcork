@@ -41,6 +41,7 @@ macro(make_test test_name)
     add_test(NAME embedded-${test_name} COMMAND embedded-${test_name})
 endmacro(make_test)
 
+make_test(test-array)
 make_test(test-buffer)
 make_test(test-core)
 make_test(test-dllist)

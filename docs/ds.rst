@@ -15,6 +15,7 @@ libcork includes implementations of a number of useful data structures.
 .. toctree::
    :maxdepth: 1
 
+   array
    slice
    managed-buffer
    buffer

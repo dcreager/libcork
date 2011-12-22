@@ -13,6 +13,7 @@
 
 /*** include all of the parts ***/
 
+#include <libcork/ds/array.h>
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/hash-table.h>
