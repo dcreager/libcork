@@ -29,12 +29,6 @@ enum cork_slice_error {
     CORK_SLICE_INVALID_SLICE
 };
 
-int
-cork_slice_invalid_slice_set(struct cork_alloc *alloc,
-                             struct cork_error *err,
-                             size_t buf_size, size_t requested_offset,
-                             size_t requested_length);
-
 
 /*-----------------------------------------------------------------------
  * Slices

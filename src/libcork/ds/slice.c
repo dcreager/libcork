@@ -20,38 +20,16 @@
  * Error handling
  */
 
-struct cork_slice_invalid {
-    size_t  buf_size;
-    size_t  requested_offset;
-    size_t  requested_length;
-};
-
-static int
-cork_slice_invalid_slice(struct cork_alloc *alloc, struct cork_error *err,
-                         struct cork_buffer *dest)
-{
-    struct cork_slice_invalid  *info = cork_error_extra(err);
-    return cork_buffer_printf
-        (alloc, dest, NULL,
-         "Cannot slice %zu-byte buffer at %zu:%zu",
-         info->buf_size, info->requested_offset, info->requested_length);
-}
-
-int
+static void
 cork_slice_invalid_slice_set(struct cork_alloc *alloc,
                              struct cork_error *err,
                              size_t buf_size, size_t requested_offset,
                              size_t requested_length)
 {
-    struct cork_slice_invalid  info = {
-        buf_size, requested_offset, requested_length
-    };
-
-    return cork_error_set_extra(alloc, err,
-                                CORK_SLICE_ERROR,
-                                CORK_SLICE_INVALID_SLICE,
-                                cork_slice_invalid_slice,
-                                info);
+    cork_error_set
+        (alloc, err, CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
+         "Cannot slice %zu-byte buffer at %zu:%zu",
+         buf_size, requested_offset, requested_length);
 }
 
 

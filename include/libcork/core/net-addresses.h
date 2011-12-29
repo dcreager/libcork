@@ -12,6 +12,8 @@
 #define LIBCORK_CORE_NET_ADDRESSES_H
 
 
+#include <string.h>
+
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
@@ -27,18 +29,6 @@ enum cork_net_address_error {
     /* A parse error while parsing a network address. */
     CORK_NET_ADDRESS_PARSE_ERROR
 };
-
-int
-cork_ipv4_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
-                          const char *invalid_str);
-
-int
-cork_ipv6_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
-                          const char *invalid_str);
-
-int
-cork_ip_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
-                        const char *invalid_str);
 
 
 /*-----------------------------------------------------------------------
@@ -72,10 +62,10 @@ struct cork_ip {
 /*** IPv4 ***/
 
 /* src must be well-formed: 4 bytes, big-endian */
-bool
-cork_ipv4_copy(struct cork_ipv4 *addr, const void *src);
+#define cork_ipv4_copy(addr, src) \
+    (memcpy((addr), (src), sizeof(struct cork_ipv4)))
 
-bool
+int
 cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
                const char *str, struct cork_error *error);
 
@@ -89,10 +79,10 @@ cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
 /*** IPv6 ***/
 
 /* src must be well-formed: 16 bytes, big-endian */
-bool
-cork_ipv6_copy(struct cork_ipv6 *addr, const void *src);
+#define cork_ipv6_copy(addr, src) \
+    (memcpy((addr), (src), sizeof(struct cork_ipv6)))
 
-bool
+int
 cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
                const char *str, struct cork_error *error);
 
@@ -106,14 +96,14 @@ cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest);
 /*** Generic IP ***/
 
 /* src must be well-formed: 4 bytes, big-endian */
-bool
+void
 cork_ip_from_ipv4(struct cork_ip *addr, const void *src);
 
 /* src must be well-formed: 16 bytes, big-endian */
-bool
+void
 cork_ip_from_ipv6(struct cork_ip *addr, const void *src);
 
-bool
+int
 cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
              const char *str, struct cork_error *error);
 

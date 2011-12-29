@@ -49,7 +49,7 @@ automatically resizing the underlying buffer when necessary.
 
 
 .. function:: void cork_buffer_init(struct cork_alloc \*alloc, struct cork_buffer \*buffer)
-              struct cork_buffer CORK_BUFFER_INIT(struct cork_alloc \*alloc)
+              struct cork_buffer CORK_BUFFER_INIT()
 
    Initialize a new buffer instance that you've allocated yourself
    (usually on the stack).  The ``CORK_BUFFER_INIT`` version can only be

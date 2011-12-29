@@ -55,10 +55,10 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
       version.
 
 
-.. function:: bool cork_ipv4_copy(struct cork_ipv4 \*addr, const void \*src)
-              bool cork_ipv6_copy(struct cork_ipv6 \*addr, const void \*src)
-              bool cork_ip_from_ipv4(struct cork_ip \*addr, const void \*src)
-              bool cork_ip_from_ipv6(struct cork_ip \*addr, const void \*src)
+.. function:: void cork_ipv4_copy(struct cork_ipv4 \*addr, const void \*src)
+              void cork_ipv6_copy(struct cork_ipv6 \*addr, const void \*src)
+              void cork_ip_from_ipv4(struct cork_ip \*addr, const void \*src)
+              void cork_ip_from_ipv6(struct cork_ip \*addr, const void \*src)
 
    Initializes a :c:type:`cork_ipv4`, :c:type:`cork_ipv6`, or
    :c:type:`cork_ip` instance from an existing IP address somewhere in
@@ -69,9 +69,9 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
    in network-endian order, regardless of the host's endianness.)
 
 
-.. function:: bool cork_ipv4_init(struct cork_ipv4 \*addr, const char \*str, struct cork_error \*err)
-              bool cork_ipv6_init(struct cork_ipv6 \*addr, const char \*str, struct cork_error \*err)
-              bool cork_ip_init(struct cork_ip \*addr, const char \*str, struct cork_error \*err)
+.. function:: int cork_ipv4_init(struct cork_alloc \*alloc, struct cork_ipv4 \*addr, const char \*str, struct cork_error \*err)
+              int cork_ipv6_init(struct cork_alloc \*alloc, struct cork_ipv6 \*addr, const char \*str, struct cork_error \*err)
+              int cork_ip_init(struct cork_alloc \*alloc, struct cork_ip \*addr, const char \*str, struct cork_error \*err)
 
    Initializes a :c:type:`cork_ipv4`, :c:type:`cork_ipv6`, or
    :c:type:`cork_ip` instance from the string representation of an IP
@@ -84,7 +84,7 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
 
    If *str* doesn't represent a valid address (of a compatible IP
    version), then we leave *addr* unchanged, fill in *err* with a
-   :c:data:`CORK_NET_ADDRESS_PARSE_ERROR` error, and return ``false``.
+   :c:data:`CORK_NET_ADDRESS_PARSE_ERROR` error, and return ``-1``.
 
 
 .. function:: bool cork_ipv4_equal(const struct cork_ipv4 \*addr1, const struct cork_ipv4 \*addr2)
@@ -118,29 +118,8 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
      cork_ipv4_to_raw_string(&addr, buf);
 
 
-.. _net-address-errors:
-
-Error conditions
-~~~~~~~~~~~~~~~~
-
 .. macro:: CORK_NET_ADDRESS_ERROR
            CORK_NET_ADDRESS_PARSE_ERROR
 
    The error class and codes used for the :ref:`error conditions
    <errors>` described in this section.
-
-.. function:: int cork_ipv4_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
-              int cork_ipv6_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
-              int cork_ip_parse_error_set(struct cork_alloc \*alloc, struct cork_error \*err, const char \*invalid_str)
-
-   Fills in *err* to indicate that *invalid_str* doesn't represent a
-   valid IPv4, IPv6, or generic IP address.  The invalid string will be
-   included in the human-readable error message, so you must ensure that
-   *invalid_str* remains live for at least as long as *err* does.
-
-.. function:: int cork_ipv4_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
-              int cork_ipv6_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
-              int cork_ip_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
-
-   Fills in *err* to indicate that there was some unknown error while
-   parsing a IPv4, IPv6, or generic IP address.

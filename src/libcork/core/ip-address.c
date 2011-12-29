@@ -15,41 +15,6 @@
 #include "libcork/core/error.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
-#include "libcork/ds/buffer.h"
-
-
-/*-----------------------------------------------------------------------
- * Error handling
- */
-
-#define DEFINE_ERRORS(ip_version) \
-static int \
-cork_ip##ip_version##_parse_error(struct cork_alloc *alloc, struct cork_error *err, \
-                      struct cork_buffer *dest) \
-{ \
-    const char  **str = cork_error_extra(err); \
-    return cork_buffer_printf \
-        (alloc, dest, NULL, \
-         "Invalid IP" #ip_version " address: %s", *str); \
-} \
-\
-int \
-cork_ip##ip_version##_parse_error_set \
-    (struct cork_alloc *alloc, struct cork_error *err, \
-     const char *invalid_str) \
-{ \
-    return cork_error_set_extra(alloc, err, \
-                                CORK_NET_ADDRESS_ERROR, \
-                                CORK_NET_ADDRESS_PARSE_ERROR, \
-                                cork_ip##ip_version##_parse_error, \
-                                invalid_str); \
-}
-
-DEFINE_ERRORS(v4)
-DEFINE_ERRORS(v6)
-DEFINE_ERRORS()
-
-#undef DEFINE_ERRORS
 
 
 /*-----------------------------------------------------------------------
@@ -58,14 +23,7 @@ DEFINE_ERRORS()
 
 /*** IPv4 ***/
 
-bool
-cork_ipv4_copy(struct cork_ipv4 *addr, const void *src)
-{
-    memcpy(addr, src, sizeof(struct cork_ipv4));
-    return true;
-}
-
-bool
+int
 cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
                const char *str, struct cork_error *error)
 {
@@ -73,14 +31,17 @@ cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
 
     if (rc == 1) {
         /* successful parse */
-        return true;
+        return 0;
     } else if (rc == 0) {
         /* parse error */
-        cork_ipv4_parse_error_set(alloc, error, str);
-        return false;
+        cork_error_set
+            (alloc, error, CORK_NET_ADDRESS_ERROR,
+             CORK_NET_ADDRESS_PARSE_ERROR,
+             "Invalid IPv4 address: \"%s\"", str);
+        return -1;
     } else {
         cork_unknown_error_set(alloc, error);
-        return false;
+        return -1;
     }
 }
 
@@ -99,14 +60,7 @@ cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
 
 /*** IPv6 ***/
 
-bool
-cork_ipv6_copy(struct cork_ipv6 *addr, const void *src)
-{
-    memcpy(addr, src, sizeof(struct cork_ipv6));
-    return true;
-}
-
-bool
+int
 cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
                const char *str, struct cork_error *error)
 {
@@ -114,14 +68,17 @@ cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
 
     if (rc == 1) {
         /* successful parse */
-        return true;
+        return 0;
     } else if (rc == 0) {
         /* parse error */
-        cork_ipv6_parse_error_set(alloc, error, str);
-        return false;
+        cork_error_set
+            (alloc, error, CORK_NET_ADDRESS_ERROR,
+             CORK_NET_ADDRESS_PARSE_ERROR,
+             "Invalid IPv6 address: \"%s\"", str);
+        return -1;
     } else {
         cork_unknown_error_set(alloc, error);
-        return false;
+        return -1;
     }
 }
 
@@ -218,21 +175,21 @@ cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
 
 /*** IP ***/
 
-bool
+void
 cork_ip_from_ipv4(struct cork_ip *addr, const void *src)
 {
     addr->version = 4;
-    return cork_ipv4_copy(&addr->ip.v4, src);
+    cork_ipv4_copy(&addr->ip.v4, src);
 }
 
-bool
+void
 cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
 {
     addr->version = 6;
-    return cork_ipv6_copy(&addr->ip.v6, src);
+    cork_ipv6_copy(&addr->ip.v6, src);
 }
 
-bool
+int
 cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
              const char *str, struct cork_error *error)
 {
@@ -245,11 +202,11 @@ cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
     if (rc == 1) {
         /* successful parse */
         addr->version = 4;
-        return true;
+        return 0;
     } else if (rc != 0) {
         /* non-parse error */
         cork_unknown_error_set(alloc, error);
-        return false;
+        return -1;
     }
 
     /* Then try IPv6 */
@@ -259,16 +216,18 @@ cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
     if (rc == 1) {
         /* successful parse */
         addr->version = 6;
-        return true;
+        return 0;
     } else if (rc != 0) {
         /* non-parse error */
         cork_unknown_error_set(alloc, error);
-        return false;
+        return -1;
     }
 
     /* Parse error for both address types */
-    cork_ip_parse_error_set(alloc, error, str);
-    return false;
+    cork_error_set
+        (alloc, error, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+         "Invalid IP address: \"%s\"", str);
+    return -1;
 }
 
 bool

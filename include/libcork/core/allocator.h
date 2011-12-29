@@ -34,7 +34,7 @@ enum cork_alloc_error {
     CORK_ALLOC_CANNOT_ALLOCATE
 };
 
-int
+void
 cork_alloc_cannot_allocate_set(struct cork_alloc *alloc,
                                struct cork_error *err,
                                const char *what);

@@ -23,25 +23,18 @@ is fixed and platform-dependent.  It's difficult to add new error codes
 to represent application-level error conditions.
 
 The libcork error API is a way around this.  Errors are represented by a
-tuple of an *error class* and an *error code*, along with a pointer to a
-*printer function* that can produce a human-readable string description
-of the error.  Error classes represent broad classes of errors, and
-usually correspond to a library or to an important group of related
-functions within a library.  An error class is represented by a hash of
-some string identifying the library or group of functions.  This “hash
-of a string” approach makes it easy to define new error classes, without
-needing any centralized mechanism for assigning IDs to the various
-classes.  An error code is a simple integer, and only needs to be unique
-within a particular error class.  This means that each error class is
-free to define its error codes however it wishes (usually via an
-``enum`` type), without having to worry about them clashing with the
-codes of any other class.
-
-Individual error classes are also able to associate “extra” data with an
-error condition.  This can be used by the error's printer function to
-customize the human-readable string.  (For instance, a parse error might
-include a reference the location of a syntax error, or even a copy of
-the malformed string.)
+tuple of an *error class* and an *error code*, along with a
+human-readable string description of the error.  Error classes represent
+broad classes of errors, and usually correspond to a library or to an
+important group of related functions within a library.  An error class
+is represented by a hash of some string identifying the library or group
+of functions.  This “hash of a string” approach makes it easy to define
+new error classes, without needing any centralized mechanism for
+assigning IDs to the various classes.  An error code is a simple
+integer, and only needs to be unique within a particular error class.
+This means that each error class is free to define its error codes
+however it wishes (usually via an ``enum`` type), without having to
+worry about them clashing with the codes of any other class.
 
 .. type:: struct cork_error
 
@@ -82,7 +75,7 @@ If you want to know specifics about the error, you need to create a
 easiest way to do this is to simply allocate one on the stack::
 
   struct cork_alloc  *alloc = /* obtained elsewhere */;
-  struct cork_error  err = CORK_ERROR_INIT(alloc);
+  struct cork_error  err = CORK_ERROR_INIT();
 
 or::
 
@@ -90,8 +83,8 @@ or::
   struct cork_error  err;
   cork_error_init(alloc, &err);
 
-.. function:: bool cork_error_init(struct cork_alloc \*alloc, struct cork_error \*err)
-              struct cork_error CORK_ERROR_INIT(struct cork_alloc \*alloc)
+.. function:: void cork_error_init(struct cork_alloc \*alloc, struct cork_error \*err)
+              struct cork_error CORK_ERROR_INIT()
 
    Initializes an error instance that you've allocated on the stack or
    in some other storage.  The ``CORK_ERROR_INIT`` version can only be
@@ -113,12 +106,10 @@ to interrogate the error instance.
    occurred, the error class will be :c:macro:`CORK_ERROR_NONE`, and the
    code will be ``0``.
 
-.. function:: int cork_error_message(struct cork_alloc \*alloc, struct cork_error \*err, struct cork_buffer \*dest)
+.. function:: void cork_error_message(struct cork_error \*err)
 
-   Places the human-readable string description of *err* into *dest*.
-   (You have to pass in a :ref:`resizable buffer <buffer>` since we
-   can't know in advance how long the string description will be.) If no
-   error occurred, the result of this function is undefined.
+   Returns the human-readable string description of *err*.  If no error
+   occurred, the result of this function is undefined.
 
 .. note::
 
@@ -157,13 +148,40 @@ codes if there are other possible results besides a simple “success” and
 “failure”.)
 
 If your function results in an error, you need to fill in your
-function's *err* parameter.  Each error class will define several public
-functions that can be used to fill an error condition instance (e.g.,
-:ref:`Network address error conditions <net-address-errors>`).  Note
-that these setter functions work just fine if the caller passed in a
-``NULL`` *err* parameter (signifying that they don't care about the
-details of any error that occurs).  In that case, the setter function
-behaves just like a no-op.
+function's *err* parameter, using the ``cork_error_set`` function:
+
+.. function:: void cork_error_set(struct cork_alloc \*alloc, struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
+
+   Fills in *err* with the given error condition.  The error condition
+   is defined by the error class *eclass*, the error code *ecode*.  The
+   human-readable description is constructed from *format* and any
+   additional parameters.
+
+   If *err* is ``NULL`` (signifying that the caller doesn't care about
+   the particulars of any error condition), then this function behaves
+   like a no-op.
+
+As an example, the :ref:`IP address <net-addresses>` parsing functions
+fill in ``CORK_NET_ADDRESS_PARSE_ERROR`` error conditions when you try
+to parse a malformed address::
+
+  const char  *str = /* the string that's being parsed */;
+  cork_error_set
+      (alloc, err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+       "Invalid IP address: %s", str);
+
+If a particular kind of error can be raised in several places
+throughout your code, it can be useful to define a helper function for
+filling in an *err* parameter::
+
+  static void
+  cork_ip_address_parse_error(struct cork_alloc *alloc, struct cork_error *err,
+                              const char *version, const char *str)
+  {
+      cork_error_set
+          (alloc, err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+           "Invalid %s address: %s", version, str);
+  }
 
 
 Propagating errors from nested function calls
@@ -206,7 +224,7 @@ need to define your own ``cork_error`` instance, and then *clear* or
   int
   outer_function(struct cork_alloc *alloc, /* params */, struct cork_error *err)
   {
-      struct cork_error  suberr = CORK_ERROR_INIT(alloc);
+      struct cork_error  suberr = CORK_ERROR_INIT();
 
       inner_function(/* more params */, &suberr);
       if (cork_error_occurred(&suberr)) {
@@ -501,121 +519,9 @@ namespace prefix (``CORK_NET_ADDRESS_``).
    The particular values within an error class should be defined using
    an ``enum`` type.
 
-Printer functions
-~~~~~~~~~~~~~~~~~
+With your error class and code defined, you can fill in error instances
+using :c:func:`cork_error_set()`.
 
-For each error code, you'll also need to define a *printer function*
-that can produce the human-readable description of an error, and a
-public *setter function* that can fill in a :c:type:`cork_error`
-instance with a particular error class/code combination.  It's possible
-to have multiple variations for each error code, if you want; for
-instance, we have different versions of ``CORK_NET_ADDRESS_PARSE_ERROR``
-depending on whether the caller tried to create an IPv4, IPv6, or
-general IP address.
-
-.. type:: int (\*cork_error_printer)(struct cork_alloc \*alloc, struct cork_error \*err, struct cork_buffer \*dest)
-
-   Renders the human-readable description of *err* into *dest*.
-
-In the simplest case, the human-readable description will be a fixed
-string.  As an example::
-
-  static int
-  cork_basic_error(struct cork_alloc *alloc, struct cork_error *err,
-                     struct cork_buffer *dest)
-  {
-      return cork_buffer_set_string
-          (alloc, dest, "Unknown error!", NULL);
-  }
-
-  int
-  cork_basic_error_set(struct cork_alloc *alloc, struct cork_error *err)
-  {
-      return cork_error_set(alloc, err,
-                            CORK_BUILTIN_ERROR,
-                            CORK_UNKNOWN_ERROR,
-                            cork_basic_error);
-  }
-
-.. note::
-
-   Within the printer function, we ignore any additional errors that
-   occur, by passing in a ``NULL`` :c:type:`cork_error` parameter to
-   :c:func:`cork_buffer_set_string`.
-
-In this case, your printer function is just a wrapper around a call to
-:c:func:`cork_buffer_set_string()`, and your setter function is just a
-wrapper around a call to ``cork_error_set``:
-
-.. function:: int cork_error_set(struct cork_alloc \*alloc, struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, cork_error_printer printer)
-
-   Fills in *err* with the given error condition.  The error condition
-   is defined by the error class *eclass*, the error code *ecode*, and
-   the printer function *printer*.
-
-
-Including extra data
-~~~~~~~~~~~~~~~~~~~~
-
-In more complex cases, you might want to customize the human-readable
-description of the error based on some additional data, such as the
-parameters to the original function call.  You can do this via the
-“extra” data pointer included in each :c:type:`cork_error` instance.
-By using the ``cork_error_set_extra`` and ``cork_error_set_extra_raw``
-functions, you can copy a fixed amount of additional data into the error
-instance when filling it in with an error condition:
-
-.. function:: int cork_error_set_extra_raw(struct cork_alloc \*alloc, struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, cork_error_printer printer, void \*extra, size_t extra_size)
-              int cork_error_set_extra(struct cork_alloc \*alloc, struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, cork_error_printer printer, TYPE &extra)
-
-   Fills in *err* just like :c:func:`cork_error_set()`.  It also copies
-   additional data into the error instance's “extra” field.  For the
-   ``_raw`` variant, you provide an explicit pointer and size to the
-   extra data to copy.  For the non-\ ``raw`` variant, you just provide
-   a reference to some lvalue visible in the current scope.  (It must be
-   an lvalue so that we can take its address.)  We'll figure out the
-   size of the extra data using the ``sizeof`` operator.
-
-.. function:: void \*cork_error_extra(struct cork_error \*err)
-
-   Returns a pointer to the extra data associated with the error
-   condition.
-
-A limited amount of space is reserved in the :c:type:`cork_error`
-``struct`` itself to hold extra data.  If your extra data fits within
-this bound (currently 64 bytes), then it will be copied into the
-:c:type:`cork_error` without requiring any additional heap allocations.
-If your extra data is larger than this bound, however,
-:c:func:`cork_error_set_extra` will allocate space from the heap to
-store the extra data.
-
-In your printer function, you can then access this extra data to
-customize the human-readable description.  The
-``CORK_NET_ADDRESS_PARSE_ERROR`` error condition uses this mechanism to
-include the malformed IP address in the error message::
-
-  static int
-  cork_ip_parse_error(struct cork_alloc *alloc, struct cork_error *err,
-                      struct cork_buffer *dest)
-  {
-      const char  **str = cork_error_extra(err);
-      return cork_buffer_printf
-          (alloc, dest, NULL, "Invalid IP address: %s", *str);
-  }
-
-  int
-  cork_ip_parse_error_set(struct cork_alloc *alloc, struct cork_error *err,
-                          const char *invalid_str)
-  {
-      return cork_error_set_extra(alloc, err,
-                                  CORK_NET_ADDRESS_ERROR,
-                                  CORK_NET_ADDRESS_PARSE_ERROR,
-                                  cork_ip_parse_error,
-                                  invalid_str);
-  }
-
-Note that this printer function assumes that the malformed string will
-still be a live object when the printer function is called.
 
 Builtin errors
 --------------

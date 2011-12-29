@@ -18,10 +18,7 @@
 
 #if PRINT_EXPECTED_FAILURES
 #define print_expected_failure() \
-            struct cork_buffer  buf = CORK_BUFFER_INIT(alloc); \
-            cork_error_message(alloc, &err, &buf); \
-            printf("%s\n", (char *) buf.buf); \
-            cork_buffer_done(alloc, &buf);
+    printf("%s\n", cork_error_message(&err));
 #else
 #define print_expected_failure()  /* do nothing */
 #endif
@@ -33,20 +30,17 @@
 
 #define fail_if_error(call) \
     do { \
-        struct cork_error  err = CORK_ERROR_INIT(alloc); \
+        struct cork_error  err = CORK_ERROR_INIT(); \
         call; \
         if (cork_error_occurred(&err)) { \
-            struct cork_buffer  buf = CORK_BUFFER_INIT(alloc); \
-            cork_error_message(alloc, &err, &buf); \
-            fail("%s", (char *) buf.buf); \
-            cork_buffer_done(alloc, &buf); \
+            fail("%s", cork_error_message(&err)); \
         } \
         cork_error_done(alloc, &err); \
     } while (0)
 
 #define fail_unless_error(call, ...) \
     do { \
-        struct cork_error  err = CORK_ERROR_INIT(alloc); \
+        struct cork_error  err = CORK_ERROR_INIT(); \
         call; \
         if (!cork_error_occurred(&err)) { \
             fail(__VA_ARGS__); \

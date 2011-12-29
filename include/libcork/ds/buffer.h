@@ -16,11 +16,12 @@
 
 #include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
-#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
-#include <libcork/ds/managed-buffer.h>
-#include <libcork/ds/stream.h>
+
+/* We have to forward declare struct cork_error here, since error.h
+ * depends on this file. */
+struct cork_error;
 
 
 struct cork_buffer {
@@ -36,7 +37,7 @@ struct cork_buffer {
 void
 cork_buffer_init(struct cork_alloc *alloc, struct cork_buffer *buffer);
 
-#define CORK_BUFFER_INIT(alloc)  { NULL, 0, 0 }
+#define CORK_BUFFER_INIT()  { NULL, 0, 0 }
 
 struct cork_buffer *
 cork_buffer_new(struct cork_alloc *alloc, struct cork_error *err);
@@ -111,6 +112,9 @@ cork_buffer_append_vprintf(struct cork_alloc *alloc, struct cork_buffer *buffer,
  * Buffer's managed buffer/slice implementation
  */
 
+#include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/slice.h>
+
 struct cork_managed_buffer *
 cork_buffer_to_managed_buffer(struct cork_alloc *alloc,
                               struct cork_buffer *buffer,
@@ -125,6 +129,8 @@ cork_buffer_to_slice(struct cork_alloc *alloc, struct cork_buffer *buffer,
 /*-----------------------------------------------------------------------
  * Buffer's stream consumer implementation
  */
+
+#include <libcork/ds/stream.h>
 
 struct cork_stream_consumer *
 cork_buffer_to_stream_consumer(struct cork_alloc *alloc,

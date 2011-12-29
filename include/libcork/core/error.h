@@ -18,11 +18,6 @@
 #include <libcork/ds/buffer.h>
 
 
-/* Need to forward declare this since there's a circular dependency
- * between buffer.h and error.h */
-struct cork_buffer;
-
-
 /* Should be a hash of a string representing the error class. */
 typedef uint32_t  cork_error_class;
 
@@ -31,64 +26,39 @@ typedef uint32_t  cork_error_class;
 
 typedef unsigned int  cork_error_code;
 
-/* A function that can format a particular error condition. */
-typedef int
-(*cork_error_printer)(struct cork_alloc *alloc, struct cork_error *err,
-                      struct cork_buffer *dest);
-
-/* The amount of space that we reserve inside of each cork_error
- * instance for extra data.  Error classes are free to use more space if
- * they need to, but that will have to be allocated from the heap. */
-#define CORK_ERROR_RESERVED_EXTRA_SPACE  64
 
 struct cork_error {
     cork_error_class  error_class;
     cork_error_code  error_code;
-    cork_error_printer  printer;
-    void  *extra;
-    uint8_t  reserved_extra[CORK_ERROR_RESERVED_EXTRA_SPACE];
+    struct cork_buffer  message;
 };
 
 #define cork_error_occurred(error) \
     ((error)->error_class != CORK_ERROR_NONE)
 #define cork_error_class(error)  ((error)->error_class)
 #define cork_error_code(error)  ((error)->error_code)
+#define cork_error_message(error)  ((const char *) (error)->message.buf)
 
-#define cork_error_extra(error)  ((error)->extra)
 
-
-int
+void
 cork_error_init(struct cork_alloc *alloc, struct cork_error *error);
 
-#define CORK_ERROR_INIT(alloc)  { CORK_ERROR_NONE, 0, NULL, NULL, {0} }
+#define CORK_ERROR_INIT()  { CORK_ERROR_NONE, 0, CORK_BUFFER_INIT() }
 
 void
 cork_error_done(struct cork_alloc *alloc, struct cork_error *error);
 
 
-int
-cork_error_message(struct cork_alloc *alloc, struct cork_error *error,
-                   struct cork_buffer *dest);
-
-int
+void
 cork_error_set(struct cork_alloc *alloc, struct cork_error *error,
-               cork_error_class eclass, cork_error_code ecode,
-               cork_error_printer printer);
-
-int
-cork_error_set_extra_raw(struct cork_alloc *alloc, struct cork_error *error,
-                         cork_error_class eclass, cork_error_code ecode,
-                         cork_error_printer printer,
-                         void *extra, size_t extra_size);
-
-#define cork_error_set_extra(alloc, error, eclass, ecode, printer, extra) \
-    (cork_error_set_extra_raw((alloc), (error), \
-                              (eclass), (ecode), (printer), \
-                              &(extra), sizeof(extra)))
+               cork_error_class error_class,
+               cork_error_code error_code,
+               const char *format, ...)
+    CORK_ATTR_PRINTF(5,6);
 
 void
-cork_error_propagate(struct cork_alloc *alloc,
-                     struct cork_error *error, struct cork_error *suberror);
+cork_error_propagate(struct cork_alloc *alloc, struct cork_error *error,
+                     struct cork_error *suberror);
 
 
 /*-----------------------------------------------------------------------
@@ -103,7 +73,7 @@ enum cork_builtin_error {
     CORK_UNKNOWN_ERROR
 };
 
-int
+void
 cork_unknown_error_set_(struct cork_alloc *alloc, struct cork_error *err,
                         const char *location);
 

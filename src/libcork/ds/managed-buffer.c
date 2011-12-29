@@ -18,6 +18,27 @@
 #include "libcork/ds/slice.h"
 
 
+/*-----------------------------------------------------------------------
+ * Error handling
+ */
+
+static void
+cork_slice_invalid_slice_set(struct cork_alloc *alloc,
+                             struct cork_error *err,
+                             size_t buf_size, size_t requested_offset,
+                             size_t requested_length)
+{
+    cork_error_set
+        (alloc, err, CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
+         "Cannot slice %zu-byte buffer at %zu:%zu",
+         buf_size, requested_offset, requested_length);
+}
+
+
+/*-----------------------------------------------------------------------
+ * Managed buffers
+ */
+
 struct cork_managed_buffer_wrapped {
     struct cork_managed_buffer  parent;
     void  *buf;

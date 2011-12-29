@@ -21,24 +21,14 @@
  * Error handling
  */
 
-static int
-cork_alloc_cannot_allocate(struct cork_alloc *alloc, struct cork_error *err,
-                           struct cork_buffer *dest)
-{
-    const char  **kind = cork_error_extra(err);
-    return cork_buffer_printf(alloc, dest, NULL, "Error allocating %s", *kind);
-}
-
-int
+void
 cork_alloc_cannot_allocate_set(struct cork_alloc *alloc,
                                struct cork_error *err,
                                const char *kind)
 {
-    return cork_error_set_extra(alloc, err,
-                                CORK_ALLOC_ERROR,
-                                CORK_ALLOC_CANNOT_ALLOCATE,
-                                cork_alloc_cannot_allocate,
-                                kind);
+    cork_error_set
+        (alloc, err, CORK_ALLOC_ERROR, CORK_ALLOC_CANNOT_ALLOCATE,
+         "Error allocating %s", kind);
 }
 
 
