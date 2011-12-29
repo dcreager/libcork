@@ -24,11 +24,11 @@
 
 struct int64_item {
     int64_t  value;
-    cork_dllist_item_t  element;
+    struct cork_dllist_item  element;
 };
 
 static void
-int64_sum(cork_dllist_item_t *element, void *user_data)
+int64_sum(struct cork_dllist_item *element, void *user_data)
 {
     int64_t  *sum = user_data;
     struct int64_item  *item =
@@ -38,7 +38,7 @@ int64_sum(cork_dllist_item_t *element, void *user_data)
 
 START_TEST(test_dllist)
 {
-    cork_dllist_t  list;
+    struct cork_dllist  list;
     cork_dllist_init(&list);
 
     fail_unless(cork_dllist_size(&list) == 0,

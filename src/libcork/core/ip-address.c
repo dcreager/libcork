@@ -23,45 +23,36 @@
 
 /*** IPv4 ***/
 
-bool
-cork_ipv4_copy(cork_ipv4_t *addr, const void *src)
-{
-    memcpy(addr, src, sizeof(cork_ipv4_t));
-    return true;
-}
-
-bool
-cork_ipv4_init(cork_ipv4_t *addr, const char *str, cork_error_t *error)
+int
+cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
+               const char *str, struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET, str, addr);
 
     if (rc == 1) {
         /* successful parse */
-        return true;
+        return 0;
     } else if (rc == 0) {
         /* parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_PARSE_ERROR,
-                       "Invalid IPv4 address");
-        return false;
+        cork_error_set
+            (alloc, error, CORK_NET_ADDRESS_ERROR,
+             CORK_NET_ADDRESS_PARSE_ERROR,
+             "Invalid IPv4 address: \"%s\"", str);
+        return -1;
     } else {
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IPv4 address");
-        return false;
+        cork_unknown_error_set(alloc, error);
+        return -1;
     }
 }
 
 bool
-cork_ipv4_equal(const cork_ipv4_t *addr1, const cork_ipv4_t *addr2)
+cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(cork_ipv4_t)) == 0);
+    return (memcmp(addr1, addr2, sizeof(struct cork_ipv4)) == 0);
 }
 
 void
-cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest)
+cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
 {
     snprintf(dest, CORK_IPV4_STRING_LENGTH, "%u.%u.%u.%u",
              addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
@@ -69,49 +60,39 @@ cork_ipv4_to_raw_string(const cork_ipv4_t *addr, char *dest)
 
 /*** IPv6 ***/
 
-bool
-cork_ipv6_copy(cork_ipv6_t *addr, const void *src)
-{
-    memcpy(addr, src, sizeof(cork_ipv6_t));
-    return true;
-}
-
-bool
-cork_ipv6_init(cork_ipv6_t *addr, const char *str, cork_error_t *error)
+int
+cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
+               const char *str, struct cork_error *error)
 {
     int  rc = inet_pton(AF_INET6, str, addr);
 
     if (rc == 1) {
         /* successful parse */
-        return true;
+        return 0;
     } else if (rc == 0) {
         /* parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_PARSE_ERROR,
-                       "Invalid IPv6 address");
-        return false;
+        cork_error_set
+            (alloc, error, CORK_NET_ADDRESS_ERROR,
+             CORK_NET_ADDRESS_PARSE_ERROR,
+             "Invalid IPv6 address: \"%s\"", str);
+        return -1;
     } else {
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IPv6 address");
-        return false;
+        cork_unknown_error_set(alloc, error);
+        return -1;
     }
 }
 
 bool
-cork_ipv6_equal(const cork_ipv6_t *addr1,
-                const cork_ipv6_t *addr2)
+cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(cork_ipv6_t)) == 0);
+    return (memcmp(addr1, addr2, sizeof(struct cork_ipv6)) == 0);
 }
 
 #define NS_IN6ADDRSZ 16
 #define NS_INT16SZ 2
 
 void
-cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest)
+cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
 {
     const uint8_t  *src = addr->u8;
 
@@ -194,22 +175,23 @@ cork_ipv6_to_raw_string(const cork_ipv6_t *addr, char *dest)
 
 /*** IP ***/
 
-bool
-cork_ip_from_ipv4(cork_ip_t *addr, const void *src)
+void
+cork_ip_from_ipv4(struct cork_ip *addr, const void *src)
 {
     addr->version = 4;
-    return cork_ipv4_copy(&addr->ip.v4, src);
+    cork_ipv4_copy(&addr->ip.v4, src);
 }
 
-bool
-cork_ip_from_ipv6(cork_ip_t *addr, const void *src)
+void
+cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
 {
     addr->version = 6;
-    return cork_ipv6_copy(&addr->ip.v6, src);
+    cork_ipv6_copy(&addr->ip.v6, src);
 }
 
-bool
-cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
+int
+cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
+             const char *str, struct cork_error *error)
 {
     int  rc;
 
@@ -220,14 +202,11 @@ cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
     if (rc == 1) {
         /* successful parse */
         addr->version = 4;
-        return true;
+        return 0;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IP address");
-        return false;
+        cork_unknown_error_set(alloc, error);
+        return -1;
     }
 
     /* Then try IPv6 */
@@ -237,27 +216,23 @@ cork_ip_init(cork_ip_t *addr, const char *str, cork_error_t *error)
     if (rc == 1) {
         /* successful parse */
         addr->version = 6;
-        return true;
+        return 0;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_error_set(error,
-                       CORK_NET_ADDRESS_ERROR,
-                       CORK_NET_ADDRESS_UNKNOWN_ERROR,
-                       "Unknown error while parsing IP address");
-        return false;
+        cork_unknown_error_set(alloc, error);
+        return -1;
     }
 
     /* Parse error for both address types */
-    cork_error_set(error,
-                   CORK_NET_ADDRESS_ERROR,
-                   CORK_NET_ADDRESS_PARSE_ERROR,
-                   "Invalid IP address");
-    return false;
+    cork_error_set
+        (alloc, error, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+         "Invalid IP address: \"%s\"", str);
+    return -1;
 }
 
 bool
-cork_ip_equal(const cork_ip_t *addr1,
-              const cork_ip_t *addr2)
+cork_ip_equal(const struct cork_ip *addr1,
+              const struct cork_ip *addr2)
 {
     if (addr1 == addr2) {
         return true;
@@ -284,7 +259,7 @@ cork_ip_equal(const cork_ip_t *addr1,
 }
 
 void
-cork_ip_to_raw_string(const cork_ip_t *addr, char *dest)
+cork_ip_to_raw_string(const struct cork_ip *addr, char *dest)
 {
     switch (addr->version) {
         case 4:

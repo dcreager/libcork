@@ -55,8 +55,8 @@ on the library's design.  In particular, we don't want to make any
 assumptions about which build system you're embedding libcork into.  We
 happen to use CMake, but you might be using autotools, waf, scons, or
 any number of others.  Most cross-platform libraries follow the
-autotools model of perform some checks at compile time (maybe during a
-separate “configure” phase, maybe not) to choose the right API
+autotools model of performing some checks at compile time (maybe during
+a separate “configure” phase, maybe not) to choose the right API
 implementation for the current platform.  Since we can't assume a build
 system, we have to take a different approach, and do as many checks as
 we can using the C preprocessor.  Any check that we can't make in the

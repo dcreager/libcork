@@ -11,50 +11,72 @@
 #include <string.h>
 
 #include "libcork/core/allocator.h"
+#include "libcork/core/checkers.h"
+#include "libcork/core/error.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"
 
 
-typedef struct cork_managed_buffer_wrapped_t
-{
-    cork_managed_buffer_t  parent;
-    cork_allocator_t  *alloc;
-    void  *buf;
-    size_t  size;
-    cork_managed_buffer_free_t  free;
-} cork_managed_buffer_wrapped_t;
+/*-----------------------------------------------------------------------
+ * Error handling
+ */
 
 static void
-cork_managed_buffer_wrapped__free(cork_managed_buffer_t *vself)
+cork_slice_invalid_slice_set(struct cork_alloc *alloc,
+                             struct cork_error *err,
+                             size_t buf_size, size_t requested_offset,
+                             size_t requested_length)
 {
-    cork_managed_buffer_wrapped_t  *self =
-        cork_container_of(vself, cork_managed_buffer_wrapped_t, parent);
-    self->free(self->alloc, self->buf, self->size);
-    cork_delete(self->alloc, cork_managed_buffer_wrapped_t, self);
+    cork_error_set
+        (alloc, err, CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
+         "Cannot slice %zu-byte buffer at %zu:%zu",
+         buf_size, requested_offset, requested_length);
 }
 
-static cork_managed_buffer_iface_t  CORK_MANAGED_BUFFER_WRAPPED = {
+
+/*-----------------------------------------------------------------------
+ * Managed buffers
+ */
+
+struct cork_managed_buffer_wrapped {
+    struct cork_managed_buffer  parent;
+    void  *buf;
+    size_t  size;
+    cork_managed_buffer_freer  free;
+};
+
+static void
+cork_managed_buffer_wrapped__free(struct cork_alloc *alloc,
+                                  struct cork_managed_buffer *vself)
+{
+    struct cork_managed_buffer_wrapped  *self =
+        cork_container_of(vself, struct cork_managed_buffer_wrapped, parent);
+    self->free(alloc, self->buf, self->size);
+    cork_delete(alloc, struct cork_managed_buffer_wrapped, self);
+}
+
+static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {
     cork_managed_buffer_wrapped__free
 };
 
-cork_managed_buffer_t *
-cork_managed_buffer_new(cork_allocator_t *alloc,
+struct cork_managed_buffer *
+cork_managed_buffer_new(struct cork_alloc *alloc,
                         const void *buf, size_t size,
-                        cork_managed_buffer_free_t free)
+                        cork_managed_buffer_freer free,
+                        struct cork_error *err)
 {
     /*
-    DEBUG("Creating new cork_managed_buffer_t [%p:%zu], refcount now 1",
+    DEBUG("Creating new struct cork_managed_buffer [%p:%zu], refcount now 1",
           buf, size);
     */
 
-    cork_managed_buffer_wrapped_t  *self =
-        cork_new(alloc, cork_managed_buffer_wrapped_t);
+    struct cork_managed_buffer_wrapped  *self =
+        cork_new(alloc, struct cork_managed_buffer_wrapped);
     self->parent.buf = buf;
     self->parent.size = size;
     self->parent.ref_count = 1;
     self->parent.iface = &CORK_MANAGED_BUFFER_WRAPPED;
-    self->alloc = alloc;
     self->buf = (void *) buf;
     self->size = size;
     self->free = free;
@@ -62,37 +84,37 @@ cork_managed_buffer_new(cork_allocator_t *alloc,
 }
 
 
-typedef struct cork_managed_buffer_copied_t
-{
-    cork_managed_buffer_t  parent;
-    cork_allocator_t  *alloc;
+struct cork_managed_buffer_copied {
+    struct cork_managed_buffer  parent;
     size_t  allocated_size;
-} cork_managed_buffer_copied_t;
+};
 
 #define cork_managed_buffer_copied_data(self) \
-    (((void *) (self)) + sizeof(cork_managed_buffer_copied_t))
+    (((void *) (self)) + sizeof(struct cork_managed_buffer_copied))
 
 #define cork_managed_buffer_copied_sizeof(sz) \
-    ((sz) + sizeof(cork_managed_buffer_copied_t))
+    ((sz) + sizeof(struct cork_managed_buffer_copied))
 
 static void
-cork_managed_buffer_copied__free(cork_managed_buffer_t *vself)
+cork_managed_buffer_copied__free(struct cork_alloc *alloc,
+                                 struct cork_managed_buffer *vself)
 {
-    cork_managed_buffer_copied_t  *self =
-        cork_container_of(vself, cork_managed_buffer_copied_t, parent);
-    cork_free(self->alloc, self, self->allocated_size);
+    struct cork_managed_buffer_copied  *self =
+        cork_container_of(vself, struct cork_managed_buffer_copied, parent);
+    cork_free(alloc, self, self->allocated_size);
 }
 
-static cork_managed_buffer_iface_t  CORK_MANAGED_BUFFER_COPIED = {
+static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_COPIED = {
     cork_managed_buffer_copied__free
 };
 
-cork_managed_buffer_t *
-cork_managed_buffer_new_copy(cork_allocator_t *alloc,
-                             const void *buf, size_t size)
+struct cork_managed_buffer *
+cork_managed_buffer_new_copy(struct cork_alloc *alloc,
+                             const void *buf, size_t size,
+                             struct cork_error *err)
 {
     size_t  allocated_size = cork_managed_buffer_copied_sizeof(size);
-    cork_managed_buffer_copied_t  *self = cork_malloc(alloc, allocated_size);
+    struct cork_managed_buffer_copied  *self = cork_malloc(alloc, allocated_size);
     if (self == NULL) {
         return NULL;
     }
@@ -101,7 +123,6 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
     self->parent.size = size;
     self->parent.ref_count = 1;
     self->parent.iface = &CORK_MANAGED_BUFFER_COPIED;
-    self->alloc = alloc;
     self->allocated_size = allocated_size;
     memcpy((void *) self->parent.buf, buf, size);
     return &self->parent;
@@ -109,22 +130,24 @@ cork_managed_buffer_new_copy(cork_allocator_t *alloc,
 
 
 static void
-cork_managed_buffer_free(cork_managed_buffer_t *self)
+cork_managed_buffer_free(struct cork_alloc *alloc,
+                         struct cork_managed_buffer *self)
 {
     /*
-    DEBUG("Freeing cork_managed_buffer_t [%p:%zu]", self->buf, self->size);
+    DEBUG("Freeing struct cork_managed_buffer [%p:%zu]", self->buf, self->size);
     */
 
-    self->iface->free(self);
+    self->iface->free(alloc, self);
 }
 
 
-cork_managed_buffer_t *
-cork_managed_buffer_ref(cork_managed_buffer_t *self)
+struct cork_managed_buffer *
+cork_managed_buffer_ref(struct cork_alloc *alloc,
+                        struct cork_managed_buffer *self)
 {
     /*
     int  old_count = self->ref_count++;
-    DEBUG("Referencing cork_managed_buffer_t [%p:%zu], refcount now %d",
+    DEBUG("Referencing struct cork_managed_buffer [%p:%zu], refcount now %d",
           self->buf, self->size, old_count + 1);
     */
 
@@ -134,52 +157,59 @@ cork_managed_buffer_ref(cork_managed_buffer_t *self)
 
 
 void
-cork_managed_buffer_unref(cork_managed_buffer_t *self)
+cork_managed_buffer_unref(struct cork_alloc *alloc,
+                          struct cork_managed_buffer *self)
 {
     /*
     int  old_count = self->ref_count--;
-    DEBUG("Dereferencing cork_managed_buffer_t [%p:%zu], refcount now %d",
+    DEBUG("Dereferencing struct cork_managed_buffer [%p:%zu], refcount now %d",
           self->buf, self->size, old_count - 1);
     */
 
     if (--self->ref_count == 0) {
-        cork_managed_buffer_free(self);
+        cork_managed_buffer_free(alloc, self);
     }
 }
 
 
-static cork_slice_iface_t  CORK_MANAGED_BUFFER__SLICE;
+static struct cork_slice_iface  CORK_MANAGED_BUFFER__SLICE;
 
 static void
-cork_managed_buffer__slice_free(cork_slice_t *self)
+cork_managed_buffer__slice_free(struct cork_alloc *alloc,
+                                struct cork_slice *self)
 {
-    cork_managed_buffer_t  *mbuf = self->user_data;
-    cork_managed_buffer_unref(mbuf);
+    struct cork_managed_buffer  *mbuf = self->user_data;
+    cork_managed_buffer_unref(alloc, mbuf);
 }
 
-static bool
-cork_managed_buffer__slice_copy(cork_slice_t *self, cork_slice_t *dest,
-                                size_t offset, size_t length)
+static int
+cork_managed_buffer__slice_copy(struct cork_alloc *alloc,
+                                struct cork_slice *self,
+                                struct cork_slice *dest,
+                                size_t offset, size_t length,
+                                struct cork_error *err)
 {
-    cork_managed_buffer_t  *mbuf = self->user_data;
+    struct cork_managed_buffer  *mbuf = self->user_data;
     dest->buf = self->buf + offset;
     dest->size = length;
     dest->iface = &CORK_MANAGED_BUFFER__SLICE;
-    dest->user_data = cork_managed_buffer_ref(mbuf);
-    return true;
+    dest->user_data = cork_managed_buffer_ref(alloc, mbuf);
+    return 0;
 }
 
-static cork_slice_iface_t  CORK_MANAGED_BUFFER__SLICE = {
+static struct cork_slice_iface  CORK_MANAGED_BUFFER__SLICE = {
     cork_managed_buffer__slice_free,
     cork_managed_buffer__slice_copy,
     NULL
 };
 
 
-bool
-cork_managed_buffer_slice(cork_slice_t *dest,
-                          cork_managed_buffer_t *buffer,
-                          size_t offset, size_t length)
+int
+cork_managed_buffer_slice(struct cork_alloc *alloc,
+                          struct cork_slice *dest,
+                          struct cork_managed_buffer *buffer,
+                          size_t offset, size_t length,
+                          struct cork_error *err)
 {
     if ((buffer != NULL) &&
         (offset < buffer->size) &&
@@ -193,8 +223,8 @@ cork_managed_buffer_slice(cork_slice_t *dest,
         dest->buf = buffer->buf + offset;
         dest->size = length;
         dest->iface = &CORK_MANAGED_BUFFER__SLICE;
-        dest->user_data = cork_managed_buffer_ref(buffer);
-        return true;
+        dest->user_data = cork_managed_buffer_ref(alloc, buffer);
+        return 0;
     }
 
     else {
@@ -203,22 +233,26 @@ cork_managed_buffer_slice(cork_slice_t *dest,
               buffer->buf, buffer->size,
               offset, length);
         */
-        cork_slice_clear(dest);
-        return false;
+        cork_slice_clear(alloc, dest);
+        cork_slice_invalid_slice_set(alloc, err, 0, offset, 0);
+        return -1;
     }
 }
 
 
-bool
-cork_managed_buffer_slice_offset(cork_slice_t *dest,
-                                 cork_managed_buffer_t *buffer,
-                                 size_t offset)
+int
+cork_managed_buffer_slice_offset(struct cork_alloc *alloc,
+                                 struct cork_slice *dest,
+                                 struct cork_managed_buffer *buffer,
+                                 size_t offset,
+                                 struct cork_error *err)
 {
     if (buffer == NULL) {
-        cork_slice_clear(dest);
-        return false;
+        cork_slice_clear(alloc, dest);
+        cork_slice_invalid_slice_set(alloc, err, 0, offset, 0);
+        return -1;
     } else {
         return cork_managed_buffer_slice
-            (dest, buffer, offset, buffer->size - offset);
+            (alloc, dest, buffer, offset, buffer->size - offset, err);
     }
 }

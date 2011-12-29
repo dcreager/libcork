@@ -11,60 +11,14 @@
 #ifndef LIBCORK_DS_H
 #define LIBCORK_DS_H
 
-/**
- * @file
- * @brief Pulls in all features of the @ref ds
- */
-
-/**
- * @defgroup ds Data structures module
- *
- * <tt>#%include \<libcork/ds.h\></tt>
- */
-
-/*** order of groups in documentation ***/
-
-/**
- * @defgroup binary Binary data
- * @ingroup ds
- */
-
-/**
- * @defgroup slice Slices
- * @ingroup binary
- */
-
-/**
- * @defgroup managed_buffer Managed binary buffers
- * @ingroup binary
- */
-
-/**
- * @defgroup buffer Resizable binary buffers
- * @ingroup binary
- */
-
-/**
- * @defgroup stream Stream processing
- * @ingroup binary
- */
-
-/**
- * @defgroup dllist Doubly-linked lists
- * @ingroup ds
- */
-
-/**
- * @defgroup hash_table Hash tables
- * @ingroup ds
- */
-
 /*** include all of the parts ***/
 
+#include <libcork/ds/array.h>
 #include <libcork/ds/buffer.h>
 #include <libcork/ds/dllist.h>
 #include <libcork/ds/hash-table.h>
 #include <libcork/ds/managed-buffer.h>
+#include <libcork/ds/ring-buffer.h>
 #include <libcork/ds/slice.h>
 #include <libcork/ds/stream.h>
 

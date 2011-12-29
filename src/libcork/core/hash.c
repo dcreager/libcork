@@ -30,8 +30,8 @@ static inline uint32_t fmix(uint32_t h)
     return h;
 }
 
-cork_hash_t
-cork_hash_buffer(cork_hash_t seed, const void *src, size_t len)
+cork_hash
+cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 {
     const uint8_t  *data = (const uint8_t *) src;
     const int  nblocks = len / 4;

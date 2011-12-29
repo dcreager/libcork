@@ -20,6 +20,8 @@
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/stream.h"
 
+#include "helpers.h"
+
 
 /*-----------------------------------------------------------------------
  * Buffers
@@ -27,40 +29,36 @@
 
 START_TEST(test_buffer)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     static char  SRC[] =
         "Here is some text.";
     size_t  SRC_LEN = strlen(SRC);
 
-    cork_buffer_t  buffer1;
+    struct cork_buffer  buffer1;
     cork_buffer_init(alloc, &buffer1);
-    fail_unless(cork_buffer_set(&buffer1, SRC, SRC_LEN+1),
-                "Could not set contents of buffer");
+    fail_if_error(cork_buffer_set(alloc, &buffer1, SRC, SRC_LEN, &err));
 
-    cork_buffer_t  *buffer2 = cork_buffer_new(alloc);
-    fail_if(buffer2 == NULL,
-            "Could not allocate buffer");
-    fail_unless(cork_buffer_set_string(buffer2, SRC),
-                "Could not set string contents of buffer");
+    struct cork_buffer  *buffer2;
+    fail_if_error(buffer2 = cork_buffer_new(alloc, &err));
+    fail_if_error(cork_buffer_set_string(alloc, buffer2, SRC, &err));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2->size, buffer2->buf);
 
-    cork_buffer_t  *buffer3 = cork_buffer_new(alloc);
-    fail_if(buffer3 == NULL,
-            "Could not allocate buffer");
-    fail_unless(cork_buffer_printf(buffer3, "Here is %s text.", "some"),
-                "Could not format into buffer");
+    struct cork_buffer  *buffer3;
+    fail_if_error(buffer3 = cork_buffer_new(alloc, &err));
+    fail_if_error(cork_buffer_printf
+                  (alloc, buffer3, &err, "Here is %s text.", "some"));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer3),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
 
-    cork_buffer_done(&buffer1);
-    cork_buffer_free(buffer2);
-    cork_buffer_free(buffer3);
+    cork_buffer_done(alloc, &buffer1);
+    cork_buffer_free(alloc, buffer2);
+    cork_buffer_free(alloc, buffer3);
     cork_allocator_free(alloc);
 }
 END_TEST
@@ -68,7 +66,7 @@ END_TEST
 
 START_TEST(test_buffer_append)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     static char  SRC1[] = "abcd";
     size_t  SRC1_LEN = 4;
@@ -77,7 +75,7 @@ START_TEST(test_buffer_append)
     static char  SRC3[] = "hij";
     static char  SRC4[] = "kl";
 
-    cork_buffer_t  buffer1;
+    struct cork_buffer  buffer1;
     cork_buffer_init(alloc, &buffer1);
 
     /*
@@ -85,46 +83,41 @@ START_TEST(test_buffer_append)
      * appends.
      */
 
-    fail_unless(cork_buffer_set(&buffer1, SRC2, SRC2_LEN),
-                "Could not set contents of buffer");
-    cork_buffer_clear(&buffer1);
+    fail_if_error(cork_buffer_set(alloc, &buffer1, SRC2, SRC2_LEN, &err));
+    cork_buffer_clear(alloc, &buffer1);
 
     /*
      * Okay now do the appends.
      */
 
-    fail_unless(cork_buffer_append(&buffer1, SRC1, SRC1_LEN),
-                "Could not set contents of buffer");
-    fail_unless(cork_buffer_append(&buffer1, SRC2, SRC2_LEN),
-                "Could not append contents of buffer");
-    fail_unless(cork_buffer_append_string(&buffer1, SRC3),
-                "Could not append first string");
-    fail_unless(cork_buffer_append_string(&buffer1, SRC4),
-                "Could not append second string");
+    fail_if_error(cork_buffer_append(alloc, &buffer1, SRC1, SRC1_LEN, &err));
+    fail_if_error(cork_buffer_append(alloc, &buffer1, SRC2, SRC2_LEN, &err));
+    fail_if_error(cork_buffer_append_string(alloc, &buffer1, SRC3, &err));
+    fail_if_error(cork_buffer_append_string(alloc, &buffer1, SRC4, &err));
 
     static char  EXPECTED[] = "abcdefghijkl";
 
-    cork_buffer_t  buffer2;
+    struct cork_buffer  buffer2;
     cork_buffer_init(alloc, &buffer2);
-    cork_buffer_set_string(&buffer2, EXPECTED);
+    fail_if_error(cork_buffer_set_string(alloc, &buffer2, EXPECTED, &err));
 
     fail_unless(cork_buffer_equal(&buffer1, &buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2.size, buffer2.buf);
 
-    cork_buffer_t  *buffer3 = cork_buffer_new(alloc);
-    cork_buffer_set(buffer3, SRC1, SRC1_LEN);
-    fail_unless(cork_buffer_append_printf(buffer3, "%s%s%s",
-                                          SRC2, SRC3, SRC4),
-                "Could not append formatted string into buffer");
+    struct cork_buffer  *buffer3;
+    fail_if_error(buffer3 = cork_buffer_new(alloc, &err));
+    fail_if_error(cork_buffer_set(alloc, buffer3, SRC1, SRC1_LEN, &err));
+    fail_if_error(cork_buffer_append_printf
+                  (alloc, buffer3, &err, "%s%s%s", SRC2, SRC3, SRC4));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer3),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
 
-    cork_buffer_done(&buffer1);
-    cork_buffer_done(&buffer2);
-    cork_buffer_free(buffer3);
+    cork_buffer_done(alloc, &buffer1);
+    cork_buffer_done(alloc, &buffer2);
+    cork_buffer_free(alloc, buffer3);
     cork_allocator_free(alloc);
 }
 END_TEST
@@ -132,29 +125,27 @@ END_TEST
 
 START_TEST(test_buffer_slicing)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     static char  SRC[] =
         "Here is some text.";
 
-    cork_buffer_t  *buffer = cork_buffer_new(alloc);
-    fail_unless(cork_buffer_set_string(buffer, SRC),
-                "Could not set string contents of buffer");
+    struct cork_buffer  *buffer;
+    fail_if_error(buffer = cork_buffer_new(alloc, &err));
+    fail_if_error(cork_buffer_set_string(alloc, buffer, SRC, &err));
 
-    cork_managed_buffer_t  *managed =
-        cork_buffer_to_managed_buffer(buffer);
-    fail_if(managed == NULL,
-            "Cannot manage buffer");
-    cork_managed_buffer_unref(managed);
+    struct cork_managed_buffer  *managed;
+    fail_if_error(managed = cork_buffer_to_managed_buffer
+                  (alloc, buffer, &err));
+    cork_managed_buffer_unref(alloc, managed);
 
-    buffer = cork_buffer_new(alloc);
-    fail_unless(cork_buffer_set_string(buffer, SRC),
-                "Could not set string contents of buffer");
+    fail_if_error(buffer = cork_buffer_new(alloc, &err));
+    fail_if_error(cork_buffer_set_string(alloc, buffer, SRC, &err));
 
-    cork_slice_t  slice;
-    fail_unless(cork_buffer_to_slice(buffer, &slice),
-                "Cannot slice buffer");
-    cork_slice_finish(&slice);
+    struct cork_slice  slice;
+    fail_if_error(cork_buffer_to_slice(alloc, buffer, &slice, &err));
+    fail_if_error(cork_slice_slice_offset(alloc, &slice, buffer->size, &err));
+    cork_slice_finish(alloc, &slice);
 
     cork_allocator_free(alloc);
 }
@@ -163,60 +154,65 @@ END_TEST
 
 START_TEST(test_buffer_stream)
 {
-    cork_allocator_t  *alloc = cork_allocator_new_debug();
+    struct cork_alloc  *alloc = cork_allocator_new_debug();
 
     static char  SRC1[] = "abcd";
     size_t  SRC1_LEN = 4;
     static char  SRC2[] = "efg";
     size_t  SRC2_LEN = 3;
 
-    cork_buffer_t  buffer1;
+    struct cork_buffer  buffer1;
     cork_buffer_init(alloc, &buffer1);
-    cork_stream_consumer_t  *consumer =
-        cork_buffer_to_stream_consumer(&buffer1);
+    struct cork_stream_consumer  *consumer;
+    fail_if_error(consumer =
+                  cork_buffer_to_stream_consumer(alloc, &buffer1, &err));
 
-    cork_managed_buffer_t  *src;
-    cork_slice_t  slice;
+    struct cork_managed_buffer  *src;
+    struct cork_slice  slice;
 
     /* chunk #1 */
 
-    src = cork_managed_buffer_new_copy(alloc, SRC1, SRC1_LEN);
-    cork_managed_buffer_slice_offset(&slice, src, 0);
-    fail_unless(cork_stream_consumer_data(consumer, &slice, true),
-                "Cannot process first chunk");
-    cork_slice_finish(&slice);
-    cork_managed_buffer_unref(src);
+    fail_if_error(src = cork_managed_buffer_new_copy
+                  (alloc, SRC1, SRC1_LEN, &err));
+    fail_if_error(cork_managed_buffer_slice_offset
+                  (alloc, &slice, src, 0, &err));
+    fail_if_error(cork_stream_consumer_data
+                  (alloc, consumer, &slice, true, &err));
+    cork_slice_finish(alloc, &slice);
+    cork_managed_buffer_unref(alloc, src);
 
     /* chunk #2 */
 
-    src = cork_managed_buffer_new_copy(alloc, SRC2, SRC2_LEN);
-    cork_managed_buffer_slice_offset(&slice, src, 0);
-    fail_unless(cork_stream_consumer_data(consumer, &slice, false),
-                "Cannot process second chunk");
-    cork_slice_finish(&slice);
-    cork_managed_buffer_unref(src);
+    fail_if_error(src = cork_managed_buffer_new_copy
+                  (alloc, SRC2, SRC2_LEN, &err));
+    fail_if_error(cork_managed_buffer_slice_offset
+                  (alloc, &slice, src, 0, &err));
+    fail_if_error(cork_stream_consumer_data
+                  (alloc, consumer, &slice, false, &err));
+    cork_slice_finish(alloc, &slice);
+    cork_managed_buffer_unref(alloc, src);
 
     /* eof */
 
-    fail_unless(cork_stream_consumer_eof(consumer),
-                "Cannot process EOF");
+    fail_if_error(cork_stream_consumer_eof(alloc, consumer, &err));
 
     /* check the result */
 
     static char  EXPECTED[] = "abcdefg";
     static size_t  EXPECTED_SIZE = 7;
 
-    cork_buffer_t  buffer2;
+    struct cork_buffer  buffer2;
     cork_buffer_init(alloc, &buffer2);
-    cork_buffer_set(&buffer2, EXPECTED, EXPECTED_SIZE);
+    fail_if_error(cork_buffer_set
+                  (alloc, &buffer2, EXPECTED, EXPECTED_SIZE, &err));
 
     fail_unless(cork_buffer_equal(&buffer1, &buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2.size, buffer2.buf);
 
-    cork_stream_consumer_free(consumer);
-    cork_buffer_done(&buffer1);
-    cork_buffer_done(&buffer2);
+    cork_stream_consumer_free(alloc, consumer);
+    cork_buffer_done(alloc, &buffer1);
+    cork_buffer_done(alloc, &buffer2);
     cork_allocator_free(alloc);
 }
 END_TEST
