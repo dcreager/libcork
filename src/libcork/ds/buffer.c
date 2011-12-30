@@ -46,9 +46,9 @@ cork_buffer_done(struct cork_alloc *alloc, struct cork_buffer *buffer)
     if (buffer->buf != NULL) {
         cork_free(alloc, buffer->buf, buffer->allocated_size);
         buffer->buf = NULL;
-        buffer->size = 0;
-        buffer->allocated_size = 0;
     }
+    buffer->size = 0;
+    buffer->allocated_size = 0;
 }
 
 
@@ -168,7 +168,7 @@ cork_buffer_append_vprintf(struct cork_alloc *alloc, struct cork_buffer *buffer,
     va_end(args1);
 
     new_size = buffer->size + formatted_length;
-    rii_check(cork_buffer_ensure_size(alloc, buffer, new_size, err));
+    rii_check(cork_buffer_ensure_size(alloc, buffer, new_size+1, err));
     vsnprintf(buffer->buf + buffer->size, formatted_length+1, format, args);
     buffer->size = new_size;
     return 0;
