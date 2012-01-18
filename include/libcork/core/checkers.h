@@ -18,6 +18,21 @@
  * you ask for it! */
 
 
+#if !defined(CORK_PRINT_ERRORS)
+#define CORK_PRINT_ERRORS 0
+#endif
+
+#if CORK_PRINT_ERRORS
+#include <stdio.h>
+#define CORK_PRINT_ERROR_(func, file, line) \
+    fprintf(stderr, "---\nError in %s (%s:%u)\n", \
+            (func), (file), (unsigned int) (line));
+#define CORK_PRINT_ERROR()  CORK_PRINT_ERROR_(__func__, __FILE__, __LINE__)
+#else
+#define CORK_PRINT_ERROR()  /* do nothing */
+#endif
+
+
 /* A bunch of macros for calling a function that returns an error.  If
  * an error occurs, it will automatically be propagated out as the
  * result of your own function.  With these macros, you won't have a
@@ -51,6 +66,7 @@
     do { \
         int  __rc = (call); \
         if (__rc != 0) { \
+            CORK_PRINT_ERROR(); \
             goto error; \
         } \
     } while (0)
@@ -59,6 +75,7 @@
     do { \
         const void  *__result = (call); \
         if (__result == NULL) { \
+            CORK_PRINT_ERROR(); \
             goto error; \
         } \
     } while (0)
@@ -70,6 +87,7 @@
     do { \
         int  __rc = (call); \
         if (__rc != 0) { \
+            CORK_PRINT_ERROR(); \
             return result; \
         } \
     } while (0)
@@ -78,6 +96,7 @@
     do { \
         const void  *__result = (call); \
         if (__result == NULL) { \
+            CORK_PRINT_ERROR(); \
             return result; \
         } \
     } while (0)
@@ -98,6 +117,7 @@
     do { \
         const void  *__result = (call); \
         if (__result == NULL) { \
+            CORK_PRINT_ERROR(); \
             cork_alloc_cannot_allocate_set(alloc, err, desc); \
             goto error; \
         } \
@@ -107,6 +127,7 @@
     do { \
         const void  *__result = (call); \
         if (__result == NULL) { \
+            CORK_PRINT_ERROR(); \
             cork_alloc_cannot_allocate_set(alloc, err, desc); \
             return result; \
         } \
