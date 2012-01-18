@@ -85,7 +85,7 @@
 
 /* return default error code */
 
-#define rii_check(call)  xi_check(-1, call)
+#define rii_check(call)  xi_check(__rc, call)
 #define rip_check(call)  xp_check(-1, call)
 #define rpi_check(call)  xi_check(NULL, call)
 #define rpp_check(call)  xp_check(NULL, call)
