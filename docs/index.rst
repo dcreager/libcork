@@ -1,3 +1,5 @@
+.. _index:
+
 |project_name| documentation
 ============================
 
