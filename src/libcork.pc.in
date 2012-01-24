@@ -1,6 +1,13 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+sharedir=${prefix}/share
+sphinxdir=${sharedir}/doc/libcork/html
+
 Name: libcork
 Description: A simple, easily embeddable cross-platform C library
 Version: @VERSION@
 URL: http://github.com/zazzle/libcork
-Libs: -L@prefix@/lib -lcork
-Cflags: -I@prefix@/include
+Libs: -L${libdir} -lcork
+Cflags: -I${includedir}

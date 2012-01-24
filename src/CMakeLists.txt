@@ -34,6 +34,6 @@ set_target_properties(embedded_libcork PROPERTIES
 # Generate the pkg-config file
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
-configure_file(libcork.pc.in libcork.pc)
+configure_file(libcork.pc.in libcork.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc
         DESTINATION lib/pkgconfig)
