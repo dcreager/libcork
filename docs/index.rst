@@ -1,12 +1,12 @@
-.. APPNAME documentation master file, created by
-   sphinx-quickstart on Thu Nov 10 15:10:57 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+|project_name| documentation
+============================
 
-APPNAME documentation
-=====================
+This is the documentation for |project_name| |release|, last updated
+|today|.
 
-Contents:
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -14,7 +14,7 @@ Contents:
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`search`

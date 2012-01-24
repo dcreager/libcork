@@ -13,6 +13,10 @@ copyright_years = u'2012'
 default_role = 'c:func'
 primary_domain = 'c'
 
+rst_epilog = """
+.. |project_name| replace:: """ + project_name + """
+"""
+
 # Grab version from git
 
 import re
