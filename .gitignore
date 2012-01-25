@@ -1,5 +1,6 @@
 /.lock-wscript
 /build/
+/.build/
 
 RELEASE-VERSION
 PLEASE_DEFINE_APPNAME.pc
