@@ -17,6 +17,25 @@ rst_epilog = """
 .. |project_name| replace:: """ + project_name + """
 """
 
+# Intersphinx stuff
+
+# If your documentation uses intersphinx to link to other Sphinx
+# documentation sets, uncomment and fill in the following.
+#
+#intersphinx_mapping = {
+#    'libcork': ('http://libcork.readthedocs.org/en/latest/', None),
+#}
+
+# Our CMake build scripts will insert overrides below if the prereq
+# libraries have installed their Sphinx documentation locally.  DO NOT
+# uncomment out the last line of this block; we need it commented so
+# that this conf.py file still works if CMake doesn't do its
+# substitution thing.
+# @INTERSPHINX_OVERRIDES@
+
+#----------------------------------------------------------------------
+# Everything below here shouldn't need to be changed.
+
 # Grab version from git
 
 import re
@@ -24,7 +43,7 @@ import subprocess
 release = subprocess.check_output(["git", "describe"]).rstrip()
 version = re.sub(r"-dev.*$", "-dev", release)
 
-# Stuff below here probably doesn't need to be changed
+# Project details
 
 project = project_name
 copyright = copyright_years+u', '+company
