@@ -37,8 +37,12 @@ find_package(PkgConfig)
 # Set some options
 
 if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES "i386;x86_64"
-        CACHE STRING "Build architectures for Mac OS X")
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "i386;x86_64" CACHE STRING "Build architectures for Mac OS X")
+    endif (NOT CMAKE_OSX_ARCHITECTURES)
+    if (NOT CMAKE_INSTALL_NAME_DIR)
+        set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+    endif (NOT CMAKE_INSTALL_NAME_DIR)
 endif(APPLE)
 
 if(NOT CMAKE_BUILD_TYPE)
