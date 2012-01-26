@@ -18,6 +18,9 @@
  * you ask for it! */
 
 
+#include <libcork/core/attributes.h>
+
+
 #if !defined(CORK_PRINT_ERRORS)
 #define CORK_PRINT_ERRORS 0
 #endif
@@ -65,7 +68,7 @@
 #define ei_check(call) \
     do { \
         int  __rc = (call); \
-        if (__rc != 0) { \
+        if (CORK_UNLIKELY(__rc != 0)) { \
             CORK_PRINT_ERROR(); \
             goto error; \
         } \
@@ -74,7 +77,7 @@
 #define ep_check(call) \
     do { \
         const void  *__result = (call); \
-        if (__result == NULL) { \
+        if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
             goto error; \
         } \
@@ -86,7 +89,7 @@
 #define xi_check(result, call) \
     do { \
         int  __rc = (call); \
-        if (__rc != 0) { \
+        if (CORK_UNLIKELY(__rc != 0)) { \
             CORK_PRINT_ERROR(); \
             return result; \
         } \
@@ -95,7 +98,7 @@
 #define xp_check(result, call) \
     do { \
         const void  *__result = (call); \
-        if (__result == NULL) { \
+        if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
             return result; \
         } \
@@ -116,7 +119,7 @@
 #define e_check_alloc(call, desc) \
     do { \
         const void  *__result = (call); \
-        if (__result == NULL) { \
+        if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
             cork_alloc_cannot_allocate_set(alloc, err, desc); \
             goto error; \
@@ -126,7 +129,7 @@
 #define x_check_alloc(result, call, desc) \
     do { \
         const void  *__result = (call); \
-        if (__result == NULL) { \
+        if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
             cork_alloc_cannot_allocate_set(alloc, err, desc); \
             return result; \
