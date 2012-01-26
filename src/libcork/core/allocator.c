@@ -168,6 +168,25 @@ cork_allocator_free(struct cork_alloc *alloc)
 }
 
 
+void *
+cork_malloc(struct cork_alloc *alloc, size_t size)
+{
+    return alloc->alloc(alloc, NULL, 0, size);
+}
+
+void *
+cork_realloc(struct cork_alloc *alloc, void *ptr, size_t osize, size_t nsize)
+{
+    return alloc->alloc(alloc, ptr, osize, nsize);
+}
+
+void
+cork_free(struct cork_alloc *alloc, void *ptr, size_t osize)
+{
+    alloc->alloc(alloc, ptr, osize, 0);
+}
+
+
 const char *
 cork_strdup(struct cork_alloc *alloc, const char *str)
 {

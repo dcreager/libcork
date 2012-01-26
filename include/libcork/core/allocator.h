@@ -11,6 +11,7 @@
 #ifndef LIBCORK_CORE_ALLOCATOR_H
 #define LIBCORK_CORE_ALLOCATOR_H
 
+#include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
 
@@ -84,13 +85,15 @@ cork_allocator_free(struct cork_alloc *alloc);
  * Raw allocation macros
  */
 
-/* size-based macros */
-#define cork_malloc(_alloc, sz) \
-    ((_alloc)->alloc((_alloc), NULL, 0, (sz)))
-#define cork_realloc(_alloc, ptr, osz, nsz) \
-    ((_alloc)->alloc((_alloc), (ptr), (osz), (nsz)))
-#define cork_free(_alloc, ptr, osz) \
-    ((_alloc)->alloc((_alloc), (ptr), (osz), 0))
+/* size-based functions */
+void *
+cork_malloc(struct cork_alloc *alloc, size_t size) CORK_ATTR_MALLOC;
+
+void *
+cork_realloc(struct cork_alloc *alloc, void *ptr, size_t osize, size_t nsize);
+
+void
+cork_free(struct cork_alloc *alloc, void *ptr, size_t osize);
 
 /* type-based macros */
 #define cork_new(alloc, type) \
