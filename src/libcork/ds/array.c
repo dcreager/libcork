@@ -87,3 +87,13 @@ cork_array_ensure_size_(struct cork_alloc *alloc, void *varray,
 
     return 0;
 }
+
+void *
+cork_array_append_get_(struct cork_alloc *alloc, void *varray,
+                       size_t element_size, struct cork_error *err)
+{
+    struct cork_array_private  *array = varray;
+    rpi_check(cork_array_ensure_size_
+              (alloc, array, array->size+1, element_size, err));
+    return array->items + (element_size * (array->size++));
+}

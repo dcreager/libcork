@@ -65,5 +65,13 @@ cork_array_ensure_size_(struct cork_alloc *alloc, void *array,
     (cork_array_ensure_size((alloc), (arr), (arr)->size+1, (err)) || \
      ((arr)->items[(arr)->size++] = (element), 0))
 
+void *
+cork_array_append_get_(struct cork_alloc *alloc, void *array,
+                       size_t element_size, struct cork_error *err);
+
+#define cork_array_append_get(alloc, arr, err) \
+    (cork_array_append_get_ \
+     ((alloc), (arr), cork_array_element_size(arr), (err)))
+
 
 #endif /* LIBCORK_DS_ARRAY_H */
