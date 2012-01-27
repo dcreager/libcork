@@ -35,7 +35,7 @@
         if (cork_error_occurred(&err)) { \
             fail("%s", cork_error_message(&err)); \
         } \
-        cork_error_done(alloc, &err); \
+        cork_error_done(&err); \
     } while (0)
 
 #define fail_unless_error(call, ...) \
@@ -47,7 +47,7 @@
         } else { \
             print_expected_failure(); \
         } \
-        cork_error_done(alloc, &err); \
+        cork_error_done(&err); \
     } while (0)
 
 

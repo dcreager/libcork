@@ -27,5 +27,7 @@
 #error "Cannot determine system endianness"
 #endif
 
+#define CORK_HAVE_REALLOCF  0
+
 
 #endif /* LIBCORK_CONFIG_LINUX_H */

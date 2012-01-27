@@ -18,6 +18,7 @@
  * you ask for it! */
 
 
+#include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
 
 
@@ -113,7 +114,7 @@
 #define rpp_check(call)  xp_check(NULL, call)
 
 
-/* The following macros fill in err with a CORK_ALLOC_CANNOT_ALLOCATE
+/* The following macros fill in err with a CORK_CANNOT_ALLOCATE
  * error if they fail. */
 
 #define e_check_alloc(call, desc) \
@@ -121,7 +122,7 @@
         const void  *__result = (call); \
         if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
+            cork_cannot_allocate_set(err, desc); \
             goto error; \
         } \
     } while (0)
@@ -131,7 +132,7 @@
         const void  *__result = (call); \
         if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
-            cork_alloc_cannot_allocate_set(alloc, err, desc); \
+            cork_cannot_allocate_set(err, desc); \
             return result; \
         } \
     } while (0)
@@ -147,9 +148,9 @@
  * custom allocator to use. */
 
 #define e_check_new(type, var, desc) \
-    e_check_alloc(var = cork_new(alloc, type), desc)
+    e_check_alloc(var = cork_new(type), desc)
 #define x_check_new(result, type, var, desc) \
-    x_check_alloc(result, var = cork_new(alloc, type), desc)
+    x_check_alloc(result, var = cork_new(type), desc)
 
 #define ri_check_new(type, var, desc)  x_check_new(-1, type, var, desc)
 #define rp_check_new(type, var, desc)  x_check_new(NULL, type, var, desc)

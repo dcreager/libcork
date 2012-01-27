@@ -8,6 +8,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "libcork/core/checkers.h"
@@ -38,8 +39,7 @@ struct cork_array_private {
 };
 
 int
-cork_array_ensure_size_(struct cork_alloc *alloc, void *varray,
-                        size_t desired_count, size_t element_size,
+cork_array_ensure_size_(void *varray, size_t desired_count, size_t element_size,
                         struct cork_error *err)
 {
     struct cork_array_private  *array = varray;
@@ -65,7 +65,7 @@ cork_array_ensure_size_(struct cork_alloc *alloc, void *varray,
 
         DEBUG("--- Array %p: Allocating %zu->%zu bytes",
               array, old_size, new_size);
-        ri_check_alloc(array->items = cork_malloc(alloc, new_size),
+        ri_check_alloc(array->items = malloc(new_size),
                        "array");
         memcpy(array->items, &array->internal, old_size);
         array->allocated_size = new_size;
@@ -79,8 +79,7 @@ cork_array_ensure_size_(struct cork_alloc *alloc, void *varray,
 
         DEBUG("--- Array %p: Reallocating %zu->%zu bytes",
               array, array->allocated_size, new_size);
-        ri_check_alloc(array->items = cork_realloc
-                       (alloc, array->items, array->allocated_size, new_size),
+        ri_check_alloc(array->items = cork_realloc(array->items, new_size),
                        "array");
         array->allocated_size = new_size;
     }
@@ -89,11 +88,11 @@ cork_array_ensure_size_(struct cork_alloc *alloc, void *varray,
 }
 
 void *
-cork_array_append_get_(struct cork_alloc *alloc, void *varray,
-                       size_t element_size, struct cork_error *err)
+cork_array_append_get_(void *varray, size_t element_size,
+                       struct cork_error *err)
 {
     struct cork_array_private  *array = varray;
     rpi_check(cork_array_ensure_size_
-              (alloc, array, array->size+1, element_size, err));
+              (array, array->size+1, element_size, err));
     return array->items + (element_size * (array->size++));
 }

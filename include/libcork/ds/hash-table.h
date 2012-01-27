@@ -12,7 +12,6 @@
 #define LIBCORK_DS_HASH_TABLE_H
 
 
-#include <libcork/core/allocator.h>
 #include <libcork/core/error.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/types.h>
@@ -52,66 +51,55 @@ struct cork_hash_table {
 
 
 int
-cork_hash_table_init(struct cork_alloc *alloc,
-                     struct cork_hash_table *table,
+cork_hash_table_init(struct cork_hash_table *table,
                      size_t initial_size,
                      cork_hash_table_hasher hasher,
                      cork_hash_table_comparator comparator,
                      struct cork_error *err);
 
 struct cork_hash_table *
-cork_hash_table_new(struct cork_alloc *alloc,
-                    size_t initial_size,
+cork_hash_table_new(size_t initial_size,
                     cork_hash_table_hasher hasher,
                     cork_hash_table_comparator comparator,
                     struct cork_error *err);
 
 void
-cork_hash_table_done(struct cork_alloc *alloc, struct cork_hash_table *table);
+cork_hash_table_done(struct cork_hash_table *table);
 
 void
-cork_hash_table_free(struct cork_alloc *alloc, struct cork_hash_table *table);
+cork_hash_table_free(struct cork_hash_table *table);
 
 
 void
-cork_hash_table_clear(struct cork_alloc *alloc, struct cork_hash_table *table);
+cork_hash_table_clear(struct cork_hash_table *table);
 
 
 int
-cork_hash_table_ensure_size(struct cork_alloc *alloc,
-                            struct cork_hash_table *table,
-                            size_t desired_count,
-                            struct cork_error *err);
+cork_hash_table_ensure_size(struct cork_hash_table *table,
+                            size_t desired_count, struct cork_error *err);
 
 #define cork_hash_table_size(table) ((table)->entry_count)
 
 
 void *
-cork_hash_table_get(struct cork_alloc *alloc,
-                    const struct cork_hash_table *table,
-                    const void *key);
+cork_hash_table_get(const struct cork_hash_table *table, const void *key);
 
 struct cork_hash_table_entry *
-cork_hash_table_get_entry(struct cork_alloc *alloc,
-                          const struct cork_hash_table *table,
+cork_hash_table_get_entry(const struct cork_hash_table *table,
                           const void *key);
 
 struct cork_hash_table_entry *
-cork_hash_table_get_or_create(struct cork_alloc *alloc,
-                              struct cork_hash_table *table,
-                              void *key, bool *is_new,
-                              struct cork_error *err);
+cork_hash_table_get_or_create(struct cork_hash_table *table,
+                              void *key, bool *is_new, struct cork_error *err);
 
 int
-cork_hash_table_put(struct cork_alloc *alloc,
-                    struct cork_hash_table *table,
+cork_hash_table_put(struct cork_hash_table *table,
                     void *key, void *value,
                     bool *is_new, void **old_key, void **old_value,
                     struct cork_error *err);
 
 bool
-cork_hash_table_delete(struct cork_alloc *alloc,
-                       struct cork_hash_table *table, const void *key,
+cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value);
 
 
@@ -126,17 +114,16 @@ enum cork_hash_table_map_result {
 };
 
 typedef enum cork_hash_table_map_result
-(*cork_hash_table_mapper)(struct cork_alloc *alloc,
-                          struct cork_hash_table_entry *entry,
+(*cork_hash_table_mapper)(struct cork_hash_table_entry *entry,
                           void *user_data);
 
 void
-cork_hash_table_map(struct cork_alloc *alloc,
-                    struct cork_hash_table *table,
+cork_hash_table_map(struct cork_hash_table *table,
                     cork_hash_table_mapper mapper, void *user_data);
 
 
 struct cork_hash_table_iterator {
+    struct cork_hash_table  *table;
     /* The index of the current bin */
     size_t  bin_index;
     /* The current element within the bin */
@@ -148,8 +135,7 @@ cork_hash_table_iterator_init(struct cork_hash_table *table,
                               struct cork_hash_table_iterator *iterator);
 
 struct cork_hash_table_entry *
-cork_hash_table_iterator_next(struct cork_hash_table *table,
-                              struct cork_hash_table_iterator *iterator);
+cork_hash_table_iterator_next(struct cork_hash_table_iterator *iterator);
 
 
 #endif /* LIBCORK_DS_HASH_TABLE_H */

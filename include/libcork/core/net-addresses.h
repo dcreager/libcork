@@ -66,8 +66,8 @@ struct cork_ip {
     (memcpy((addr), (src), sizeof(struct cork_ipv4)))
 
 int
-cork_ipv4_init(struct cork_alloc *alloc, struct cork_ipv4 *addr,
-               const char *str, struct cork_error *error);
+cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
+               struct cork_error *error);
 
 bool
 cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
@@ -83,8 +83,8 @@ cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
     (memcpy((addr), (src), sizeof(struct cork_ipv6)))
 
 int
-cork_ipv6_init(struct cork_alloc *alloc, struct cork_ipv6 *addr,
-               const char *str, struct cork_error *error);
+cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
+               struct cork_error *error);
 
 bool
 cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
@@ -104,8 +104,7 @@ void
 cork_ip_from_ipv6(struct cork_ip *addr, const void *src);
 
 int
-cork_ip_init(struct cork_alloc *alloc, struct cork_ip *addr,
-             const char *str, struct cork_error *error);
+cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error);
 
 bool
 cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2);

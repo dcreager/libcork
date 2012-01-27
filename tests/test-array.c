@@ -25,7 +25,7 @@
  */
 
 #define add_element(element, expected_new_size) \
-    fail_if_error(cork_array_append(alloc, &array, element, &err)); \
+    fail_if_error(cork_array_append(&array, element, &err)); \
     fail_unless(cork_array_size(&array) == expected_new_size, \
                 "Unexpected size of array: got %zu, expected %zu", \
                 cork_array_size(&array), expected_new_size);
@@ -34,7 +34,7 @@
     do { \
         int_type  *__element; \
         fail_if_error(__element = cork_array_append_get \
-                      (alloc, &array, &err)); \
+                      (&array, &err)); \
         *__element = element; \
         fail_unless(cork_array_size(&array) == expected_new_size, \
                     "Unexpected size of array: got %zu, expected %zu", \
@@ -57,10 +57,9 @@
 START_TEST(test_array_##int_type) \
 { \
     DESCRIBE_TEST; \
-    struct cork_alloc  *alloc = cork_allocator_new_debug(); \
     \
     cork_array(int_type)  array; \
-    cork_array_init(alloc, &array); \
+    cork_array_init(&array); \
     \
     fail_unless(cork_array_size(&array) == 0, \
                 "Unexpected size of array: got %zu, expected 0", \
@@ -89,8 +88,6 @@ START_TEST(test_array_##int_type) \
     test_sum(45); \
     add_element0(10, 10, int_type); \
     test_sum(55); \
-    \
-    cork_allocator_free(alloc); \
 } \
 END_TEST
 

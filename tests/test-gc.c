@@ -14,7 +14,6 @@
 
 #include <check.h>
 
-#include "libcork/core/allocator.h"
 #include "libcork/core/gc.h"
 #include "libcork/core/types.h"
 
@@ -58,9 +57,8 @@ tree_new(struct cork_gc *gc, int id, struct tree *l, struct tree *r)
 START_TEST(test_gc_acyclic_01)
 {
     DESCRIBE_TEST;
-    struct cork_alloc  *alloc = cork_allocator_new_debug();
     struct cork_gc  gc;
-    cork_gc_init(&gc, alloc);
+    cork_gc_init(&gc);
 
     struct tree  *t1 = tree_new(&gc, 0, NULL, NULL);
     struct tree  *t2 = tree_new(&gc, 0, NULL, NULL);
@@ -71,16 +69,14 @@ START_TEST(test_gc_acyclic_01)
     cork_gc_decref(&gc, t0);
 
     cork_gc_done(&gc);
-    cork_allocator_free(alloc);
 }
 END_TEST
 
 START_TEST(test_gc_cyclic_01)
 {
     DESCRIBE_TEST;
-    struct cork_alloc  *alloc = cork_allocator_new_debug();
     struct cork_gc  gc;
-    cork_gc_init(&gc, alloc);
+    cork_gc_init(&gc);
 
     struct tree  *t1 = tree_new(&gc, 0, NULL, NULL);
     struct tree  *t2 = tree_new(&gc, 0, NULL, NULL);
@@ -93,16 +89,14 @@ START_TEST(test_gc_cyclic_01)
     cork_gc_decref(&gc, t0);
 
     cork_gc_done(&gc);
-    cork_allocator_free(alloc);
 }
 END_TEST
 
 START_TEST(test_gc_cyclic_02)
 {
     DESCRIBE_TEST;
-    struct cork_alloc  *alloc = cork_allocator_new_debug();
     struct cork_gc  gc;
-    cork_gc_init(&gc, alloc);
+    cork_gc_init(&gc);
 
     struct tree  *t1 = tree_new(&gc, 0, NULL, NULL);
     struct tree  *t2 = tree_new(&gc, 0, NULL, NULL);
@@ -117,7 +111,6 @@ START_TEST(test_gc_cyclic_02)
     cork_gc_decref(&gc, t0);
 
     cork_gc_done(&gc);
-    cork_allocator_free(alloc);
 }
 END_TEST
 

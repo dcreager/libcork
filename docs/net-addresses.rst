@@ -69,9 +69,9 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
    in network-endian order, regardless of the host's endianness.)
 
 
-.. function:: int cork_ipv4_init(struct cork_alloc \*alloc, struct cork_ipv4 \*addr, const char \*str, struct cork_error \*err)
-              int cork_ipv6_init(struct cork_alloc \*alloc, struct cork_ipv6 \*addr, const char \*str, struct cork_error \*err)
-              int cork_ip_init(struct cork_alloc \*alloc, struct cork_ip \*addr, const char \*str, struct cork_error \*err)
+.. function:: int cork_ipv4_init(struct cork_ipv4 \*addr, const char \*str, struct cork_error \*err)
+              int cork_ipv6_init(struct cork_ipv6 \*addr, const char \*str, struct cork_error \*err)
+              int cork_ip_init(struct cork_ip \*addr, const char \*str, struct cork_error \*err)
 
    Initializes a :c:type:`cork_ipv4`, :c:type:`cork_ipv6`, or
    :c:type:`cork_ip` instance from the string representation of an IP

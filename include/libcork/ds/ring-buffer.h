@@ -12,7 +12,6 @@
 #define LIBCORK_DS_RING_BUFFER_H
 
 
-#include <libcork/core/allocator.h>
 #include <libcork/core/types.h>
 
 
@@ -32,12 +31,10 @@ struct cork_ring_buffer {
 
 
 int
-cork_ring_buffer_init(struct cork_alloc *alloc,
-                      struct cork_ring_buffer *buf, size_t size);
+cork_ring_buffer_init(struct cork_ring_buffer *buf, size_t size);
 
 void
-cork_ring_buffer_done(struct cork_alloc *alloc,
-                      struct cork_ring_buffer *buf);
+cork_ring_buffer_done(struct cork_ring_buffer *buf);
 
 
 #define cork_ring_buffer_is_empty(buf) ((buf)->size == 0)

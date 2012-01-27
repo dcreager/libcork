@@ -11,7 +11,6 @@
 #ifndef LIBCORK_CONFIG_MACOSX_H
 #define LIBCORK_CONFIG_MACOSX_H
 
-
 /*-----------------------------------------------------------------------
  * Endianness
  */
@@ -27,6 +26,8 @@
 #else
 #error "Cannot determine system endianness"
 #endif
+
+#define CORK_HAVE_REALLOCF  1
 
 
 #endif /* LIBCORK_CONFIG_MACOSX_H */
