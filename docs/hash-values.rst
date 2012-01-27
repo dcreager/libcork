@@ -23,6 +23,9 @@ of the current process.
    `MurmurHash3 <http://code.google.com/p/smhasher/>`_ as its hash
    implementation.
 
+Hashing in C code
+-----------------
+
 A common pattern would be something along the lines of::
 
   struct my_type {
@@ -47,10 +50,9 @@ A common pattern would be something along the lines of::
 
 In this example, the seed value (``0xd4a130d8``) is the hash of the
 constant string ``"struct my_type"``.  You can produce seed values like
-this using the ``extras/hashstring.py`` script that's included in the
-libcork source::
+this using the :ref:`cork-hash <cork-hash>` script described below::
 
-  $ python extras/hashstring.py "struct my_type"
+  $ cork-hash "struct my_type"
   0xd4a130d8
 
 
@@ -65,3 +67,24 @@ libcork source::
 
    Incorporate the contents of a variable into the hash value.  *val*
    must be an lvalue visible in the current scope.
+
+
+.. _cork-hash:
+
+Hashing from the command line
+-----------------------------
+
+Several parts of libcork use hash values as identifiers; you use a
+unique string to identify part of your code, and use the hash of that
+string as the actual identifier value.  We provide a command-line
+utility that you can use to produce these hash values:
+
+.. code-block:: none
+
+   cork-hash <string>
+
+.. describe:: <string>
+
+   The string to hash.  This should be provided as a single argument on
+   the command line, so if your string contains spaces or other shell
+   meta-characters, you must enclose the string in quotes.

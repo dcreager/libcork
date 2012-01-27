@@ -495,10 +495,9 @@ error class is represented by the string
 ``"libcork/core/net-addresses.h"``.
 
 Given this string, you can produce the error class's hash value using
-the ``extras/hashstring.py`` script that's included in the libcork
-source::
+the :ref:`cork-hash <cork-hash>` command that's installed with libcork::
 
-  $ python extras/hashstring.py "libcork/core/net-addresses.h"
+  $ cork-hash "libcork/core/net-addresses.h"
   0x1f76fedf
 
 The next step is to define the error codes within the class.  This is
