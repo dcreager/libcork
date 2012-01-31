@@ -109,4 +109,17 @@
 #endif
 
 
+/*
+ * Declare that a boolean expression is likely to be true or false.
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_LIKELY(expr)  __builtin_expect((expr), 1)
+#define CORK_UNLIKELY(expr)  __builtin_expect((expr), 0)
+#else
+#define CORK_LIKELY(expr)  (expr)
+#define CORK_UNLIKELY(expr)  (expr)
+#endif
+
+
 #endif /* LIBCORK_CORE_ATTRIBUTES_H */

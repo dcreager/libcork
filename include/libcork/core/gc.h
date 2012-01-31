@@ -12,7 +12,6 @@
 #define LIBCORK_GC_REFCOUNT_H
 
 
-#include <libcork/core/allocator.h>
 #include <libcork/core/types.h>
 
 
@@ -21,8 +20,6 @@ struct cork_gc_header;
 
 /* A garbage collector context. */
 struct cork_gc {
-    /* An allocator used to allocate the objects managed by this GC. */
-    struct cork_alloc  *alloc;
     /* The possible roots of garbage cycles.  This is a fixed-size
      * array. */
     struct cork_gc_header  **roots;
@@ -50,7 +47,7 @@ struct cork_gc_obj_iface {
 
 
 int
-cork_gc_init(struct cork_gc *gc, struct cork_alloc *alloc);
+cork_gc_init(struct cork_gc *gc);
 
 void
 cork_gc_done(struct cork_gc *gc);

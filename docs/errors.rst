@@ -74,16 +74,14 @@ If you want to know specifics about the error, you need to create a
 :c:type:`cork_error` instance to pass in for the *err* parameter.  The
 easiest way to do this is to simply allocate one on the stack::
 
-  struct cork_alloc  *alloc = /* obtained elsewhere */;
   struct cork_error  err = CORK_ERROR_INIT();
 
 or::
 
-  struct cork_alloc  *alloc = /* obtained elsewhere */;
   struct cork_error  err;
-  cork_error_init(alloc, &err);
+  cork_error_init(&err);
 
-.. function:: void cork_error_init(struct cork_alloc \*alloc, struct cork_error \*err)
+.. function:: void cork_error_init(struct cork_error \*err)
               struct cork_error CORK_ERROR_INIT()
 
    Initializes an error instance that you've allocated on the stack or
@@ -121,7 +119,7 @@ to interrogate the error instance.
 When you're done with your error instance, you should use
 ``cork_error_done`` to dispose of it.
 
-.. function:: void cork_error_done(struct cork_alloc \*alloc, struct cork_error \*err)
+.. function:: void cork_error_done(struct cork_error \*err)
 
    Finalizes an error condition instance.
 
@@ -150,7 +148,7 @@ codes if there are other possible results besides a simple “success” and
 If your function results in an error, you need to fill in your
 function's *err* parameter, using the ``cork_error_set`` function:
 
-.. function:: void cork_error_set(struct cork_alloc \*alloc, struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
+.. function:: void cork_error_set(struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
 
    Fills in *err* with the given error condition.  The error condition
    is defined by the error class *eclass*, the error code *ecode*.  The
@@ -167,7 +165,7 @@ to parse a malformed address::
 
   const char  *str = /* the string that's being parsed */;
   cork_error_set
-      (alloc, err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+      (err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
        "Invalid IP address: %s", str);
 
 If a particular kind of error can be raised in several places
@@ -175,11 +173,11 @@ throughout your code, it can be useful to define a helper function for
 filling in an *err* parameter::
 
   static void
-  cork_ip_address_parse_error(struct cork_alloc *alloc, struct cork_error *err,
-                              const char *version, const char *str)
+  cork_ip_address_parse_error(struct cork_error *err, const char *version,
+                              const char *str)
   {
       cork_error_set
-          (alloc, err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+          (err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
            "Invalid %s address: %s", version, str);
   }
 
@@ -222,7 +220,7 @@ need to define your own ``cork_error`` instance, and then *clear* or
 *propagate* that into the caller's *err* instance as appropriate::
 
   int
-  outer_function(struct cork_alloc *alloc, /* params */, struct cork_error *err)
+  outer_function(/* params */, struct cork_error *err)
   {
       struct cork_error  suberr = CORK_ERROR_INIT();
 
@@ -233,10 +231,10 @@ need to define your own ``cork_error`` instance, and then *clear* or
           if ((cork_error_class(&suberr) == CORK_NET_ADDRESS_ERROR) &&
               (cork_error_code(&suberr) == CORK_NET_ADDRESS_PARSE_ERROR)) {
               /* Perform some kind of recovery, and then clean up the error */
-              cork_error_done(alloc, &suberr);
+              cork_error_done(&suberr);
           } else {
               /* We can't recover from this error, so propagate it on */
-              cork_error_propagate(alloc, err, &suberr);
+              cork_error_propagate(err, &suberr);
               return -1;
           }
       }
@@ -245,7 +243,7 @@ need to define your own ``cork_error`` instance, and then *clear* or
       return 0;
   }
 
-.. function:: void cork_error_propagate(struct cork_alloc \*alloc, struct cork_error \*err, struct cork_error \*suberr)
+.. function:: void cork_error_propagate(struct cork_error \*err, struct cork_error \*suberr)
 
    Propagates an error condition from one instance to another.  In the
    most common case, *err* will be the error instance passed in from the
@@ -407,14 +405,12 @@ The macros in this section make it easier to write this kind of code.
               void rp_check_new(type, var, desc)
 
    Allocates a new instance using a custom allocator.  These macros
-   assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, an error condition parameter named
+   assume that you have an error condition parameter or variable named
    ``err``, and that you've already declared a variable named *var*, of
    type *type*.  *desc* should be a human-readable name of the kind of
    object you're trying to allocate.  We'll automatically allocate a new
    instance, storing it into *var*.  If the allocation fails, we'll fill
-   in *err* with a :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error
-   condition.
+   in *err* with a :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
 
 .. function:: void e_check_gc_new(type, var, desc)
               void x_check_gc_new(retval, type, var, desc)
@@ -422,15 +418,14 @@ The macros in this section make it easier to write this kind of code.
               void rp_check_gc_new(type, var, desc)
 
    Allocates a new instance of a garbage-collected object.  These macros
-   assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, an error condition parameter named
-   ``err``, and that you've already declared a variable named *var*, of
-   type *type*.  They also assume that the garbage collection interface
-   for *type* is named ``[type]_gc_iface``.  *desc* should be a
-   human-readable name of the kind of object you're trying to allocate.
-   We'll automatically allocate a new instance, storing it into *var*.
-   If the allocation fails, we'll fill in *err* with a
-   :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+   assume that you have an error condition parameter named ``err``, and
+   that you've already declared a variable named *var*, of type *type*.
+   They also assume that the garbage collection interface for *type* is
+   named ``[type]_gc_iface``.  *desc* should be a human-readable name of
+   the kind of object you're trying to allocate.  We'll automatically
+   allocate a new instance, storing it into *var*.  If the allocation
+   fails, we'll fill in *err* with a
+   :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
 
    .. note::
 
@@ -445,15 +440,14 @@ The macros in this section make it easier to write this kind of code.
               void rp_check_gc_inew(type, iface, var, desc)
 
    Allocates a new instance of a garbage-collected object.  These macros
-   assume that you have a parameter or variable named ``alloc`` that
-   contains a custom allocator, an error condition parameter named
-   ``err``, and that you've already declared a variable named *var*, of
-   type *type*.  They also assume that the garbage collection interface
-   for *type* is named *iface*.  *desc* should be a human-readable name
-   of the kind of object you're trying to allocate.  We'll automatically
-   allocate a new instance, storing it into *var*.  If the allocation
-   fails, we'll fill in *err* with a
-   :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+   assume that you have an error condition parameter named ``err``, and
+   that you've already declared a variable named *var*, of type *type*.
+   They also assume that the garbage collection interface for *type* is
+   named *iface*.  *desc* should be a human-readable name of the kind of
+   object you're trying to allocate.  We'll automatically allocate a new
+   instance, storing it into *var*.  If the allocation fails, we'll fill
+   in *err* with a :c:macro:`CORK_CANNOT_ALLOCATE` error
+   condition.
 
    .. note::
 
@@ -468,11 +462,10 @@ The macros in this section make it easier to write this kind of code.
 
    Checks the result of an arbitrary allocation.  *call* should be a
    statement that allocates some new memory.  These macros assume that
-   you have a parameter or variable named ``alloc`` that contains a
-   custom allocator, and an error condition parameter named ``err``.
-   *desc* should be a human-readable name of the kind of object you're
-   trying to allocate.    If the allocation fails, we'll fill in *err*
-   with a :c:macro:`CORK_ALLOC_CANNOT_ALLOCATE` error condition.
+   you have and an error condition parameter named ``err``.  *desc*
+   should be a human-readable name of the kind of object you're trying
+   to allocate.    If the allocation fails, we'll fill in *err* with a
+   :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
 
 
 Defining a new error class
@@ -495,10 +488,9 @@ error class is represented by the string
 ``"libcork/core/net-addresses.h"``.
 
 Given this string, you can produce the error class's hash value using
-the ``extras/hashstring.py`` script that's included in the libcork
-source::
+the :ref:`cork-hash <cork-hash>` command that's installed with libcork::
 
-  $ python extras/hashstring.py "libcork/core/net-addresses.h"
+  $ cork-hash "libcork/core/net-addresses.h"
   0x1f76fedf
 
 The next step is to define the error codes within the class.  This is
@@ -546,7 +538,7 @@ error class and code instead.
    The error class and codes used for the error conditions described in
    this section.
 
-.. function:: int cork_unknown_error_set(struct cork_alloc \*alloc, struct cork_error \*err)
+.. function:: int cork_unknown_error_set(struct cork_error \*err)
 
    Fills in *err* to indicate that there was some unknown error.  The
    error description will include the name of the current function.

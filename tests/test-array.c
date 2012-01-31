@@ -25,10 +25,21 @@
  */
 
 #define add_element(element, expected_new_size) \
-    fail_if_error(cork_array_append(alloc, &array, element, &err)); \
+    fail_if_error(cork_array_append(&array, element, &err)); \
     fail_unless(cork_array_size(&array) == expected_new_size, \
                 "Unexpected size of array: got %zu, expected %zu", \
                 cork_array_size(&array), expected_new_size);
+
+#define add_element0(element, expected_new_size, int_type) \
+    do { \
+        int_type  *__element; \
+        fail_if_error(__element = cork_array_append_get \
+                      (&array, &err)); \
+        *__element = element; \
+        fail_unless(cork_array_size(&array) == expected_new_size, \
+                    "Unexpected size of array: got %zu, expected %zu", \
+                    cork_array_size(&array), expected_new_size); \
+    } while (0)
 
 #define test_sum(expected) \
     do { \
@@ -46,10 +57,9 @@
 START_TEST(test_array_##int_type) \
 { \
     DESCRIBE_TEST; \
-    struct cork_alloc  *alloc = cork_allocator_new_debug(); \
     \
     cork_array(int_type)  array; \
-    cork_array_init(alloc, &array); \
+    cork_array_init(&array); \
     \
     fail_unless(cork_array_size(&array) == 0, \
                 "Unexpected size of array: got %zu, expected 0", \
@@ -58,28 +68,26 @@ START_TEST(test_array_##int_type) \
     /* Make sure to add enough elements to force the array into \
      * heap-allocated storage. */ \
     test_sum(0); \
-    add_element( 1,  1); \
+    add_element ( 1,  1); \
     test_sum(1); \
-    add_element( 2,  2); \
+    add_element0( 2,  2, int_type); \
     test_sum(3); \
-    add_element( 3,  3); \
+    add_element ( 3,  3); \
     test_sum(6); \
-    add_element( 4,  4); \
+    add_element0( 4,  4, int_type); \
     test_sum(10); \
-    add_element( 5,  5); \
+    add_element0( 5,  5, int_type); \
     test_sum(15); \
-    add_element( 6,  6); \
+    add_element ( 6,  6); \
     test_sum(21); \
-    add_element( 7,  7); \
+    add_element ( 7,  7); \
     test_sum(28); \
-    add_element( 8,  8); \
+    add_element0( 8,  8, int_type); \
     test_sum(36); \
-    add_element( 9,  9); \
+    add_element ( 9,  9); \
     test_sum(45); \
-    add_element(10, 10); \
+    add_element0(10, 10, int_type); \
     test_sum(55); \
-    \
-    cork_allocator_free(alloc); \
 } \
 END_TEST
 

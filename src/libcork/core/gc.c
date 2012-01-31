@@ -8,6 +8,8 @@
  * ----------------------------------------------------------------------
  */
 
+#include <stdlib.h>
+
 #include "libcork/core/allocator.h"
 #include "libcork/core/gc.h"
 #include "libcork/core/types.h"
@@ -92,7 +94,7 @@ struct cork_gc_header {
         if ((hdr)->iface->free != NULL) { \
             (hdr)->iface->free((hdr)->gc, cork_gc_get_object((hdr))); \
         } \
-        cork_free((hdr)->gc->alloc, (hdr), (hdr)->allocated_size); \
+        free((hdr)); \
     } while (0)
 
 #define cork_gc_recurse(hdr, recurser) \
@@ -127,15 +129,13 @@ static void
 cork_gc_collect_cycles(struct cork_gc *gc);
 
 int
-cork_gc_init(struct cork_gc *gc, struct cork_alloc *alloc)
+cork_gc_init(struct cork_gc *gc)
 {
-    gc->roots =
-        cork_malloc(alloc, sizeof(struct cork_gc_header *) * ROOTS_SIZE);
+    gc->roots = calloc(ROOTS_SIZE, sizeof(struct cork_gc_header *));
     if (gc->roots == NULL) {
         return 1;
     }
 
-    gc->alloc = alloc;
     gc->root_count = 0;
     return 0;
 }
@@ -144,9 +144,7 @@ void
 cork_gc_done(struct cork_gc *gc)
 {
     cork_gc_collect_cycles(gc);
-    cork_free(gc->alloc, gc->roots,
-              sizeof(struct cork_gc_header *) * ROOTS_SIZE);
-    gc->alloc = NULL;
+    free(gc->roots);
     gc->roots = NULL;
     gc->root_count = 0;
 }
@@ -157,7 +155,7 @@ cork_gc_alloc(struct cork_gc *gc, size_t instance_size,
 {
     size_t  full_size = instance_size + sizeof(struct cork_gc_header);
     DEBUG("Allocating %zu (%zu) bytes\n", instance_size, full_size);
-    struct cork_gc_header  *header = cork_malloc(gc->alloc, full_size);
+    struct cork_gc_header  *header = malloc(full_size);
     if (header == NULL) {
         return NULL;
     }

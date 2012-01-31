@@ -58,6 +58,14 @@ macros to choose among the possible implementations.
    be defined to ``0`` or ``1``.
 
 
+.. macro:: CORK_CONFIG_HAVE_REALLOCF
+
+   Whether this platform defines a ``reallocf`` function in
+   ``stdlib.h``.  ``reallocf`` is a BSD extension that frees the
+   existing pointer if a reallocation fails.  If this function exists,
+   we can use it to implement :func:`cork_realloc`.
+
+
 .. _skipping-autodetection:
 
 Skipping autodetection

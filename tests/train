@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Usage: train [spec-dir]
+#
+# spec-dir should contain the following files:
+#   command  the command to run (from within the top-level build directory)
+#   in       content that will passed to stdin
+
+if [ $# -ne 1 ]; then
+    echo "Usage: run-test [spec-dir]" >&2
+    exit 1
+fi
+
+SPEC_DIR="$1" && shift
+if [ ! -d "${SPEC_DIR}" ]; then
+    echo "Spec directory ${SPEC_DIR} doesn't exist"
+    exit 1
+fi
+
+if [ ! -f "${SPEC_DIR}"/command ]; then
+    echo "No command in ${SPEC_DIR}"
+    exit 1
+fi
+
+TEST_NAME=`basename ${SPEC_DIR}`
+COMMAND=`cat "${SPEC_DIR}/command"`
+
+if [ -f "${SPEC_DIR}"/in ]; then
+    IN_FILE="${SPEC_DIR}/in"
+else
+    IN_FILE=/dev/null
+fi
+
+echo "Saving ${TEST_NAME} stdout and stderr..."
+
+${COMMAND} < ${IN_FILE} \
+    > "${SPEC_DIR}/out" 2> "${SPEC_DIR}/err"
+
+echo ""
+echo "Is this what you expected?"
+
+echo ""
+echo "stdout:"
+cat "${SPEC_DIR}/out"
+
+echo ""
+echo "stderr:"
+cat "${SPEC_DIR}/err"

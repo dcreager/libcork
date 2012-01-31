@@ -12,7 +12,6 @@
 #define LIBCORK_DS_ARRAY_H
 
 
-#include <libcork/core/allocator.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
@@ -32,17 +31,17 @@
         T  internal[CORK_INTERNAL_COUNT_FROM_TYPE(T)]; \
     }
 
-#define cork_array_init(alloc, arr) \
+#define cork_array_init(arr) \
     do { \
         (arr)->items = (arr)->internal; \
         (arr)->size = 0; \
         (arr)->allocated_size = 0; \
     } while (0)
 
-#define cork_array_done(alloc, arr) \
+#define cork_array_done(arr) \
     do { \
         if ((arr)->allocated_size != 0) { \
-            cork_free((alloc), (arr)->items, (arr)->allocated_size); \
+            free((arr)->items); \
         } \
     } while (0)
 
@@ -52,18 +51,25 @@
 
 #define cork_array_element_size(arr)  (sizeof((arr)->items[0]))
 
-#define cork_array_ensure_size(alloc, arr, count, err) \
+#define cork_array_ensure_size(arr, count, err) \
     (cork_array_ensure_size_ \
-     ((alloc), (arr), (count), cork_array_element_size(arr), (err)))
+     ((arr), (count), cork_array_element_size(arr), (err)))
 
 int
-cork_array_ensure_size_(struct cork_alloc *alloc, void *array,
-                        size_t desired_count, size_t element_size,
+cork_array_ensure_size_(void *array, size_t desired_count, size_t element_size,
                         struct cork_error *err);
 
-#define cork_array_append(alloc, arr, element, err) \
-    (cork_array_ensure_size((alloc), (arr), (arr)->size+1, (err)) || \
+#define cork_array_append(arr, element, err) \
+    (cork_array_ensure_size((arr), (arr)->size+1, (err)) || \
      ((arr)->items[(arr)->size++] = (element), 0))
+
+void *
+cork_array_append_get_(void *array, size_t element_size,
+                       struct cork_error *err);
+
+#define cork_array_append_get(arr, err) \
+    (cork_array_append_get_ \
+     ((arr), cork_array_element_size(arr), (err)))
 
 
 #endif /* LIBCORK_DS_ARRAY_H */

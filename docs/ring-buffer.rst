@@ -29,13 +29,13 @@ Ring buffers
    they're added by :c:func:`cork_ring_buffer_add()`.
 
 
-.. function:: int cork_ring_buffer_init(struct cork_alloc \*alloc, struct cork_ring_buffer \*buf, size_t size)
+.. function:: int cork_ring_buffer_init(struct cork_ring_buffer \*buf, size_t size)
 
    Initializes a ring buffer instance, having a capacity of *size*
    elements.  If we cannot initialize the ring buffer, we'll return
    ``1``.
 
-.. function:: void cork_ring_buffer_done(struct cork_alloc \*alloc, struct cork_ring_buffer \*buf)
+.. function:: void cork_ring_buffer_done(struct cork_ring_buffer \*buf)
 
    Finalizes a ring buffer instance.  Nothing special is done to any
    remaining elements in the ring buffer; if they need to be finalized,

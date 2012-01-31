@@ -237,6 +237,16 @@ table.indextable dt {
     font-size: 100%;
 }
 
+em.property {
+    font-size: 90%;
+}
+
+tt.descclassname {
+    background-color: transparent;
+    border: 0px;
+    padding: 0px;
+}
+
 tt.descname {
     background-color: transparent;
     border: 0px;
@@ -245,6 +255,20 @@ tt.descname {
 }
 
 dt big {
+    font-family: 'Palatino Linotype', Palatino, 'URW Palladio L', 'Book Antiqua', FreeSerif, serif;
+    font-size: 140%;
+    padding: 0 2px;
+}
+
+dt big.param_start_brace {
+    padding: 0 6px;
+}
+
+dt big.param_end_brace {
+    padding: 0 6px;
+}
+
+dt span.optional {
     font-family: 'Palatino Linotype', Palatino, 'URW Palladio L', 'Book Antiqua', FreeSerif, serif;
     font-size: 140%;
     padding: 0 2px;

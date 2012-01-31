@@ -53,26 +53,26 @@ Creating a garbage collector
 
 .. type:: struct cork_gc
 
-   A garbage collection context.  You can consider this to be an opaque
-   wrapper around a :c:type:`cork_alloc` custom allocator.  You should
-   not access any of the fields of this type directly.
+   A garbage collection context.  You should not access any of the
+   fields of this type directly.
 
-.. function:: int cork_gc_init(struct cork_gc \*gc, struct cork_alloc \*alloc)
+.. function:: int cork_gc_init(struct cork_gc \*gc)
 
-   Initalize a new garbage collection context.  Unlike custom
-   allocators, you are responsible for allocation the storage for the
-   garbage collector object yourself.  Usually, you can allocate this on
-   the stack of your ``main`` function::
+   Initalize a new garbage collection context.  Usually, you can
+   allocate this on the stack of your ``main`` function::
 
      int
      main(int argc, char ** argv)
      {
-         struct cork_alloc * alloc = cork_allocator_new_malloc();
          struct cork_gc  gc;
-         if (cork_gc_init(&gc, alloc) == -1) {
-             cork_allocator_free(alloc);
+         if (cork_gc_init(&gc) == -1) {
              exit(1);
          }
+
+         /* use the GC context */
+
+         /* and free it when you're done */
+         cork_gc_done(&gc);
      }
 
 .. function:: void cork_gc_done(struct cork_gc \*gc)
@@ -239,9 +239,8 @@ garbage collector, there are two basic steps you need to follow:
 * Implement a set of callback functions that allow the garbage collector
   to interact with objects of the new class.
 
-* Use the garbage collector's allocation functions, instead of the basic
-  :ref:`custom allocator functions <using-allocators>`, in your class's
-  constructor function.
+* Use the garbage collector's allocation functions to allocate storage
+  for instance of your class.
 
 You won't need to write a public destructor function, since objects of
 the new class will be destroyed automatically when the garbage collector
@@ -310,8 +309,8 @@ Allocating new garbage-collected objects
 In your garbage-collected class's constructor, you must use one of the
 following functions to allocate the object's storage.  (The garbage
 collector hides some additional state in the object's memory region, so
-you can't allocate the storage using :c:func:`cork_malloc()` or
-:c:func:`cork_new()` directly.)
+you can't allocate the storage using ``malloc`` or :c:func:`cork_new()`
+directly.)
 
 .. function:: void \*cork_gc_alloc(struct cork_gc \*gc, size_t instance_size, struct cork_gc_obj_iface \*iface)
 

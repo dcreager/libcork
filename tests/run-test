@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# Usage: run-test [spec-dir]
+#
+# spec-dir should contain the following files:
+#   command  the command to run (from within the tests build directory)
+#   in       content that will passed to stdin
+#   out      content that should appear on stdout
+#   err      content that should appear on stderr
+
+if [ $# -ne 1 ]; then
+    echo "Usage: run-test [spec-dir]" >&2
+    exit 1
+fi
+
+SPEC_DIR="$1" && shift
+if [ ! -d "${SPEC_DIR}" ]; then
+    echo "Spec directory ${SPEC_DIR} doesn't exist"
+    exit 1
+fi
+
+if [ ! -f "${SPEC_DIR}"/command ]; then
+    echo "No command in ${SPEC_DIR}"
+    exit 1
+fi
+
+TEST_NAME=`basename ${SPEC_DIR}`
+COMMAND=`cat "${SPEC_DIR}/command"`
+
+if [ -f "${SPEC_DIR}"/in ]; then
+    IN_FILE="${SPEC_DIR}/in"
+else
+    IN_FILE=/dev/null
+fi
+
+mkdir -p results
+${COMMAND} < ${IN_FILE} \
+    > results/${TEST_NAME}.out 2> results/${TEST_NAME}.err
+
+GOOD=1
+
+if [ -f "${SPEC_DIR}"/out ]; then
+    echo "Comparing stdout..."
+    diff -u "${SPEC_DIR}"/out results/${TEST_NAME}.out || GOOD=0
+fi
+
+if [ -f "${SPEC_DIR}"/err ]; then
+    echo "Comparing stderr..."
+    diff -u "${SPEC_DIR}"/err results/${TEST_NAME}.err || GOOD=0
+fi
+
+if [ ${GOOD} == 0 ]; then
+    echo "Test failed"
+    exit 1
+fi

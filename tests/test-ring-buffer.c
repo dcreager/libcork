@@ -19,14 +19,13 @@
 
 
 /*-----------------------------------------------------------------------
- * Doubly-linked bufs
+ * Ring buffers
  */
 
 START_TEST(test_ring_buffer)
 {
-    struct cork_alloc  *alloc = cork_allocator_new_debug();
     struct cork_ring_buffer  buf;
-    cork_ring_buffer_init(alloc, &buf, 4);
+    cork_ring_buffer_init(&buf, 4);
 
     fail_unless(cork_ring_buffer_add(&buf, (void *) 1) == 0,
                 "Cannot add to ring buffer");
@@ -64,8 +63,7 @@ START_TEST(test_ring_buffer)
     fail_unless(cork_ring_buffer_pop(&buf) == NULL,
                 "Shouldn't be able to pop from ring buffer");
 
-    cork_ring_buffer_done(alloc, &buf);
-    cork_allocator_free(alloc);
+    cork_ring_buffer_done(&buf);
 }
 END_TEST
 

@@ -8,16 +8,16 @@
  * ----------------------------------------------------------------------
  */
 
-#include "libcork/core/allocator.h"
+#include <stdlib.h>
+
 #include "libcork/core/types.h"
 #include "libcork/ds/ring-buffer.h"
 
 
 int
-cork_ring_buffer_init(struct cork_alloc *alloc,
-                      struct cork_ring_buffer *self, size_t size)
+cork_ring_buffer_init(struct cork_ring_buffer *self, size_t size)
 {
-    self->elements = cork_malloc(alloc, sizeof(void *) * size);
+    self->elements = calloc(size, sizeof(void *));
     if (self->elements == NULL) {
         return -1;
     }
@@ -30,10 +30,9 @@ cork_ring_buffer_init(struct cork_alloc *alloc,
 }
 
 void
-cork_ring_buffer_done(struct cork_alloc *alloc,
-                      struct cork_ring_buffer *self)
+cork_ring_buffer_done(struct cork_ring_buffer *self)
 {
-    cork_free(alloc, self->elements, sizeof(void *) * self->allocated_size);
+    free(self->elements);
 }
 
 int

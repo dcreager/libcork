@@ -14,6 +14,14 @@ The macros in this section define compiler-agnostic versions of several
 common compiler attributes.
 
 
+.. function:: CORK_LIKELY(expression)
+              CORK_UNLIKELY(expression)
+
+   Indicate that the given Boolean *expression* is likely to be ``true``
+   or ``false``, respectively.  The compiler can sometimes use this
+   information to generate more efficient code.
+
+
 .. macro:: CORK_ATTR_CONST
 
    Declare a “constant” function.  The return value of a constant

@@ -17,28 +17,26 @@
 
 
 void
-cork_error_init(struct cork_alloc *alloc, struct cork_error *error)
+cork_error_init(struct cork_error *error)
 {
     error->error_class = CORK_ERROR_NONE;
     error->error_code = 0;
-    cork_buffer_init(alloc, &error->message);
+    cork_buffer_init(&error->message);
 }
 
 
 void
-cork_error_done(struct cork_alloc *alloc, struct cork_error *error)
+cork_error_done(struct cork_error *error)
 {
     error->error_class = CORK_ERROR_NONE;
     error->error_code = 0;
-    cork_buffer_done(alloc, &error->message);
+    cork_buffer_done(&error->message);
 }
 
 
 void
-cork_error_set(struct cork_alloc *alloc, struct cork_error *error,
-               cork_error_class error_class,
-               cork_error_code error_code,
-               const char *format, ...)
+cork_error_set(struct cork_error *error, cork_error_class error_class,
+               cork_error_code error_code, const char *format, ...)
 {
     if (error != NULL) {
         /* TODO: Assert that there isn't already an error */
@@ -46,31 +44,29 @@ cork_error_set(struct cork_alloc *alloc, struct cork_error *error,
         error->error_code = error_code;
         va_list  args;
         va_start(args, format);
-        cork_buffer_vprintf(alloc, &error->message, format, args, NULL);
+        cork_buffer_vprintf(&error->message, format, args, NULL);
         va_end(args);
     }
 }
 
 
 void
-cork_error_propagate(struct cork_alloc *alloc, struct cork_error *error,
-                     struct cork_error *suberror)
+cork_error_propagate(struct cork_error *error, struct cork_error *suberror)
 {
     if (error == NULL) {
-        cork_error_done(alloc, suberror);
+        cork_error_done(suberror);
     } else {
         /* TODO: Assert that there isn't already an error */
         memcpy(error, suberror, sizeof(struct cork_error));
-        cork_error_init(alloc, suberror);
+        cork_error_init(suberror);
     }
 }
 
 
 void
-cork_unknown_error_set_(struct cork_alloc *alloc, struct cork_error *err,
-                        const char *location)
+cork_unknown_error_set_(struct cork_error *err, const char *location)
 {
     cork_error_set
-        (alloc, err, CORK_BUILTIN_ERROR, CORK_UNKNOWN_ERROR,
+        (err, CORK_BUILTIN_ERROR, CORK_UNKNOWN_ERROR,
          "Unknown error in %s", location);
 }
