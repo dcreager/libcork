@@ -52,6 +52,10 @@ if (GENERATE_DOC)
   #
   # find_prereq_doc(libcork)
 
+  set(
+    VERSION_FOR_CONF_PY
+    "\nrelease=\"${VERSION}\"\nversion=\"${BASE_VERSION}\""
+  )
   configure_file(${SPHINX_SRC_CONF_FILE} ${SPHINX_CONF_FILE} @ONLY)
   file(COPY _static DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY _templates DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
