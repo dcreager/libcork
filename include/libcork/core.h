@@ -19,6 +19,7 @@
 #include <libcork/core/error.h>
 #include <libcork/core/gc.h>
 #include <libcork/core/hash.h>
+#include <libcork/core/mempool.h>
 #include <libcork/core/net-addresses.h>
 #include <libcork/core/timestamp.h>
 #include <libcork/core/types.h>

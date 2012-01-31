@@ -41,6 +41,7 @@ Contents
    allocation
    errors
    gc
+   mempool
    ds
 
 

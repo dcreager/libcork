@@ -48,6 +48,7 @@ make_test(test-dllist)
 make_test(test-gc)
 make_test(test-hash-table)
 make_test(test-managed-buffer)
+make_test(test-mempool)
 make_test(test-ring-buffer)
 
 #-----------------------------------------------------------------------
