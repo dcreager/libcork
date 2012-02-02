@@ -23,13 +23,19 @@ struct cork_mempool_block;
 struct cork_mempool_object;
 
 struct cork_mempool {
-     size_t  element_size;
-     size_t  block_size;
-     struct cork_mempool_object  *free_list;
-     /* The number of objects that have been given out by
-      * cork_mempool_new but not returned via cork_mempool_free. */
-     size_t  allocated_count;
-     struct cork_mempool_block  *blocks;
+    size_t  element_size;
+    size_t  block_size;
+    struct cork_mempool_object  *free_list;
+    /* The number of objects that have been given out by
+     * cork_mempool_new but not returned via cork_mempool_free. */
+    size_t  allocated_count;
+    struct cork_mempool_block  *blocks;
+
+    int
+    (*init_object)(void *obj);
+
+    void
+    (*done_object)(void *obj);
 };
 
 

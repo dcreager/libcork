@@ -57,6 +57,8 @@ cork_mempool_init_size_ex(struct cork_mempool *mp, size_t element_size,
     mp->free_list = NULL;
     mp->allocated_count = 0;
     mp->blocks = NULL;
+    mp->init_object = NULL;
+    mp->done_object = NULL;
 }
 
 void
@@ -64,6 +66,14 @@ cork_mempool_done(struct cork_mempool *mp)
 {
     struct cork_mempool_block  *curr;
     assert(mp->allocated_count == 0);
+
+    if (mp->done_object != NULL) {
+        struct cork_mempool_object  *obj;
+        for (obj = mp->free_list; obj != NULL; obj = obj->next_free) {
+            mp->done_object(cork_mempool_get_object(obj));
+        }
+    }
+
     for (curr = mp->blocks; curr != NULL; ) {
         struct cork_mempool_block  *next = curr->next_block;
         free(curr);
@@ -95,6 +105,9 @@ cork_mempool_new_block(struct cork_mempool *mp)
          index += cork_mempool_object_size(mp)) {
         struct cork_mempool_object  *obj = vblock + index;
         DEBUG("  New object at %p[%p]\n", cork_mempool_get_object(obj), obj);
+        if (mp->init_object != NULL) {
+            rii_check(mp->init_object(cork_mempool_get_object(obj)));
+        }
         obj->next_free = mp->free_list;
         mp->free_list = obj;
     }
