@@ -50,12 +50,11 @@ struct cork_hash_table {
 };
 
 
-int
+void
 cork_hash_table_init(struct cork_hash_table *table,
                      size_t initial_size,
                      cork_hash_table_hasher hasher,
-                     cork_hash_table_comparator comparator,
-                     struct cork_error *err);
+                     cork_hash_table_comparator comparator);
 
 struct cork_hash_table *
 cork_hash_table_new(size_t initial_size,

@@ -41,13 +41,19 @@ you dispose of the hash table.
    should only you the functions described below to query or update the
    hash table.
 
-.. function:: int cork_hash_table_init(struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator, struct cork_error \*err)
+.. function:: void cork_hash_table_init(struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
               struct cork_hash_table \*cork_hash_table_new(size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator, struct cork_error \*err)
 
    Initializes a new hash table instance.  The ``_init`` variant should
    be used to initialize an instance that you've allocated yourself.
    The ``_new`` variant will allocate a new instance from the heap,
    returning ``NULL`` if the allocation fails.
+
+   .. note::
+
+      Note that the ``_init`` variant cannot fail; we don't allocate any
+      space for the hash table bins until you add the first element to
+      the table.
 
    If you know roughly how many entries you're going to add to the hash
    table, you can pass this in as the *initial_size* parameter.  If you
