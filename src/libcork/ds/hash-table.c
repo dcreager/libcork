@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -11,12 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "libcork/core/checkers.h"
 #include "libcork/core/error.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/dllist.h"
 #include "libcork/ds/hash-table.h"
+#include "libcork/helpers/errors.h"
 
 #ifndef CORK_HASH_TABLE_DEBUG
 #define CORK_HASH_TABLE_DEBUG 0

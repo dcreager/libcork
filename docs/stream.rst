@@ -52,7 +52,7 @@ producer that reads data from a file::
 
   #include <stdio.h>
   #include <libcork/core.h>
-  #include <libcork/core/checkers.h>
+  #include <libcork/helpers/errors.h>
   #include <libcork/ds.h>
 
   #define BUFFER_SIZE  65536
@@ -132,7 +132,7 @@ consumer that writes data to a file::
 
   #include <stdio.h>
   #include <libcork/core.h>
-  #include <libcork/core/checkers.h>
+  #include <libcork/helpers/errors.h>
   #include <libcork/ds.h>
 
   struct file_consumer {

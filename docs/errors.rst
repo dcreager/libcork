@@ -275,7 +275,7 @@ helper macros that make it easier to write this code.
    want to pollute your namespace unless you ask for the macros.  To do
    so, you must explicitly include their header file::
 
-     #include <libcork/core/checkers.h>
+     #include <libcork/helpers/errors.h>
 
 Additional debugging output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,9 +283,9 @@ Additional debugging output
 .. macro:: CORK_PRINT_ERRORS
 
    If you define this macro to ``1`` before including
-   ``libcork/core/checkers.h``, then we'll output the current function name,
-   file, and line number to stderr whenever an error is detected by one of the
-   macro described in this section.
+   :file:`libcork/helpers/errors.h`, then we'll output the current
+   function name, file, and line number to stderr whenever an error is
+   detected by one of the macro described in this section.
 
 Returning a default error code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

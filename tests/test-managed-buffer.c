@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2009-2010, RedJack, LLC.
+ * Copyright © 2009-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -14,7 +14,7 @@
 #include <check.h>
 
 #include "libcork/core/allocator.h"
-#include "libcork/core/checkers.h"
+#include "libcork/helpers/errors.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"

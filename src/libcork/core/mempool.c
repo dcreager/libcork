@@ -11,9 +11,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "libcork/core/checkers.h"
 #include "libcork/core/mempool.h"
 #include "libcork/core/types.h"
+#include "libcork/helpers/errors.h"
 
 
 #if !defined(CORK_DEBUG_MEMPOOL)

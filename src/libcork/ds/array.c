@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "libcork/core/checkers.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/array.h"
+#include "libcork/helpers/errors.h"
 
 #ifndef CORK_ARRAY_DEBUG
 #define CORK_ARRAY_DEBUG 0
