@@ -270,11 +270,10 @@ helper macros that make it easier to write this code.
 .. note::
 
    Unlike most libcork modules, these macros are **not** automatically
-   defined when you include the ``libcork/core.h`` header file.  Since
-   they're used so often, the macros don't include a ``cork_`` prefix,
-   saving a handful of keystrokes.  Because of this, we don't want to
-   pollute your namespace unless you ask for the macros.  To do so, you
-   must explicitly include their header file::
+   defined when you include the ``libcork/core.h`` header file, since
+   they don't include a ``cork_`` prefix.  Because of this, we don't
+   want to pollute your namespace unless you ask for the macros.  To do
+   so, you must explicitly include their header file::
 
      #include <libcork/core/checkers.h>
 
@@ -390,6 +389,8 @@ automatically return anything.)
    raises an error, we automatically jump to the current scope's
    ``error`` label.
 
+.. _alloc-macros:
+
 Allocating new instances
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -421,7 +422,9 @@ The macros in this section make it easier to write this kind of code.
    assume that you have an error condition parameter named ``err``, and
    that you've already declared a variable named *var*, of type *type*.
    They also assume that the garbage collection interface for *type* is
-   named ``[type]_gc_iface``.  *desc* should be a human-readable name of
+   named :samp:`{[type]}__gc`.  (This will be the case if you use the
+   :ref:`garbage-collection helper macros <gc-macros>` to declare your
+   garbage-collected class.)  *desc* should be a human-readable name of
    the kind of object you're trying to allocate.  We'll automatically
    allocate a new instance, storing it into *var*.  If the allocation
    fails, we'll fill in *err* with a

@@ -16,6 +16,7 @@
 
 #include "libcork/core/gc.h"
 #include "libcork/core/types.h"
+#include "libcork/helpers/gc.h"
 
 #define DESCRIBE_TEST \
     fprintf(stderr, "--- %s\n", __func__);
@@ -30,24 +31,18 @@ struct tree {
     struct tree  *right;
 };
 
-static void
-tree_recurse(struct cork_gc *gc, void *vself,
-             cork_gc_recurser recurse, void *ud)
-{
-    struct tree  *self = vself;
+_recurse_(tree) {
+    struct tree  *self = obj;
     recurse(gc, self->left, ud);
     recurse(gc, self->right, ud);
 }
 
-static struct cork_gc_obj_iface TREE_IFACE = {
-    NULL,
-    tree_recurse
-};
+_gc_no_free_(tree);
 
 struct tree *
 tree_new(struct cork_gc *gc, int id, struct tree *l, struct tree *r)
 {
-    struct tree  *self = cork_gc_new(gc, struct tree, &TREE_IFACE);
+    struct tree  *self = cork_gc_new(gc, struct tree, &tree__gc);
     self->id = id;
     self->left = cork_gc_incref(gc, l);
     self->right = cork_gc_incref(gc, r);

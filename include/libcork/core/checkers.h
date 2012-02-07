@@ -179,13 +179,13 @@
  * is called TYPE_NAME_gc */
 
 #define e_check_gc_new(type, var, desc) \
-    e_check_gc_inew(type, &type##_gc, var, desc)
+    e_check_gc_inew(type, &type##__gc, var, desc)
 #define x_check_gc_new(result, type, var, desc) \
-    x_check_gc_inew(result, type, &type##_gc, var, desc)
+    x_check_gc_inew(result, type, &type##__gc, var, desc)
 #define ri_check_gc_new(type, var, desc) \
-    ri_check_gc_inew(type, &type##_gc, var, desc)
+    ri_check_gc_inew(type, &type##__gc, var, desc)
 #define rp_check_gc_new(type, var, desc) \
-    rp_check_gc_inew(type, &type##_gc, var, desc)
+    rp_check_gc_inew(type, &type##__gc, var, desc)
 
 
 #endif /* LIBCORK_CORE_CHECKERS_H */

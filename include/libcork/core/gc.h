@@ -33,16 +33,19 @@ struct cork_gc {
 typedef void
 (*cork_gc_recurser)(struct cork_gc *gc, void *obj, void *ud);
 
+typedef void
+(*cork_gc_free_func)(struct cork_gc *gc, void *obj);
+
+typedef void
+(*cork_gc_recurse_func)(struct cork_gc *gc, void *self,
+                        cork_gc_recurser recurser, void *ud);
+
 /* An interface that each garbage-collected object must implement. */
 struct cork_gc_obj_iface {
     /* Perform additional cleanup; does *NOT* need to deallocate the
      * object itself, or release any child references */
-    void
-    (*free)(struct cork_gc *gc, void *obj);
-
-    void
-    (*recurse)(struct cork_gc *gc, void *self,
-               cork_gc_recurser recurser, void *ud);
+    cork_gc_free_func  free;
+    cork_gc_recurse_func  recurse;
 };
 
 
