@@ -168,3 +168,30 @@ cork_slice_equal(const struct cork_slice *slice1,
 
     return (memcmp(slice1->buf, slice2->buf, slice1->size) == 0);
 }
+
+
+static struct cork_slice_iface  cork_static_slice;
+
+static int
+cork_static_slice_copy(struct cork_slice *self, struct cork_slice *dest,
+                       size_t offset, size_t length, struct cork_error *err)
+{
+    dest->buf = self->buf + offset;
+    dest->size = length;
+    dest->iface = &cork_static_slice;
+    dest->user_data = NULL;
+    return 0;
+}
+
+static struct cork_slice_iface  cork_static_slice = {
+    NULL, cork_static_slice_copy, NULL
+};
+
+void
+cork_slice_init_static(struct cork_slice *dest, const void *buf, size_t size)
+{
+    dest->buf = buf;
+    dest->size = size;
+    dest->iface = &cork_static_slice;
+    dest->user_data = NULL;
+}

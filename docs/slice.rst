@@ -164,3 +164,35 @@ Slice interface
       :c:func:`cork_slice_slice()` and
       :c:func:`cork_slice_slice_offset()` will update the slice's *buf*
       and *size* fields for you.
+
+
+Built-in slice implementations
+------------------------------
+
+Several libcork classes can be used to initialize a slice:
+
+* :ref:`Managed buffers <managed-buffer>` via the
+  :c:func:`cork_managed_buffer_slice` function
+
+* :ref:`Resizable buffers <buffer>` via the
+  :c:func:`cork_buffer_to_slice` function
+
+In addition, you can initialize a slice to point at a static string
+using the following function:
+
+.. function:: void cork_slice_init_static(struct cork_slice \*dest, const void \*buf, size_t size)
+
+   Initializes *dest* to point at the given static buffer.  Since the
+   buffer is static, and guaranteed to always exist, the slice's
+   :c:member:`~cork_slice.copy` method doesn't copy the underlying data,
+   it just creates a new pointer to the existing buffer.
+
+   .. note::
+
+      You can also use this function to refer to a non-static buffer,
+      but then you take responsibility for ensuring that the underlying
+      buffer exists for at least as long as the slice, and any copies
+      made of the slice.
+
+   As with all slices, you **must** ensure that you call
+   :c:func:`cork_slice_finish` when you're done with the slice.

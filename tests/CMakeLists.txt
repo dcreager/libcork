@@ -50,6 +50,7 @@ make_test(test-hash-table)
 make_test(test-managed-buffer)
 make_test(test-mempool)
 make_test(test-ring-buffer)
+make_test(test-slice)
 
 #-----------------------------------------------------------------------
 # Command-line tests
