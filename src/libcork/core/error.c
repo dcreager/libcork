@@ -29,12 +29,14 @@ struct cork_error {
     struct cork_buffer  message;
 };
 
+CORK_ATTR_UNUSED
 static void
 cork_error_init(struct cork_error *err)
 {
     memset(err, 0, sizeof(struct cork_error));
 }
 
+CORK_ATTR_UNUSED
 static void
 cork_error_done(struct cork_error *err)
 {
