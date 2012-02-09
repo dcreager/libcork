@@ -28,20 +28,6 @@
 #endif
 
 
-struct cork_mempool_object {
-    /* When this object is unclaimed, it will be in the cork_mempool
-     * object's free_list using this pointer. */
-    struct cork_mempool_object  *next_free;
-};
-
-#define cork_mempool_object_size(mp) \
-    (sizeof(struct cork_mempool_object) + (mp)->element_size)
-
-#define cork_mempool_get_header(obj) \
-    (((struct cork_mempool_object *) (obj)) - 1)
-
-#define cork_mempool_get_object(hdr) \
-    ((void *) (((struct cork_mempool_object *) (hdr)) + 1))
 
 struct cork_mempool_block {
     struct cork_mempool_block  *next_block;
@@ -85,12 +71,8 @@ cork_mempool_done(struct cork_mempool *mp)
 
 
 /* If this function succeeds, then we guarantee that there will be at
- * least one object in mp->free_list.
- *
- * We don't want this inlined to keep the fast path of cork_mempool_new
- * as lean as possible. */
-CORK_ATTR_NOINLINE
-static int
+ * least one object in mp->free_list. */
+int
 cork_mempool_new_block(struct cork_mempool *mp)
 {
     /* Allocate the new block and add it to mp's block list. */
@@ -117,25 +99,6 @@ cork_mempool_new_block(struct cork_mempool *mp)
     }
 
     return 0;
-}
-
-
-void *
-cork_mempool_new(struct cork_mempool *mp)
-{
-    struct cork_mempool_object  *obj;
-    void  *ptr;
-
-    if (CORK_UNLIKELY(mp->free_list == NULL)) {
-        rpi_check(cork_mempool_new_block(mp));
-    }
-
-    obj = mp->free_list;
-    mp->free_list = obj->next_free;
-    mp->allocated_count++;
-    ptr = cork_mempool_get_object(obj);
-    DEBUG("Allocated %p[%p] from memory pool\n", ptr, obj);
-    return ptr;
 }
 
 void
