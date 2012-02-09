@@ -127,3 +127,58 @@ Compare-and-swap
    *new_value*.  We return the value of *var* before the
    compare-and-swap.  (If this value is equal to *old_value*, then the
    compare-and-swap was successful.)
+
+
+.. _once:
+
+Executing something once
+========================
+
+The functions in this section let you ensure that a particular piece of
+code is executed exactly once, even if multiple threads attempt the
+execution at roughly the same time.
+
+.. macro:: cork_once_barrier(name)
+
+   Declares a barrier that can be used with the :c:func:`cork_once`
+   macro.
+
+.. macro:: cork_once(barrier, call)
+
+   Ensure that *call* (which can be an arbitrary statement) is executed
+   exactly once, regardless of how many times control reaches the call
+   to ``cork_once``.  If control reaches the ``cork_once`` call at
+   roughly the same time in multiple threads, exactly one of them will
+   be allowed to execute the code.  The call to ``cork_once`` won't
+   return until *call* has been executed.
+
+   If you have multiple calls to ``cork_once`` that use the same
+   *barrier*, then exactly one *call* will succeed.  If the *call*
+   statements are different in those ``cork_once`` invocations, then
+   it's undefined which one gets executed.
+
+These macros are usually used to initialize a static variable that will
+be shared across multiple threads::
+
+    static struct my_type  shared_value;
+
+    static void
+    expensive_initialization(void)
+    {
+        /* do something to initialize shared_value */
+    }
+
+    cork_once_barrier(shared_value_once);
+
+    struct my_type *
+    get_shared_value(void)
+    {
+        cork_once(shared_value_once, expensive_initialization());
+        return &shared_value;
+    }
+
+Each thread can then call ``get_shared_value`` to retrieve a properly
+initialized instance of ``struct my_type``.  Regardless of how many
+threads call this function, and how often they call it, the value will
+be initialized exactly once, and will be guaranteed to be initialized
+before any thread tries to use it.

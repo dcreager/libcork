@@ -14,5 +14,6 @@
 /*** include all of the parts ***/
 
 #include <libcork/threads/atomics.h>
+#include <libcork/threads/basics.h>
 
 #endif /* LIBCORK_THREADS_H */

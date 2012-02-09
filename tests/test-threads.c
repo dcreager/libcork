@@ -16,6 +16,7 @@
 
 #include "libcork/core/types.h"
 #include "libcork/threads/atomics.h"
+#include "libcork/threads/basics.h"
 
 #include "helpers.h"
 
@@ -94,6 +95,36 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Once
+ */
+
+START_TEST(test_once)
+{
+    cork_once_barrier(once);
+    static size_t  call_count = 0;
+    static int  value = 0;
+
+#define go \
+    do { \
+        call_count++; \
+        value = 1; \
+    } while (0)
+
+    cork_once(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+
+    fail_unless_equal("Call count", "%zu", 1, call_count);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -119,6 +150,10 @@ test_suite()
     tcase_add_test(tc_atomic, test_atomic_ulong);
     tcase_add_test(tc_atomic, test_atomic_ptr);
     suite_add_tcase(s, tc_atomic);
+
+    TCase  *tc_basics = tcase_create("basics");
+    tcase_add_test(tc_basics, test_once);
+    suite_add_tcase(s, tc_basics);
 
     return s;
 }
