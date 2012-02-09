@@ -69,9 +69,9 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
    in network-endian order, regardless of the host's endianness.)
 
 
-.. function:: int cork_ipv4_init(struct cork_ipv4 \*addr, const char \*str, struct cork_error \*err)
-              int cork_ipv6_init(struct cork_ipv6 \*addr, const char \*str, struct cork_error \*err)
-              int cork_ip_init(struct cork_ip \*addr, const char \*str, struct cork_error \*err)
+.. function:: int cork_ipv4_init(struct cork_ipv4 \*addr, const char \*str)
+              int cork_ipv6_init(struct cork_ipv6 \*addr, const char \*str)
+              int cork_ip_init(struct cork_ip \*addr, const char \*str)
 
    Initializes a :c:type:`cork_ipv4`, :c:type:`cork_ipv6`, or
    :c:type:`cork_ip` instance from the string representation of an IP
@@ -83,8 +83,9 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
    ``cork_ipv6_init``.
 
    If *str* doesn't represent a valid address (of a compatible IP
-   version), then we leave *addr* unchanged, fill in *err* with a
-   :c:data:`CORK_NET_ADDRESS_PARSE_ERROR` error, and return ``-1``.
+   version), then we leave *addr* unchanged, fill in the current error
+   condition with a :c:data:`CORK_NET_ADDRESS_PARSE_ERROR` error, and
+   return ``-1``.
 
 
 .. function:: bool cork_ipv4_equal(const struct cork_ipv4 \*addr1, const struct cork_ipv4 \*addr2)

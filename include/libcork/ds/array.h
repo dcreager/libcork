@@ -12,7 +12,6 @@
 #define LIBCORK_DS_ARRAY_H
 
 
-#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
 
@@ -51,25 +50,23 @@
 
 #define cork_array_element_size(arr)  (sizeof((arr)->items[0]))
 
-#define cork_array_ensure_size(arr, count, err) \
+#define cork_array_ensure_size(arr, count) \
     (cork_array_ensure_size_ \
-     ((arr), (count), cork_array_element_size(arr), (err)))
+     ((arr), (count), cork_array_element_size(arr)))
 
 int
-cork_array_ensure_size_(void *array, size_t desired_count, size_t element_size,
-                        struct cork_error *err);
+cork_array_ensure_size_(void *array, size_t desired_count, size_t element_size);
 
-#define cork_array_append(arr, element, err) \
-    (cork_array_ensure_size((arr), (arr)->size+1, (err)) || \
+#define cork_array_append(arr, element) \
+    (cork_array_ensure_size((arr), (arr)->size+1) || \
      ((arr)->items[(arr)->size++] = (element), 0))
 
 void *
-cork_array_append_get_(void *array, size_t element_size,
-                       struct cork_error *err);
+cork_array_append_get_(void *array, size_t element_size);
 
-#define cork_array_append_get(arr, err) \
+#define cork_array_append_get(arr) \
     (cork_array_append_get_ \
-     ((arr), cork_array_element_size(arr), (err)))
+     ((arr), cork_array_element_size(arr)))
 
 
 #endif /* LIBCORK_DS_ARRAY_H */

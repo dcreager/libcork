@@ -59,5 +59,18 @@
 #define CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS  0
 #endif
 
+/* Thread-local storage has been available since GCC 3.3, but not on Mac
+ * OS X. */
+
+#if !(defined(__APPLE__) && defined(__MACH__))
+#if CORK_CONFIG_GCC_VERSION >= 30300
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  1
+#else
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
+#endif
+#else
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
+#endif
+
 
 #endif /* LIBCORK_CONFIG_GCC_H */

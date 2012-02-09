@@ -14,10 +14,10 @@
 #include <check.h>
 
 #include "libcork/core/allocator.h"
-#include "libcork/helpers/errors.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"
+#include "libcork/helpers/errors.h"
 
 #include "helpers.h"
 
@@ -45,8 +45,7 @@ static struct cork_managed_buffer_iface  FLAG__MANAGED_BUFFER = {
 };
 
 static struct cork_managed_buffer *
-flag_buffer_new(const void *buf, size_t size,
-                bool *flag, struct cork_error *err)
+flag_buffer_new(const void *buf, size_t size, bool *flag)
 {
     struct flag_buffer  *fbuf;
     rp_check_new(struct flag_buffer, fbuf, "flag buffer");
@@ -74,7 +73,7 @@ START_TEST(test_managed_buffer_refcount)
      */
 
     struct cork_managed_buffer  *pb0;
-    fail_if_error(pb0 = flag_buffer_new(NULL, 0, &flag, &err));
+    fail_if_error(pb0 = flag_buffer_new(NULL, 0, &flag));
     struct cork_managed_buffer  *pb1 = cork_managed_buffer_ref(pb0);
     struct cork_managed_buffer  *pb2 = cork_managed_buffer_ref(pb0);
     struct cork_managed_buffer  *pb3 = cork_managed_buffer_ref(pb2);
@@ -100,7 +99,7 @@ START_TEST(test_managed_buffer_bad_refcount)
      */
 
     struct cork_managed_buffer  *pb0;
-    fail_if_error(pb0 = flag_buffer_new(NULL, 0, &flag, &err));
+    fail_if_error(pb0 = flag_buffer_new(NULL, 0, &flag));
     struct cork_managed_buffer  *pb1 = cork_managed_buffer_ref(pb0);
     struct cork_managed_buffer  *pb2 = cork_managed_buffer_ref(pb0);
     struct cork_managed_buffer  *pb3 = cork_managed_buffer_ref(pb2);
@@ -130,17 +129,17 @@ START_TEST(test_slice)
     struct cork_slice  ps1;
 
     fail_unless_error(cork_managed_buffer_slice
-                      (&ps1, NULL, 0, 0, &err),
+                      (&ps1, NULL, 0, 0),
                       "Shouldn't be able to slice a NULL buffer");
     fail_unless_error(cork_managed_buffer_slice_offset
-                      (&ps1, NULL, 0, &err),
+                      (&ps1, NULL, 0),
                       "Shouldn't be able to slice a NULL buffer");
 
     fail_unless_error(cork_slice_copy
-                      (&ps1, NULL, 0, 0, &err),
+                      (&ps1, NULL, 0, 0),
                       "Shouldn't be able to slice a NULL slice");
     fail_unless_error(cork_slice_copy_offset
-                      (&ps1, NULL, 0, &err),
+                      (&ps1, NULL, 0),
                       "Shouldn't be able to slice a NULL slice");
 }
 END_TEST
@@ -164,15 +163,15 @@ START_TEST(test_slice_refcount)
     static size_t  LEN = 7;
 
     struct cork_managed_buffer  *pb;
-    fail_if_error(pb = flag_buffer_new(BUF, LEN, &flag, &err));
+    fail_if_error(pb = flag_buffer_new(BUF, LEN, &flag));
 
     struct cork_slice  ps1;
     struct cork_slice  ps2;
     struct cork_slice  ps3;
 
-    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 0, 7, &err));
-    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 1, 1, &err));
-    fail_if_error(cork_managed_buffer_slice(&ps3, pb, 4, 3, &err));
+    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 0, 7));
+    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 1, 1));
+    fail_if_error(cork_managed_buffer_slice(&ps3, pb, 4, 3));
 
     cork_managed_buffer_unref(pb);
     cork_slice_finish(&ps1);
@@ -199,15 +198,15 @@ START_TEST(test_slice_bad_refcount)
     static size_t  LEN = 7;
 
     struct cork_managed_buffer  *pb;
-    fail_if_error(pb = flag_buffer_new(BUF, LEN, &flag, &err));
+    fail_if_error(pb = flag_buffer_new(BUF, LEN, &flag));
 
     struct cork_slice  ps1;
     struct cork_slice  ps2;
     struct cork_slice  ps3;
 
-    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 0, 7, &err));
-    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 1, 1, &err));
-    fail_if_error(cork_managed_buffer_slice(&ps3, pb, 4, 3, &err));
+    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 0, 7));
+    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 1, 1));
+    fail_if_error(cork_managed_buffer_slice(&ps3, pb, 4, 3));
 
     cork_managed_buffer_unref(pb);
     cork_slice_finish(&ps1);
@@ -239,13 +238,13 @@ START_TEST(test_slice_equals_01)
     static size_t  LEN = 7;
 
     struct cork_managed_buffer  *pb;
-    fail_if_error(pb = cork_managed_buffer_new_copy(BUF, LEN, &err));
+    fail_if_error(pb = cork_managed_buffer_new_copy(BUF, LEN));
 
     struct cork_slice  ps1;
     struct cork_slice  ps2;
 
-    fail_if_error(cork_managed_buffer_slice_offset(&ps1, pb, 0, &err));
-    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 0, LEN, &err));
+    fail_if_error(cork_managed_buffer_slice_offset(&ps1, pb, 0));
+    fail_if_error(cork_managed_buffer_slice(&ps2, pb, 0, LEN));
 
     fail_unless(cork_slice_equal(&ps1, &ps2),
                 "Slices aren't equal");
@@ -269,17 +268,17 @@ START_TEST(test_slice_equals_02)
     static size_t  LEN = 7;
 
     struct cork_managed_buffer  *pb;
-    fail_if_error(pb = cork_managed_buffer_new_copy(BUF, LEN, &err));
+    fail_if_error(pb = cork_managed_buffer_new_copy(BUF, LEN));
 
     struct cork_slice  ps1;
     struct cork_slice  ps2;
     struct cork_slice  ps3;
 
-    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 3, 3, &err));
+    fail_if_error(cork_managed_buffer_slice(&ps1, pb, 3, 3));
 
-    fail_if_error(cork_managed_buffer_slice_offset(&ps2, pb, 1, &err));
-    fail_if_error(cork_slice_copy(&ps3, &ps2, 2, 3, &err));
-    fail_if_error(cork_slice_slice(&ps2, 2, 3, &err));
+    fail_if_error(cork_managed_buffer_slice_offset(&ps2, pb, 1));
+    fail_if_error(cork_slice_copy(&ps3, &ps2, 2, 3));
+    fail_if_error(cork_slice_slice(&ps2, 2, 3));
 
     fail_unless(cork_slice_equal(&ps1, &ps2),
                 "Slices aren't equal");

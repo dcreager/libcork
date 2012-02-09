@@ -32,17 +32,19 @@
 
 #define cork_once(barrier, call) \
     do { \
-        /* Try to claim the ability to perform the initialization */ \
-        int  prior_state = cork_int_cas(&barrier, 0, 1); \
-        if (CORK_LIKELY(prior_state == 2)) { \
+        if (CORK_LIKELY(barrier == 2)) { \
             /* already initialized */ \
-        } else if (CORK_UNLIKELY(prior_state == 1)) { \
-            /* someone else is initializing, spin/wait until done */ \
-            while (barrier != 2) { cork_pause(); } \
         } else { \
-            /* we get to initialize */ \
-            call; \
-            assert(cork_int_cas(&barrier, 1, 2) == 1); \
+            /* Try to claim the ability to perform the initialization */ \
+            int  prior_state = cork_int_cas(&barrier, 0, 1); \
+            if (CORK_LIKELY(prior_state == 0)) { \
+                /* we get to initialize */ \
+                call; \
+                assert(cork_int_cas(&barrier, 1, 2) == 1); \
+            } else { \
+                /* someone else is initializing, spin/wait until done */ \
+                while (barrier != 2) { cork_pause(); } \
+            } \
         } \
     } while (0)
 

@@ -25,7 +25,7 @@ condition if the stream of data is malformed.  If possible, the stream
 producer can try to recover from the error condition, but more often,
 the stream producer will simply pass the error back up to its caller.
 
-.. function:: int cork_stream_consumer_data(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk, struct cork_error \*err)
+.. function:: int cork_stream_consumer_data(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk)
 
    Send the next chunk of data into a stream consumer.  You only have to
    ensure that *slice* is valid for the duration of this function call;
@@ -34,7 +34,7 @@ the stream producer will simply pass the error back up to its caller.
    perfectly safe for *slice* to refer to a stack-allocated memory
    region.
 
-.. function:: int cork_stream_consumer_eof(struct cork_stream_consumer \*consumer, struct cork_error \*err)
+.. function:: int cork_stream_consumer_eof(struct cork_stream_consumer \*consumer)
 
    Notify the stream consumer that the end of the stream has been
    reached.  The stream consumer might perform some final validation and
@@ -60,8 +60,7 @@ producer that reads data from a file::
   static struct cork_slice_iface  slice_iface = { NULL, NULL, NULL };
 
   int
-  stream_read_file(struct cork_stream_consumer *consumer, FILE *fp,
-                   struct cork_error *err)
+  stream_read_file(struct cork_stream_consumer *consumer, FILE *fp)
   {
       char  buf[BUFFER_SIZE];
       size_t  bytes_read;
@@ -69,12 +68,12 @@ producer that reads data from a file::
 
       while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp)) > 0) {
           struct cork_slice  slice = { buf, bytes_read, &slice_iface, NULL };
-          rip_check(cork_stream_consumer_data(consumer, &slice, first, err));
+          rip_check(cork_stream_consumer_data(consumer, &slice, first));
           first = false;
       }
 
       if (feof(fp)) {
-          return cork_stream_consumer_eof(consumer, err);
+          return cork_stream_consumer_eof(consumer);
       } else {
           /* fill in an error condition */
           return -1;
@@ -96,7 +95,7 @@ Writing a new stream consumer
    stream.  Once the stream has been exhausted, the producer will call
    :c:func:`cork_stream_consumer_eof()` to signal the end of the stream.
 
-   .. member:: int (\*data)(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk, struct cork_error \*err)
+   .. member:: int (\*data)(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk)
 
       Process the next chunk of data in the stream.  *slice* is only
       guaranteed to be valid for the duration of this function call.  If
@@ -105,20 +104,18 @@ Writing a new stream consumer
       function).
 
       If there is an error processing this chunk of data, you should
-      return ``-1`` and fill in *err*.  This error condition will be
-      passed back up to the stream producer, allowing it to abort or
-      recover from the error condition, as appropriate.
+      return ``-1`` and fill in the current error condition using
+      :c:func:`cork_error_set`.
 
-   .. member:: int (\*eof)(struct cork_stream_consumer \*consumer, struct cork_error \*err)
+   .. member:: int (\*eof)(struct cork_stream_consumer \*consumer)
 
       Handle the end of the stream.  This allows you to defer any final
       validation or error detection until all of the data has been
       processed.
 
       If there is an error detected at this point, you should return
-      ``-1`` and fill in *err*.  This error condition will be passed
-      back up to the stream producer, allowing it to abort or recover
-      from the error condition, as appropriate.
+      ``-1`` and fill in the current error condition using
+      :c:func:`cork_error_set`.
 
    .. member:: void (\*free)(struct cork_stream_consumer \*consumer)
 
@@ -144,8 +141,7 @@ consumer that writes data to a file::
 
   static int
   file_consumer_data(struct cork_stream_consumer *vself,
-                     struct cork_slice *slice, bool is_first,
-                     struct cork_error *err)
+                     struct cork_slice *slice, bool is_first)
   {
       struct file_consumer  *self =
           cork_container_of(vself, struct file_consumer, parent);
@@ -162,8 +158,7 @@ consumer that writes data to a file::
   }
 
   static int
-  file_consumer_eof(struct cork_stream_consumer *vself,
-                    struct cork_error *err)
+  file_consumer_eof(struct cork_stream_consumer *vself)
   {
       /* We don't close the file, so there's nothing special to do at
        * end-of-stream. */
@@ -179,7 +174,7 @@ consumer that writes data to a file::
   }
 
   struct cork_stream_consumer *
-  file_consumer_new(FILE *fp, struct cork_error *err)
+  file_consumer_new(FILE *fp)
   {
       struct file_consumer  *self;
       rp_check_new(struct file_consumer, self);

@@ -34,20 +34,20 @@ START_TEST(test_buffer)
 
     struct cork_buffer  buffer1;
     cork_buffer_init(&buffer1);
-    fail_if_error(cork_buffer_set(&buffer1, SRC, SRC_LEN, &err));
+    fail_if_error(cork_buffer_set(&buffer1, SRC, SRC_LEN));
 
     struct cork_buffer  *buffer2;
-    fail_if_error(buffer2 = cork_buffer_new(&err));
-    fail_if_error(cork_buffer_set_string(buffer2, SRC, &err));
+    fail_if_error(buffer2 = cork_buffer_new());
+    fail_if_error(cork_buffer_set_string(buffer2, SRC));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2->size, buffer2->buf);
 
     struct cork_buffer  *buffer3;
-    fail_if_error(buffer3 = cork_buffer_new(&err));
+    fail_if_error(buffer3 = cork_buffer_new());
     fail_if_error(cork_buffer_printf
-                  (buffer3, &err, "Here is %s text.", "some"));
+                  (buffer3, "Here is %s text.", "some"));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer3),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
@@ -77,33 +77,33 @@ START_TEST(test_buffer_append)
      * appends.
      */
 
-    fail_if_error(cork_buffer_set(&buffer1, SRC2, SRC2_LEN, &err));
+    fail_if_error(cork_buffer_set(&buffer1, SRC2, SRC2_LEN));
     cork_buffer_clear(&buffer1);
 
     /*
      * Okay now do the appends.
      */
 
-    fail_if_error(cork_buffer_append(&buffer1, SRC1, SRC1_LEN, &err));
-    fail_if_error(cork_buffer_append(&buffer1, SRC2, SRC2_LEN, &err));
-    fail_if_error(cork_buffer_append_string(&buffer1, SRC3, &err));
-    fail_if_error(cork_buffer_append_string(&buffer1, SRC4, &err));
+    fail_if_error(cork_buffer_append(&buffer1, SRC1, SRC1_LEN));
+    fail_if_error(cork_buffer_append(&buffer1, SRC2, SRC2_LEN));
+    fail_if_error(cork_buffer_append_string(&buffer1, SRC3));
+    fail_if_error(cork_buffer_append_string(&buffer1, SRC4));
 
     static char  EXPECTED[] = "abcdefghijkl";
 
     struct cork_buffer  buffer2;
     cork_buffer_init(&buffer2);
-    fail_if_error(cork_buffer_set_string(&buffer2, EXPECTED, &err));
+    fail_if_error(cork_buffer_set_string(&buffer2, EXPECTED));
 
     fail_unless(cork_buffer_equal(&buffer1, &buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2.size, buffer2.buf);
 
     struct cork_buffer  *buffer3;
-    fail_if_error(buffer3 = cork_buffer_new(&err));
-    fail_if_error(cork_buffer_set(buffer3, SRC1, SRC1_LEN, &err));
+    fail_if_error(buffer3 = cork_buffer_new());
+    fail_if_error(cork_buffer_set(buffer3, SRC1, SRC1_LEN));
     fail_if_error(cork_buffer_append_printf
-                  (buffer3, &err, "%s%s%s", SRC2, SRC3, SRC4));
+                  (buffer3, "%s%s%s", SRC2, SRC3, SRC4));
 
     fail_unless(cork_buffer_equal(&buffer1, buffer3),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
@@ -122,38 +122,38 @@ START_TEST(test_buffer_slicing)
         "Here is some text.";
 
     struct cork_buffer  *buffer;
-    fail_if_error(buffer = cork_buffer_new(&err));
-    fail_if_error(cork_buffer_set_string(buffer, SRC, &err));
+    fail_if_error(buffer = cork_buffer_new());
+    fail_if_error(cork_buffer_set_string(buffer, SRC));
 
     struct cork_managed_buffer  *managed;
     fail_if_error(managed = cork_buffer_to_managed_buffer
-                  (buffer, &err));
+                  (buffer));
     cork_managed_buffer_unref(managed);
 
-    fail_if_error(buffer = cork_buffer_new(&err));
-    fail_if_error(cork_buffer_set_string(buffer, SRC, &err));
+    fail_if_error(buffer = cork_buffer_new());
+    fail_if_error(cork_buffer_set_string(buffer, SRC));
 
     struct cork_slice  slice1;
     struct cork_slice  slice2;
 
-    fail_if_error(cork_buffer_to_slice(buffer, &slice1, &err));
+    fail_if_error(cork_buffer_to_slice(buffer, &slice1));
 
-    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 2, &err));
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 2));
     cork_slice_finish(&slice2);
 
-    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, buffer->size, &err));
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, buffer->size));
     cork_slice_finish(&slice2);
 
-    fail_if_error(cork_slice_copy_fast(&slice2, &slice1, 2, 2, &err));
+    fail_if_error(cork_slice_copy_fast(&slice2, &slice1, 2, 2));
     cork_slice_finish(&slice2);
 
-    fail_if_error(cork_slice_copy_offset_fast(&slice2, &slice1, 2, &err));
+    fail_if_error(cork_slice_copy_offset_fast(&slice2, &slice1, 2));
     cork_slice_finish(&slice2);
 
-    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 0, &err));
-    fail_if_error(cork_slice_slice_offset_fast(&slice2, 2, &err));
-    fail_if_error(cork_slice_slice_fast(&slice2, 0, 2, &err));
-    fail_if_error(cork_slice_slice(&slice1, 2, 2, &err));
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 0));
+    fail_if_error(cork_slice_slice_offset_fast(&slice2, 2));
+    fail_if_error(cork_slice_slice_fast(&slice2, 0, 2));
+    fail_if_error(cork_slice_slice(&slice1, 2, 2));
     fail_unless(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
     cork_slice_finish(&slice2);
 
@@ -173,7 +173,7 @@ START_TEST(test_buffer_stream)
     cork_buffer_init(&buffer1);
     struct cork_stream_consumer  *consumer;
     fail_if_error(consumer =
-                  cork_buffer_to_stream_consumer(&buffer1, &err));
+                  cork_buffer_to_stream_consumer(&buffer1));
 
     struct cork_managed_buffer  *src;
     struct cork_slice  slice;
@@ -181,28 +181,28 @@ START_TEST(test_buffer_stream)
     /* chunk #1 */
 
     fail_if_error(src = cork_managed_buffer_new_copy
-                  (SRC1, SRC1_LEN, &err));
+                  (SRC1, SRC1_LEN));
     fail_if_error(cork_managed_buffer_slice_offset
-                  (&slice, src, 0, &err));
+                  (&slice, src, 0));
     fail_if_error(cork_stream_consumer_data
-                  (consumer, &slice, true, &err));
+                  (consumer, &slice, true));
     cork_slice_finish(&slice);
     cork_managed_buffer_unref(src);
 
     /* chunk #2 */
 
     fail_if_error(src = cork_managed_buffer_new_copy
-                  (SRC2, SRC2_LEN, &err));
+                  (SRC2, SRC2_LEN));
     fail_if_error(cork_managed_buffer_slice_offset
-                  (&slice, src, 0, &err));
+                  (&slice, src, 0));
     fail_if_error(cork_stream_consumer_data
-                  (consumer, &slice, false, &err));
+                  (consumer, &slice, false));
     cork_slice_finish(&slice);
     cork_managed_buffer_unref(src);
 
     /* eof */
 
-    fail_if_error(cork_stream_consumer_eof(consumer, &err));
+    fail_if_error(cork_stream_consumer_eof(consumer));
 
     /* check the result */
 
@@ -212,7 +212,7 @@ START_TEST(test_buffer_stream)
     struct cork_buffer  buffer2;
     cork_buffer_init(&buffer2);
     fail_if_error(cork_buffer_set
-                  (&buffer2, EXPECTED, EXPECTED_SIZE, &err));
+                  (&buffer2, EXPECTED, EXPECTED_SIZE));
 
     fail_unless(cork_buffer_equal(&buffer1, &buffer2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",

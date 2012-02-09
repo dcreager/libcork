@@ -76,8 +76,8 @@ Allocation errors
    An error class and code that can be used to indicate allocation
    failures.
 
-.. function:: int cork_cannot_allocate_set(struct cork_error \*err, const char \*what)
+.. function:: int cork_cannot_allocate_set(const char \*what)
 
-   Fills in *err* to indicate that an allocation attempt failed.  *what*
-   should be the human-readable name of the object that you tried to
-   allocate.
+   Fills in the current error condition to indicate that an allocation
+   attempt failed.  *what* should be the human-readable name of the
+   object that you tried to allocate.

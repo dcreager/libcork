@@ -96,7 +96,7 @@ START_TEST(test_hash_table)
 {
     struct cork_hash_table  *table;
     fail_if_error(table = cork_hash_table_new
-                  (0, uint64_hash, uint64_equals, &err));
+                  (0, uint64_hash, uint64_equals));
 
     uint64_t  key, *key_ptr, *old_key;
     void  *v_key, *v_value;
@@ -120,7 +120,7 @@ START_TEST(test_hash_table)
     *value_ptr = 32;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
@@ -134,7 +134,7 @@ START_TEST(test_hash_table)
                 "Unexpected size after adding {0->32}");
 
     fail_if_error(entry = cork_hash_table_get_or_create
-                  (table, &key, &is_new, &err));
+                  (table, &key, &is_new));
     fail_if(is_new, "Shouldn't create new {0=>X} entry");
     value_ptr = entry->value;
     fail_unless(*value_ptr == 32,
@@ -145,7 +145,7 @@ START_TEST(test_hash_table)
 
     key = 1;
     fail_if_error(entry = cork_hash_table_get_or_create
-                  (table, &key, &is_new, &err));
+                  (table, &key, &is_new));
     fail_unless(is_new, "Should create new {1=>X} entry");
     key_ptr = cork_new(uint64_t);
     *key_ptr = key;
@@ -198,7 +198,7 @@ START_TEST(test_hash_table)
     *value_ptr = 32;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
@@ -209,7 +209,7 @@ START_TEST(test_hash_table)
     *value_ptr = 2;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {1=>2} to hash table");
     old_key = v_key;
     old_value = v_value;

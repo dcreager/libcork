@@ -12,7 +12,6 @@
 #define LIBCORK_DS_HASH_TABLE_H
 
 
-#include <libcork/core/error.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/dllist.h>
@@ -59,8 +58,7 @@ cork_hash_table_init(struct cork_hash_table *table,
 struct cork_hash_table *
 cork_hash_table_new(size_t initial_size,
                     cork_hash_table_hasher hasher,
-                    cork_hash_table_comparator comparator,
-                    struct cork_error *err);
+                    cork_hash_table_comparator comparator);
 
 void
 cork_hash_table_done(struct cork_hash_table *table);
@@ -75,7 +73,7 @@ cork_hash_table_clear(struct cork_hash_table *table);
 
 int
 cork_hash_table_ensure_size(struct cork_hash_table *table,
-                            size_t desired_count, struct cork_error *err);
+                            size_t desired_count);
 
 #define cork_hash_table_size(table) ((table)->entry_count)
 
@@ -89,13 +87,12 @@ cork_hash_table_get_entry(const struct cork_hash_table *table,
 
 struct cork_hash_table_entry *
 cork_hash_table_get_or_create(struct cork_hash_table *table,
-                              void *key, bool *is_new, struct cork_error *err);
+                              void *key, bool *is_new);
 
 int
 cork_hash_table_put(struct cork_hash_table *table,
-                    void *key, void *value,
-                    bool *is_new, void **old_key, void **old_value,
-                    struct cork_error *err);
+                    void *key, void *value, bool *is_new,
+                    void **old_key, void **old_value);
 
 bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,

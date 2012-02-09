@@ -28,6 +28,7 @@
 #endif
 
 #define CORK_HAVE_REALLOCF  0
+#define CORK_HAVE_PTHREADS  1
 
 
 #endif /* LIBCORK_CONFIG_LINUX_H */

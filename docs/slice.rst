@@ -95,10 +95,10 @@ just need to provide an instance of this interface type.
    Return whether a slice is empty.
 
 
-.. function:: int cork_slice_copy(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_copy_offset(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, struct cork_error \*err)
-              int cork_slice_copy_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_copy_offset_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, struct cork_error \*err)
+.. function:: int cork_slice_copy(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length)
+              int cork_slice_copy_offset(struct cork_slice \*dest, struct cork_slice \*src, size_t offset)
+              int cork_slice_copy_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length)
+              int cork_slice_copy_offset_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset)
 
    Initialize a new slice that refers to a subset of an existing slice.
    The *offset* and *length* parameters identify the subset.  (For the
@@ -115,10 +115,10 @@ just need to provide an instance of this interface type.
    that you call :c:func:`cork_slice_finish()` on *dest* when you are
    done with it.
 
-.. function:: int cork_slice_slice(struct cork_slice \*slice, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_slice_offset(struct cork_slice \*slice, size_t offset, struct cork_error \*err)
-              int cork_slice_slice_fast(struct cork_slice \*slice, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_slice_offset_fast(struct cork_slice \*slice, size_t offset, struct cork_error \*err)
+.. function:: int cork_slice_slice(struct cork_slice \*slice, size_t offset, size_t length)
+              int cork_slice_slice_offset(struct cork_slice \*slice, size_t offset)
+              int cork_slice_slice_fast(struct cork_slice \*slice, size_t offset, size_t length)
+              int cork_slice_slice_offset_fast(struct cork_slice \*slice, size_t offset)
 
    Update a slice to refer to a subset of its contents.  The *offset*
    and *length* parameters identify the subset.  (For the
@@ -159,12 +159,12 @@ Slice interface
       This function pointer can be ``NULL`` if you don't need to free
       any underlying buffer.
 
-   .. member:: int (\*copy)(struct cork_slice \*self, struct cork_slice \*dest, size_t offset, size_t length, struct cork_error \*err)
+   .. member:: int (\*copy)(struct cork_slice \*self, struct cork_slice \*dest, size_t offset, size_t length)
 
       Create a copy of a slice.  You can assume that *offset* and
       *length* refer to a valid subset of *self*\ 's content.
 
-   .. member:: int (\*slice)(struct cork_slice \*self, size_t offset, size_t length, struct cork_error \*err)
+   .. member:: int (\*slice)(struct cork_slice \*self, size_t offset, size_t length)
 
       Update *self* to point at a different subset of the underlying
       buffer.  You can assume that *offset* and *length* refer to a

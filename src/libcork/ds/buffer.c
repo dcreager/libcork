@@ -13,7 +13,6 @@
 #include <string.h>
 
 #include "libcork/core/allocator.h"
-#include "libcork/core/error.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/buffer.h"
 #include "libcork/ds/managed-buffer.h"
@@ -31,7 +30,7 @@ cork_buffer_init(struct cork_buffer *buffer)
 
 
 struct cork_buffer *
-cork_buffer_new(struct cork_error *err)
+cork_buffer_new(void)
 {
     struct cork_buffer  *buffer;
     rp_check_new(struct cork_buffer, buffer, "buffer");
@@ -77,8 +76,7 @@ cork_buffer_equal(const struct cork_buffer *buffer1,
 
 
 int
-cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size,
-                        struct cork_error *err)
+cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size)
 {
     if (buffer->allocated_size >= desired_size) {
         return 0;
@@ -97,7 +95,7 @@ cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size,
 
     if (buffer->buf == NULL) {
         buffer->allocated_size = 0;
-        cork_cannot_allocate_set(err, "buffer contents");
+        cork_cannot_allocate_set("buffer contents");
         return -1;
     }
 
@@ -114,10 +112,9 @@ cork_buffer_clear(struct cork_buffer *buffer)
 
 
 int
-cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length,
-                struct cork_error *err)
+cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length)
 {
-    rii_check(cork_buffer_ensure_size(buffer, length+1, err));
+    rii_check(cork_buffer_ensure_size(buffer, length+1));
     memcpy(buffer->buf, src, length);
     ((char *) buffer->buf)[length] = '\0';
     buffer->size = length;
@@ -126,10 +123,9 @@ cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length,
 
 
 int
-cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length,
-                   struct cork_error *err)
+cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length)
 {
-    rii_check(cork_buffer_ensure_size(buffer, buffer->size + length + 1, err));
+    rii_check(cork_buffer_ensure_size(buffer, buffer->size + length + 1));
     memcpy(buffer->buf + buffer->size, src, length);
     buffer->size += length;
     ((char *) buffer->buf)[buffer->size] = '\0';
@@ -138,24 +134,22 @@ cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length,
 
 
 int
-cork_buffer_set_string(struct cork_buffer *buffer, const char *str,
-                       struct cork_error *err)
+cork_buffer_set_string(struct cork_buffer *buffer, const char *str)
 {
-    return cork_buffer_set(buffer, str, strlen(str), err);
+    return cork_buffer_set(buffer, str, strlen(str));
 }
 
 
 int
-cork_buffer_append_string(struct cork_buffer *buffer, const char *str,
-                          struct cork_error *err)
+cork_buffer_append_string(struct cork_buffer *buffer, const char *str)
 {
-    return cork_buffer_append(buffer, str, strlen(str), err);
+    return cork_buffer_append(buffer, str, strlen(str));
 }
 
 
 int
 cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
-                           va_list args, struct cork_error *err)
+                           va_list args)
 {
     size_t  new_size;
     va_list  args1;
@@ -164,7 +158,7 @@ cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
     va_end(args1);
 
     new_size = buffer->size + formatted_length;
-    rii_check(cork_buffer_ensure_size(buffer, new_size+1, err));
+    rii_check(cork_buffer_ensure_size(buffer, new_size+1));
     vsnprintf(buffer->buf + buffer->size, formatted_length+1, format, args);
     buffer->size = new_size;
     return 0;
@@ -173,32 +167,30 @@ cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
 
 int
 cork_buffer_vprintf(struct cork_buffer *buffer, const char *format,
-                    va_list args, struct cork_error *err)
+                    va_list args)
 {
     cork_buffer_clear(buffer);
-    return cork_buffer_append_vprintf(buffer, format, args, err);
+    return cork_buffer_append_vprintf(buffer, format, args);
 }
 
 
 int
-cork_buffer_append_printf(struct cork_buffer *buffer, struct cork_error *err,
-                          const char *format, ...)
+cork_buffer_append_printf(struct cork_buffer *buffer, const char *format, ...)
 {
     va_list  args;
     va_start(args, format);
-    int  rc = cork_buffer_append_vprintf(buffer, format, args, err);
+    int  rc = cork_buffer_append_vprintf(buffer, format, args);
     va_end(args);
     return rc;
 }
 
 
 int
-cork_buffer_printf(struct cork_buffer *buffer, struct cork_error *err,
-                   const char *format, ...)
+cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
 {
     va_list  args;
     va_start(args, format);
-    int  rc = cork_buffer_vprintf(buffer, format, args, err);
+    int  rc = cork_buffer_vprintf(buffer, format, args);
     va_end(args);
     return rc;
 }
@@ -223,8 +215,7 @@ static struct cork_managed_buffer_iface  CORK_BUFFER__MANAGED_BUFFER = {
 };
 
 struct cork_managed_buffer *
-cork_buffer_to_managed_buffer(struct cork_buffer *buffer,
-                              struct cork_error *err)
+cork_buffer_to_managed_buffer(struct cork_buffer *buffer)
 {
     struct cork_buffer__managed_buffer  *self;
     e_check_new(struct cork_buffer__managed_buffer, self,
@@ -244,18 +235,17 @@ error:
 
 
 int
-cork_buffer_to_slice(struct cork_buffer *buffer, struct cork_slice *slice,
-                     struct cork_error *err)
+cork_buffer_to_slice(struct cork_buffer *buffer, struct cork_slice *slice)
 {
     struct cork_managed_buffer  *managed;
-    rip_check(managed = cork_buffer_to_managed_buffer(buffer, err));
+    rip_check(managed = cork_buffer_to_managed_buffer(buffer));
 
     /*
      * We don't have to check for NULL; cork_managed_buffer_slice_offset
      * will do that for us.
      */
 
-    int  rc = cork_managed_buffer_slice_offset(slice, managed, 0, err);
+    int  rc = cork_managed_buffer_slice_offset(slice, managed, 0);
 
     /*
      * Before returning, drop our reference to the managed buffer.  If
@@ -276,8 +266,7 @@ struct cork_buffer__stream_consumer {
 
 static int
 cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
-                                 struct cork_slice *slice, bool is_first_chunk,
-                                 struct cork_error *err)
+                                 struct cork_slice *slice, bool is_first_chunk)
 {
     struct cork_buffer__stream_consumer  *bconsumer = cork_container_of
         (consumer, struct cork_buffer__stream_consumer, consumer);
@@ -287,12 +276,11 @@ cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
     }
 
     return cork_buffer_append
-        (bconsumer->buffer, slice->buf, slice->size, err);
+        (bconsumer->buffer, slice->buf, slice->size);
 }
 
 static int
-cork_buffer_stream_consumer_eof(struct cork_stream_consumer *consumer,
-                                struct cork_error *err)
+cork_buffer_stream_consumer_eof(struct cork_stream_consumer *consumer)
 {
     return 0;
 }
@@ -307,8 +295,7 @@ cork_buffer_stream_consumer_free(struct cork_stream_consumer *consumer)
 }
 
 struct cork_stream_consumer *
-cork_buffer_to_stream_consumer(struct cork_buffer *buffer,
-                               struct cork_error *err)
+cork_buffer_to_stream_consumer(struct cork_buffer *buffer)
 {
     struct cork_buffer__stream_consumer  *bconsumer;
     rp_check_new(struct cork_buffer__stream_consumer, bconsumer,

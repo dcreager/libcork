@@ -12,7 +12,6 @@
 #define LIBCORK_DS_MANAGED_BUFFER_H
 
 
-#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/slice.h>
 
@@ -45,8 +44,7 @@ struct cork_managed_buffer {
 
 
 struct cork_managed_buffer *
-cork_managed_buffer_new_copy(const void *buf, size_t size,
-                             struct cork_error *err);
+cork_managed_buffer_new_copy(const void *buf, size_t size);
 
 
 typedef void
@@ -54,8 +52,7 @@ typedef void
 
 struct cork_managed_buffer *
 cork_managed_buffer_new(const void *buf, size_t size,
-                        cork_managed_buffer_freer free,
-                        struct cork_error *err);
+                        cork_managed_buffer_freer free);
 
 
 struct cork_managed_buffer *
@@ -68,14 +65,12 @@ cork_managed_buffer_unref(struct cork_managed_buffer *buf);
 int
 cork_managed_buffer_slice(struct cork_slice *dest,
                           struct cork_managed_buffer *buffer,
-                          size_t offset, size_t length,
-                          struct cork_error *err);
+                          size_t offset, size_t length);
 
 int
 cork_managed_buffer_slice_offset(struct cork_slice *dest,
                                  struct cork_managed_buffer *buffer,
-                                 size_t offset,
-                                 struct cork_error *err);
+                                 size_t offset);
 
 
 #endif /* LIBCORK_DS_MANAGED_BUFFER_H */

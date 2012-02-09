@@ -42,7 +42,7 @@ you dispose of the hash table.
    hash table.
 
 .. function:: void cork_hash_table_init(struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
-              struct cork_hash_table \*cork_hash_table_new(size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator, struct cork_error \*err)
+              struct cork_hash_table \*cork_hash_table_new(size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
 
    Initializes a new hash table instance.  The ``_init`` variant should
    be used to initialize an instance that you've allocated yourself.
@@ -135,7 +135,7 @@ particular use case.
    according to the hasher and comparator functions that you provided
    for this hash table.
 
-.. function:: struct cork_hash_table_entry \*cork_hash_table_get_or_create(struct cork_hash_table \*table, void \*key, bool \*is_new, struct cork_error \*err)
+.. function:: struct cork_hash_table_entry \*cork_hash_table_get_or_create(struct cork_hash_table \*table, void \*key, bool \*is_new)
 
    Retrieves the entry in *table* with the given *key*.  If there is no
    entry with the given key, it will be created.  (If we can't create
@@ -155,7 +155,7 @@ particular use case.
    if the entry is actually new, especially if there will be a lot
    successful lookups of existing keys.
 
-.. function:: int cork_hash_table_put(struct cork_hash_table \*table, void \*key, void \*value, bool \*is_new, void \*\*old_key, void \*\*old_value, struct cork_error \*err)
+.. function:: int cork_hash_table_put(struct cork_hash_table \*table, void \*key, void \*value, bool \*is_new, void \*\*old_key, void \*\*old_value)
 
    Add an entry to a hash table.  If there is already an entry with the
    given key, we will overwrite its key and value with the *key* and
@@ -192,7 +192,7 @@ Other operations
    if they need to be finalized, you should do that yourself before
    calling this function.
 
-.. function:: int cork_hash_table_ensure_size(struct cork_hash_table \*table, size_t desired_count, struct cork_error \*err)
+.. function:: int cork_hash_table_ensure_size(struct cork_hash_table \*table, size_t desired_count)
 
    Ensures that *table* has enough space to efficiently store a certain
    number of entries.  This can be used to reduce (or eliminate) the

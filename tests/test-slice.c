@@ -14,10 +14,7 @@
 
 #include <check.h>
 
-#include "libcork/core/types.h"
-#include "libcork/ds/buffer.h"
-#include "libcork/ds/managed-buffer.h"
-#include "libcork/ds/stream.h"
+#include "libcork/ds/slice.h"
 
 #include "helpers.h"
 
@@ -34,8 +31,8 @@ START_TEST(test_static_slice)
     struct cork_slice  slice1;
     struct cork_slice  slice2;
     cork_slice_init_static(&slice1, SRC, SRC_LEN);
-    fail_if_error(cork_slice_copy(&slice2, &slice1, 8, 4, &err));
-    fail_if_error(cork_slice_slice(&slice1, 8, 4, &err));
+    fail_if_error(cork_slice_copy(&slice2, &slice1, 8, 4));
+    fail_if_error(cork_slice_slice(&slice1, 8, 4));
     fail_unless(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
     cork_slice_finish(&slice1);
     cork_slice_finish(&slice2);

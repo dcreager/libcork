@@ -12,7 +12,6 @@
 #define LIBCORK_DS_SLICE_H
 
 
-#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
 
@@ -45,7 +44,7 @@ struct cork_slice_iface {
      * refer to a valid subset of the buffer. */
     int
     (*copy)(struct cork_slice *self, struct cork_slice *dest,
-            size_t offset, size_t length, struct cork_error *err);
+            size_t offset, size_t length);
 
     /* Update the current slice to point at a different subset.  You can
      * assume that offset and length refer to a valid subset of the
@@ -53,8 +52,7 @@ struct cork_slice_iface {
      * the underlying buffer; in this case, we'll update the slice's buf
      * and size fields for you. */
     int
-    (*slice)(struct cork_slice *self, size_t offset, size_t length,
-             struct cork_error *err);
+    (*slice)(struct cork_slice *self, size_t offset, size_t length);
 };
 
 
@@ -79,38 +77,36 @@ cork_slice_clear(struct cork_slice *slice);
 
 int
 cork_slice_copy(struct cork_slice *dest, struct cork_slice *slice,
-                size_t offset, size_t length, struct cork_error *err);
+                size_t offset, size_t length);
 
-#define cork_slice_copy_fast(dest, slice, offset, length, err) \
-    ((slice)->iface->copy((slice), (dest), (offset), (length), (err)))
+#define cork_slice_copy_fast(dest, slice, offset, length) \
+    ((slice)->iface->copy((slice), (dest), (offset), (length)))
 
 int
 cork_slice_copy_offset(struct cork_slice *dest, struct cork_slice *slice,
-                       size_t offset, struct cork_error *err);
+                       size_t offset);
 
-#define cork_slice_copy_offset_fast(dest, slice, offset, err) \
+#define cork_slice_copy_offset_fast(dest, slice, offset) \
     ((slice)->iface->copy \
-     ((slice), (dest), (offset), (slice)->size - (offset), (err)))
+     ((slice), (dest), (offset), (slice)->size - (offset)))
 
 
 int
-cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length,
-                 struct cork_error *err);
+cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length);
 
-#define cork_slice_slice_fast(_slice, offset, length, err) \
+#define cork_slice_slice_fast(_slice, offset, length) \
     ((_slice)->iface->slice == NULL? \
      ((_slice)->buf += (offset), (_slice)->size = (length), 0): \
-     ((_slice)->iface->slice((_slice), (offset), (length), (err))))
+     ((_slice)->iface->slice((_slice), (offset), (length))))
 
 int
-cork_slice_slice_offset(struct cork_slice *slice, size_t offset,
-                        struct cork_error *err);
+cork_slice_slice_offset(struct cork_slice *slice, size_t offset);
 
-#define cork_slice_slice_offset_fast(_slice, offset, err) \
+#define cork_slice_slice_offset_fast(_slice, offset) \
     ((_slice)->iface->slice == NULL? \
      ((_slice)->buf += (offset), (_slice)->size -= (offset), 0): \
      ((_slice)->iface->slice \
-      ((_slice), (offset), (_slice)->size - (offset), (err))))
+      ((_slice), (offset), (_slice)->size - (offset))))
 
 
 void

@@ -25,7 +25,7 @@
  */
 
 #define add_element(element, expected_new_size) \
-    fail_if_error(cork_array_append(&array, element, &err)); \
+    fail_if_error(cork_array_append(&array, element)); \
     fail_unless(cork_array_size(&array) == expected_new_size, \
                 "Unexpected size of array: got %zu, expected %zu", \
                 cork_array_size(&array), expected_new_size);
@@ -33,8 +33,7 @@
 #define add_element0(element, expected_new_size, int_type) \
     do { \
         int_type  *__element; \
-        fail_if_error(__element = cork_array_append_get \
-                      (&array, &err)); \
+        fail_if_error(__element = cork_array_append_get(&array)); \
         *__element = element; \
         fail_unless(cork_array_size(&array) == expected_new_size, \
                     "Unexpected size of array: got %zu, expected %zu", \

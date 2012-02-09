@@ -29,8 +29,9 @@
 #if CORK_PRINT_ERRORS
 #include <stdio.h>
 #define CORK_PRINT_ERROR_(func, file, line) \
-    fprintf(stderr, "---\nError in %s (%s:%u)\n", \
-            (func), (file), (unsigned int) (line));
+    fprintf(stderr, "---\nError in %s (%s:%u)\n  %s\n", \
+            (func), (file), (unsigned int) (line), \
+            cork_error_message());
 #define CORK_PRINT_ERROR()  CORK_PRINT_ERROR_(__func__, __FILE__, __LINE__)
 #else
 #define CORK_PRINT_ERROR()  /* do nothing */
@@ -122,7 +123,7 @@
         const void  *__result = (call); \
         if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
-            cork_cannot_allocate_set(err, desc); \
+            cork_cannot_allocate_set(desc); \
             goto error; \
         } \
     } while (0)
@@ -132,7 +133,7 @@
         const void  *__result = (call); \
         if (CORK_UNLIKELY(__result == NULL)) { \
             CORK_PRINT_ERROR(); \
-            cork_cannot_allocate_set(err, desc); \
+            cork_cannot_allocate_set(desc); \
             return result; \
         } \
     } while (0)

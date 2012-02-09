@@ -17,11 +17,6 @@
 #include <libcork/core/types.h>
 
 
-/* Need to forward declare this since there's a circular dependency
- * between allocator.h and error.h */
-struct cork_error;
-
-
 /*-----------------------------------------------------------------------
  * Error handling
  */
@@ -35,7 +30,7 @@ enum cork_alloc_error {
 };
 
 void
-cork_cannot_allocate_set(struct cork_error *err, const char *what);
+cork_cannot_allocate_set(const char *what);
 
 
 /*-----------------------------------------------------------------------

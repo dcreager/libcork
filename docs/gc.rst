@@ -411,7 +411,7 @@ allocation fails.  Using them, and the helper macros defined above, you
 could instantiate our example tree class as follows::
 
     struct tree *
-    tree_new(struct cork_gc *gc, const char *name, struct cork_error *err)
+    tree_new(struct cork_gc *gc, const char *name)
     {
         struct tree  *self;
         rp_check_gc_new(struct tree, self, "tree");

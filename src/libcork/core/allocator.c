@@ -22,10 +22,10 @@
  */
 
 void
-cork_cannot_allocate_set(struct cork_error *err, const char *kind)
+cork_cannot_allocate_set(const char *kind)
 {
     cork_error_set
-        (err, CORK_ALLOC_ERROR, CORK_CANNOT_ALLOCATE,
+        (CORK_ALLOC_ERROR, CORK_CANNOT_ALLOCATE,
          "Error allocating %s", kind);
 }
 
