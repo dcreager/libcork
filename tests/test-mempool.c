@@ -77,12 +77,11 @@ END_TEST
 
 static size_t  done_call_count = 0;
 
-static int
+static void
 int64_init(void *vobj)
 {
     int64_t  *obj = vobj;
     *obj = 12;
-    return 0;
 }
 
 static void

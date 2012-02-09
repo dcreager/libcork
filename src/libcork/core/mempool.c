@@ -72,14 +72,14 @@ cork_mempool_done(struct cork_mempool *mp)
 
 /* If this function succeeds, then we guarantee that there will be at
  * least one object in mp->free_list. */
-int
+void
 cork_mempool_new_block(struct cork_mempool *mp)
 {
     /* Allocate the new block and add it to mp's block list. */
     struct cork_mempool_block  *block;
     void  *vblock;
     DEBUG("Allocating new %zu-byte block\n", mp->block_size);
-    rip_check(block = malloc(mp->block_size));
+    block = cork_malloc(mp->block_size);
     block->next_block = mp->blocks;
     mp->blocks = block;
     vblock = block;
@@ -92,13 +92,11 @@ cork_mempool_new_block(struct cork_mempool *mp)
         struct cork_mempool_object  *obj = vblock + index;
         DEBUG("  New object at %p[%p]\n", cork_mempool_get_object(obj), obj);
         if (mp->init_object != NULL) {
-            rii_check(mp->init_object(cork_mempool_get_object(obj)));
+            mp->init_object(cork_mempool_get_object(obj));
         }
         obj->next_free = mp->free_list;
         mp->free_list = obj;
     }
-
-    return 0;
 }
 
 void

@@ -37,7 +37,7 @@ set_flag_on_free(struct cork_managed_buffer *mbuf)
     struct flag_buffer  *fbuf =
         cork_container_of(mbuf, struct flag_buffer, parent);
     *fbuf->flag = true;
-    cork_delete(struct flag_buffer, fbuf);
+    free(fbuf);
 }
 
 static struct cork_managed_buffer_iface  FLAG__MANAGED_BUFFER = {
@@ -47,8 +47,7 @@ static struct cork_managed_buffer_iface  FLAG__MANAGED_BUFFER = {
 static struct cork_managed_buffer *
 flag_buffer_new(const void *buf, size_t size, bool *flag)
 {
-    struct flag_buffer  *fbuf;
-    rp_check_new(struct flag_buffer, fbuf, "flag buffer");
+    struct flag_buffer  *fbuf = cork_new(struct flag_buffer);
     fbuf->parent.buf = buf;
     fbuf->parent.size = size;
     fbuf->parent.ref_count = 1;

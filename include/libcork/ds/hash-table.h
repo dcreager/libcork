@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -71,7 +71,7 @@ void
 cork_hash_table_clear(struct cork_hash_table *table);
 
 
-int
+void
 cork_hash_table_ensure_size(struct cork_hash_table *table,
                             size_t desired_count);
 
@@ -89,7 +89,7 @@ struct cork_hash_table_entry *
 cork_hash_table_get_or_create(struct cork_hash_table *table,
                               void *key, bool *is_new);
 
-int
+void
 cork_hash_table_put(struct cork_hash_table *table,
                     void *key, void *value, bool *is_new,
                     void **old_key, void **old_value);

@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -48,7 +48,7 @@ cork_buffer_equal(const struct cork_buffer *buffer1,
                   const struct cork_buffer *buffer2);
 
 
-int
+void
 cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size);
 
 
@@ -60,34 +60,34 @@ cork_buffer_clear(struct cork_buffer *buffer);
  * A whole bunch of methods for adding data
  */
 
-int
+void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
 
-int
+void
 cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length);
 
 
-int
+void
 cork_buffer_set_string(struct cork_buffer *buffer, const char *str);
 
-int
+void
 cork_buffer_append_string(struct cork_buffer *buffer, const char *str);
 
 
-int
+void
 cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
     CORK_ATTR_PRINTF(2,3);
 
-int
+void
 cork_buffer_append_printf(struct cork_buffer *buffer, const char *format, ...)
     CORK_ATTR_PRINTF(2,3);
 
-int
+void
 cork_buffer_vprintf(struct cork_buffer *buffer, const char *format,
                     va_list args)
     CORK_ATTR_PRINTF(2,0);
 
-int
+void
 cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
                            va_list args)
     CORK_ATTR_PRINTF(2,0);

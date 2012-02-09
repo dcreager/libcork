@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -54,11 +54,11 @@
     (cork_array_ensure_size_ \
      ((arr), (count), cork_array_element_size(arr)))
 
-int
+void
 cork_array_ensure_size_(void *array, size_t desired_count, size_t element_size);
 
 #define cork_array_append(arr, element) \
-    (cork_array_ensure_size((arr), (arr)->size+1) || \
+    (cork_array_ensure_size((arr), (arr)->size+1), \
      ((arr)->items[(arr)->size++] = (element), 0))
 
 void *

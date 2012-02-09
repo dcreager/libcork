@@ -32,7 +32,7 @@ struct cork_mempool {
     size_t  allocated_count;
     struct cork_mempool_block  *blocks;
 
-    int
+    void
     (*init_object)(void *obj);
 
     void
@@ -73,10 +73,11 @@ void
 cork_mempool_done(struct cork_mempool *mp);
 
 
-int
+void
 cork_mempool_new_block(struct cork_mempool *mp);
 
 
+CORK_ATTR_MALLOC
 CORK_ATTR_UNUSED
 static void *
 cork_mempool_new(struct cork_mempool *mp)
@@ -85,10 +86,7 @@ cork_mempool_new(struct cork_mempool *mp)
     void  *ptr;
 
     if (CORK_UNLIKELY(mp->free_list == NULL)) {
-        int  __rc = cork_mempool_new_block(mp);
-        if (__rc != 0) {
-            return NULL;
-        }
+        cork_mempool_new_block(mp);
     }
 
     obj = mp->free_list;

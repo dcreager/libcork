@@ -50,7 +50,7 @@ cork_managed_buffer_wrapped__free(struct cork_managed_buffer *vself)
     struct cork_managed_buffer_wrapped  *self =
         cork_container_of(vself, struct cork_managed_buffer_wrapped, parent);
     self->free(self->buf, self->size);
-    cork_delete(struct cork_managed_buffer_wrapped, self);
+    free(self);
 }
 
 static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {

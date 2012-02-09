@@ -59,8 +59,8 @@ uint64_sum(struct cork_hash_table_entry *entry, void *vsum)
 static enum cork_hash_table_map_result
 uint64_map_free(struct cork_hash_table_entry *entry, void *ud)
 {
-    cork_delete(uint64_t, entry->key);
-    cork_delete(uint64_t, entry->value);
+    free(entry->key);
+    free(entry->value);
     return CORK_HASH_TABLE_MAP_DELETE;
 }
 
@@ -165,8 +165,8 @@ START_TEST(test_hash_table)
                 "Couldn't delete {0=>32}");
     old_key = v_key;
     old_value = v_value;
-    cork_delete(uint64_t, old_key);
-    cork_delete(uint64_t, old_value);
+    free(old_key);
+    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 1,
                 "Unexpected size after deleting entry");
@@ -181,8 +181,8 @@ START_TEST(test_hash_table)
                 "Couldn't delete {1=>2}");
     old_key = v_key;
     old_value = v_value;
-    cork_delete(uint64_t, old_key);
-    cork_delete(uint64_t, old_value);
+    free(old_key);
+    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
