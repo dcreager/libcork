@@ -266,7 +266,7 @@ Each garbage-collected class must provide an implementation of the
       If your class doesn't need any additional finalization steps, this
       entry in the callback interface can be ``NULL``.
 
-   .. member:: void (\*recurse)(struct cork_gc \*gc, void \*self, cork_gc_recurser recurse, void \*ud)
+   .. member:: void (\*recurse)(struct cork_gc \*gc, void \*obj, cork_gc_recurser recurse, void \*ud)
 
       This callback is how you inform the garbage collector of your
       references to other garbage-collected objects.
@@ -303,6 +303,83 @@ Each garbage-collected class must provide an implementation of the
    An opaque callback provided by the garbage collector when it calls an
    object's :c:member:`recurse <cork_gc_obj_iface.recurse>` method.
 
+
+.. _gc-macros:
+
+Helper macros
+~~~~~~~~~~~~~
+
+There are several macros declared in :file:`libcork/helpers/gc.h` that
+make it easier to define the garbage-collection interface for a new
+class.
+
+.. note::
+
+   Unlike most libcork modules, these macros are **not** automatically
+   defined when you include the ``libcork/core.h`` header file, since
+   they don't include a ``cork_`` prefix.  Because of this, we don't
+   want to pollute your namespace unless you ask for the macros.  To do
+   so, you must explicitly include their header file::
+
+     #include <libcork/helpers/gc.h>
+
+.. macro:: _free_(SYMBOL name)
+           _recurse_(SYMBOL name)
+
+   These macros declare the *free* and *recurse* methods for a new
+   class.  The functions will be declared with exactly the signatures
+   and parameter names shown in the entries for the
+   :c:member:`~cork_gc_obj_iface.free` and
+   :c:member:`~cork_gc_obj_iface.recurse` methods.
+
+   You will almost certainly not need to refer to the method
+   implementations directly, since you can use the :c:macro:`_gc_*_
+   <_gc_>` macros below to declare the interface struct.  But if you do,
+   they'll be called :samp:`{[name]}__free` and
+   :samp:`{[name]}__recurse`.  (Note the double underscore.)
+
+.. macro:: _gc_(SYMBOL name)
+           _gc_no_free_(SYMBOL name)
+           _gc_no_recurse_(SYMBOL name)
+           _gc_leaf_(SYMBOL name)
+
+   Define the garbage-collection interface struct for a new class.  If
+   you defined both ``free`` and ``recurse`` methods, you should use the
+   ``_gc_`` variant.  If you only defined one of the methods, you should
+   use ``_gc_no_free_`` or ``_gc_no_recurse_``.  If you didn't define
+   either method, you should use ``_gc_free_``.
+
+   Like the method definitions, you probably won't need to refer to the
+   interface struct directly, since you can use the
+   :c:func:`*_check_gc_new <e_check_gc_new>` macros to allocate new
+   instances of the new class.  But if you do, it will be called
+   :samp:`{[name]}__gc`.  (Note the double underscore.)
+
+
+As an example, we can use these macros to define a new tree class::
+
+    #include <libcork/helpers/gc.h>
+
+    struct tree {
+        const char  *name;
+        struct tree  *left;
+        struct tree  *right;
+    };
+
+    _free_(tree) {
+        struct tree  *self = obj;
+        cork_strfree(self->name);
+    }
+
+    _recurse_(tree) {
+        struct tree  *self = obj;
+        recurse(self->left, ud);
+        recurse(self->right, ud);
+    }
+
+    _gc_(tree);
+
+
 Allocating new garbage-collected objects
 ----------------------------------------
 
@@ -327,3 +404,23 @@ directly.)
    *iface* should be a pointer to a callback interface for the object.
    If there are any problems allocating the new instance, we'll return
    ``NULL``.
+
+There are :ref:`helper macros <alloc-macros>` that take care allocating
+garbage-collected objects and filling in error conditions if an
+allocation fails.  Using them, and the helper macros defined above, you
+could instantiate our example tree class as follows::
+
+    struct tree *
+    tree_new(struct cork_gc *gc, const char *name)
+    {
+        struct tree  *self;
+        rp_check_gc_new(struct tree, self, "tree");
+        e_check_alloc(self->name = cork_strdup(name), "tree name");
+        self->left = NULL;
+        self->right = NULL;
+        return self;
+
+    error:
+        cork_gc_decref(gc, self);
+        return NULL;
+    }

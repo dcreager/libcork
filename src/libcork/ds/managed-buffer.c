@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -11,11 +11,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "libcork/core/checkers.h"
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"
+#include "libcork/helpers/errors.h"
 
 
 /*-----------------------------------------------------------------------
@@ -23,12 +23,11 @@
  */
 
 static void
-cork_slice_invalid_slice_set(struct cork_error *err,
-                             size_t buf_size, size_t requested_offset,
+cork_slice_invalid_slice_set(size_t buf_size, size_t requested_offset,
                              size_t requested_length)
 {
     cork_error_set
-        (err, CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
+        (CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
          "Cannot slice %zu-byte buffer at %zu:%zu",
          buf_size, requested_offset, requested_length);
 }
@@ -51,7 +50,7 @@ cork_managed_buffer_wrapped__free(struct cork_managed_buffer *vself)
     struct cork_managed_buffer_wrapped  *self =
         cork_container_of(vself, struct cork_managed_buffer_wrapped, parent);
     self->free(self->buf, self->size);
-    cork_delete(struct cork_managed_buffer_wrapped, self);
+    free(self);
 }
 
 static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {
@@ -60,8 +59,7 @@ static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_WRAPPED = {
 
 struct cork_managed_buffer *
 cork_managed_buffer_new(const void *buf, size_t size,
-                        cork_managed_buffer_freer free,
-                        struct cork_error *err)
+                        cork_managed_buffer_freer free)
 {
     /*
     DEBUG("Creating new struct cork_managed_buffer [%p:%zu], refcount now 1",
@@ -104,8 +102,7 @@ static struct cork_managed_buffer_iface  CORK_MANAGED_BUFFER_COPIED = {
 };
 
 struct cork_managed_buffer *
-cork_managed_buffer_new_copy(const void *buf, size_t size,
-                             struct cork_error *err)
+cork_managed_buffer_new_copy(const void *buf, size_t size)
 {
     size_t  allocated_size = cork_managed_buffer_copied_sizeof(size);
     struct cork_managed_buffer_copied  *self = malloc(allocated_size);
@@ -174,8 +171,7 @@ cork_managed_buffer__slice_free(struct cork_slice *self)
 static int
 cork_managed_buffer__slice_copy(struct cork_slice *self,
                                 struct cork_slice *dest,
-                                size_t offset, size_t length,
-                                struct cork_error *err)
+                                size_t offset, size_t length)
 {
     struct cork_managed_buffer  *mbuf = self->user_data;
     dest->buf = self->buf + offset;
@@ -195,8 +191,7 @@ static struct cork_slice_iface  CORK_MANAGED_BUFFER__SLICE = {
 int
 cork_managed_buffer_slice(struct cork_slice *dest,
                           struct cork_managed_buffer *buffer,
-                          size_t offset, size_t length,
-                          struct cork_error *err)
+                          size_t offset, size_t length)
 {
     if ((buffer != NULL) &&
         (offset < buffer->size) &&
@@ -221,7 +216,7 @@ cork_managed_buffer_slice(struct cork_slice *dest,
               offset, length);
         */
         cork_slice_clear(dest);
-        cork_slice_invalid_slice_set(err, 0, offset, 0);
+        cork_slice_invalid_slice_set(0, offset, 0);
         return -1;
     }
 }
@@ -230,15 +225,14 @@ cork_managed_buffer_slice(struct cork_slice *dest,
 int
 cork_managed_buffer_slice_offset(struct cork_slice *dest,
                                  struct cork_managed_buffer *buffer,
-                                 size_t offset,
-                                 struct cork_error *err)
+                                 size_t offset)
 {
     if (buffer == NULL) {
         cork_slice_clear(dest);
-        cork_slice_invalid_slice_set(err, 0, offset, 0);
+        cork_slice_invalid_slice_set(0, offset, 0);
         return -1;
     } else {
         return cork_managed_buffer_slice
-            (dest, buffer, offset, buffer->size - offset, err);
+            (dest, buffer, offset, buffer->size - offset);
     }
 }

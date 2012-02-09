@@ -36,12 +36,18 @@ rst_epilog = """
 #----------------------------------------------------------------------
 # Everything below here shouldn't need to be changed.
 
-# Grab version from git
+release = None
+version = None
 
-import re
-import subprocess
-release = subprocess.check_output(["git", "describe"]).rstrip()
-version = re.sub(r"-dev.*$", "-dev", release)
+# Give CMake a chance to insert a version number
+# @VERSION_FOR_CONF_PY@
+
+# Otherwise grab version from git
+if version is None:
+    import re
+    import subprocess
+    release = subprocess.check_output(["git", "describe"]).rstrip()
+    version = re.sub(r"-dev.*$", "-dev", release)
 
 # Project details
 

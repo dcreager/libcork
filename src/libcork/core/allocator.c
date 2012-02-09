@@ -18,19 +18,6 @@
 
 
 /*-----------------------------------------------------------------------
- * Error handling
- */
-
-void
-cork_cannot_allocate_set(struct cork_error *err, const char *kind)
-{
-    cork_error_set
-        (err, CORK_ALLOC_ERROR, CORK_CANNOT_ALLOCATE,
-         "Error allocating %s", kind);
-}
-
-
-/*-----------------------------------------------------------------------
  * reallocf
  */
 
@@ -52,7 +39,7 @@ cork_realloc(void *ptr, size_t new_size)
  */
 
 const char *
-cork_strdup(const char *str)
+cork_xstrdup(const char *str)
 {
     size_t  len = strlen(str);
     size_t  allocated_size = len + sizeof(size_t) + 1;

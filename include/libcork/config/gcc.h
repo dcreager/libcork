@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -27,14 +27,49 @@
  * Compiler attributes
  */
 
-/*
- * The attributes we want to use are available as of GCC 2.96.
- */
+/* The GCC assembly syntax has been available basically forever. */
+
+#if defined(CORK_CONFIG_GCC_VERSION)
+#define CORK_CONFIG_HAVE_GCC_ASM  1
+#else
+#define CORK_CONFIG_HAVE_GCC_ASM  0
+#endif
+
+/* The GCC atomic instrinsics are available as of GCC 4.1.0. */
+
+#if CORK_CONFIG_GCC_VERSION >= 40100
+#define CORK_CONFIG_HAVE_GCC_ATOMICS  1
+#else
+#define CORK_CONFIG_HAVE_GCC_ATOMICS  0
+#endif
+
+/* The attributes we want to use are available as of GCC 2.96. */
 
 #if CORK_CONFIG_GCC_VERSION >= 29600
 #define CORK_CONFIG_HAVE_GCC_ATTRIBUTES  1
 #else
 #define CORK_CONFIG_HAVE_GCC_ATTRIBUTES  0
+#endif
+
+/* Statement expressions have been available since GCC 3.1. */
+
+#if CORK_CONFIG_GCC_VERSION >= 30100
+#define CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS  1
+#else
+#define CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS  0
+#endif
+
+/* Thread-local storage has been available since GCC 3.3, but not on Mac
+ * OS X. */
+
+#if !(defined(__APPLE__) && defined(__MACH__))
+#if CORK_CONFIG_GCC_VERSION >= 30300
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  1
+#else
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
+#endif
+#else
+#define CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS  0
 #endif
 
 

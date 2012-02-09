@@ -60,21 +60,21 @@ internal storage has been exhausted.)
      cork_array_append(array, 5, err);
      cork_array_at(array, 0) = 12;
 
-.. function:: int cork_array_append(cork_array(T) \*array, T element, struct cork_error \*err)
+.. function:: int cork_array_append(cork_array(T) \*array, T element)
 
    Appends *element* to the end of *array*, reallocating the array's
    storage if necessary.  We'll return an error condition if we need to
    resize the array but the reallocation fails.
 
-.. function:: T \*cork_array_append_get(cork_array(T) \*array, struct cork_error \*err)
+.. function:: T \*cork_array_append_get(cork_array(T) \*array)
 
    Appends a new, uninitialized element to the end of *array*,
    reallocating the array's storage if necessary.  We'll return a
    pointer to the new element, or ``NULL`` if we need to resize the
    array but the reallocation fails.
 
-.. function:: int cork_array_ensure_size(cork_array(T) \*array, size_t desired_count, struct cork_error \*err)
-              int cork_array_ensure_size_(cork_array(T) \*array, size_t desired_count, size_t element_size, struct cork_error \*err)
+.. function:: int cork_array_ensure_size(cork_array(T) \*array, size_t desired_count)
+              int cork_array_ensure_size_(cork_array(T) \*array, size_t desired_count, size_t element_size)
 
    Ensures that *array* has enough allocated space to store
    *desired_count* elements.  We'll reallocate the array's storage if

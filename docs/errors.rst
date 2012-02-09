@@ -36,11 +36,11 @@ This means that each error class is free to define its error codes
 however it wishes (usually via an ``enum`` type), without having to
 worry about them clashing with the codes of any other class.
 
-.. type:: struct cork_error
+.. note::
 
-   An object representing a particular error condition.  This type
-   should be considered opaque; you should use the various accessor
-   functions described below to interrogate an error instance.
+   We correctly maintain a separate error condition for each thread in
+   the current process.  This is all hidden by the functions in this
+   section; it's safe to call them from multiple threads simultaneously.
 
 .. macro:: CORK_ERROR_NONE
 
@@ -54,74 +54,62 @@ There are two basic forms for a function that can produce an error.  The
 first is if the function returns a single pointer as its result::
 
   TYPE *
-  my_function(/* parameters */, struct cork_error *err);
+  my_function(/* parameters */);
 
 The second is for any other function::
 
   int
-  my_function(/* parameters */, struct cork_error *err);
+  my_function(/* parameters */);
 
-If you only want to check whether an error occurred or not, you can pass
-in ``NULL`` for the *err* parameter, and simply check the function's
-return value.  If an error occurs, the function will return either
-``NULL`` or ``-1``, depending on its return type.  Success will be
-indicated by a non-\ ``NULL`` pointer or a ``0``.  (More complex return
-value schemes are possible, if the function needs to signal more than a
-simple “success” or “failure”; in that case, you'll need to check the
-function's documentation for details.)
+If an error occurs, the function will return either ``NULL`` or ``-1``,
+depending on its return type.  Success will be indicated by a non-\
+``NULL`` pointer or a ``0``.  (More complex return value schemes are
+possible, if the function needs to signal more than a simple “success”
+or “failure”; in that case, you'll need to check the function's
+documentation for details.)
 
-If you want to know specifics about the error, you need to create a
-:c:type:`cork_error` instance to pass in for the *err* parameter.  The
-easiest way to do this is to simply allocate one on the stack::
+If you want to know specifics about the error, we provide several
+accessor functions:
 
-  struct cork_error  err = CORK_ERROR_INIT();
+.. function:: bool cork_error_occurred(void)
+              cork_error_class cork_error_get_class(void)
+              cork_error_code cork_error_get_code(void)
+              const char \*cork_error_message(void)
 
-or::
+   Returns information about the current error condition.  This
+   information is maintained in thread-local storage, so it is safe
+   to call these functions from multiple threads simultaneously.  Note
+   that you often won't need to call ``cork_error_occurred``, since
+   you'll usually be able to detect error conditions by checking a
+   function's return value.
 
-  struct cork_error  err;
-  cork_error_init(&err);
+If you want to know specifics about the error, there are several
+functions that you can use to interrogate the current error condition.
 
-.. function:: void cork_error_init(struct cork_error \*err)
-              struct cork_error CORK_ERROR_INIT()
+.. function:: bool cork_error_occurred(void)
 
-   Initializes an error instance that you've allocated on the stack or
-   in some other storage.  The ``CORK_ERROR_INIT`` version can only be
-   used as a static initializer.
+   Returns whether an error has occurred.
 
-When the function returns, there are several functions that you can use
-to interrogate the error instance.
+.. function:: cork_error_class cork_error_get_class(void)
+              cork_error_code cork_error_get_code(void)
 
-.. function:: bool cork_error_occurred(const struct cork_error \*err)
+   Returns the class and code of the current error condition.  If no
+   error has occurred, the error class will be
+   :c:macro:`CORK_ERROR_NONE`, and the code will be ``0``.
 
-   After passing *err* into a function that might return an error
-   condition, you can use this function to check whether an error
-   actually occurred.
+.. function:: const char \*cork_error_message(void)
 
-.. function:: cork_error_class cork_error_class(const struct cork_error \*err)
-              cork_error_code cork_error_code(const struct cork_error \*err)
+   Returns the human-readable string description the current error
+   condition.  If no error occurred, the result of this function is
+   undefined.
 
-   Returns the class and code of an error condition.  If no error
-   occurred, the error class will be :c:macro:`CORK_ERROR_NONE`, and the
-   code will be ``0``.
+When you're done checking the current error condition, you clear it so
+that later calls to :c:func:`cork_error_occurred` and friends don't
+re-report this error.
 
-.. function:: void cork_error_message(struct cork_error \*err)
+.. function:: void cork_error_clear(void)
 
-   Returns the human-readable string description of *err*.  If no error
-   occurred, the result of this function is undefined.
-
-.. note::
-
-   If you pass in a :c:type:`cork_error` instance to the function call,
-   you don't actually have to check the function's return value to see
-   if an error occurred; you can just call
-   :c:func:`cork_error_occurred()`.
-
-When you're done with your error instance, you should use
-``cork_error_done`` to dispose of it.
-
-.. function:: void cork_error_done(struct cork_error \*err)
-
-   Finalizes an error condition instance.
+   Clears the current error condition.
 
 
 Writing a function that can return an error
@@ -132,10 +120,10 @@ function signature should follow one of the two standard patterns
 described above::
 
   int
-  my_function(/* parameters */, struct cork_error *err);
+  my_function(/* parameters */);
 
   TYPE *
-  my_function(/* parameters */, struct cork_error *err);
+  my_function(/* parameters */);
 
 You should return ``-1`` or ``NULL`` if an error occurs, and ``0`` or a
 non-\ ``NULL`` pointer if it succeeds.  If ``NULL`` is a valid
@@ -145,19 +133,15 @@ value.  (If you're using the first form, you can use additional return
 codes if there are other possible results besides a simple “success” and
 “failure”.)
 
-If your function results in an error, you need to fill in your
-function's *err* parameter, using the ``cork_error_set`` function:
+If your function results in an error, you need to fill in the current
+error condition using the ``cork_error_set`` function:
 
-.. function:: void cork_error_set(struct cork_error \*error, cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
+.. function:: void cork_error_set(cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
 
-   Fills in *err* with the given error condition.  The error condition
-   is defined by the error class *eclass*, the error code *ecode*.  The
+   Fills in the current error condition.  The error condition is defined
+   by the error class *eclass*, the error code *ecode*.  The
    human-readable description is constructed from *format* and any
    additional parameters.
-
-   If *err* is ``NULL`` (signifying that the caller doesn't care about
-   the particulars of any error condition), then this function behaves
-   like a no-op.
 
 As an example, the :ref:`IP address <net-addresses>` parsing functions
 fill in ``CORK_NET_ADDRESS_PARSE_ERROR`` error conditions when you try
@@ -165,118 +149,38 @@ to parse a malformed address::
 
   const char  *str = /* the string that's being parsed */;
   cork_error_set
-      (err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+      (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
        "Invalid IP address: %s", str);
 
 If a particular kind of error can be raised in several places
 throughout your code, it can be useful to define a helper function for
-filling in an *err* parameter::
+filling in the current error condition::
 
   static void
-  cork_ip_address_parse_error(struct cork_error *err, const char *version,
-                              const char *str)
+  cork_ip_address_parse_error(const char *version, const char *str)
   {
       cork_error_set
-          (err, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+          (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
            "Invalid %s address: %s", version, str);
   }
-
-
-Propagating errors from nested function calls
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Things can be slightly more complicated if you're writing a function
-that returns an error condition, which in turn calls a different
-function that returns an error condition.
-
-Most of the time, you can get away with passing in your own *err*
-parameter when calling the nested function::
-
-  int
-  outer_function(/* parameters */, struct cork_error *err)
-  {
-      int  rc;
-
-      rc = inner_function(/* more parameters */, err);
-      if (rc == -1) {
-          return rc;
-      }
-
-      /* do some more stuff */
-      return 0;
-  }
-
-This works because you don't need to interrogate *err* to determine if
-an error occurred; you can always check the inner function's result
-(looking for ``-1`` or ``NULL``).
-
-The complications show up if you need to check the error condition.  For
-instance, your outer function might be able to recover from some error
-conditions, but not others.  In that case, you **can't** pass your *err*
-parameter into the inner function, since the caller is free to pass in a
-``NULL`` :c:type:`cork_error` pointer.  And that wouldn't be good, since
-then you wouldn't have an error condition to interrogate!  Instead, you
-need to define your own ``cork_error`` instance, and then *clear* or
-*propagate* that into the caller's *err* instance as appropriate::
-
-  int
-  outer_function(/* params */, struct cork_error *err)
-  {
-      struct cork_error  suberr = CORK_ERROR_INIT();
-
-      inner_function(/* more params */, &suberr);
-      if (cork_error_occurred(&suberr)) {
-          /* As an example, let's say that we can recover from a
-           * CORK_NET_ADDRESS_PARSE_ERROR. */
-          if ((cork_error_class(&suberr) == CORK_NET_ADDRESS_ERROR) &&
-              (cork_error_code(&suberr) == CORK_NET_ADDRESS_PARSE_ERROR)) {
-              /* Perform some kind of recovery, and then clean up the error */
-              cork_error_done(&suberr);
-          } else {
-              /* We can't recover from this error, so propagate it on */
-              cork_error_propagate(err, &suberr);
-              return -1;
-          }
-      }
-
-      /* etc */
-      return 0;
-  }
-
-.. function:: void cork_error_propagate(struct cork_error \*err, struct cork_error \*suberr)
-
-   Propagates an error condition from one instance to another.  In the
-   most common case, *err* will be the error instance passed in from the
-   current function's caller, while *suberr* will be an instance
-   allocated in the current function.  In other words, *err* might be
-   ``NULL``, while *suberr* never should be.
-
-   If *err* is ``NULL``, indicating that your caller doesn't care about
-   the details of the error, then we just finalize *suberr*.  If *err*
-   is non-\ ``NULL``, then we move the contents of *suberr* into *err*.
-
-   In both cases, *suberr* will be finalized when
-   ``cork_error_propagate`` returns.  You **should not** call
-   :c:func:`cork_error_done` on *suberr* afterwards.
 
 
 Error-checking macros
 ---------------------
 
 There can be a lot of repetitive code when calling functions that return
-:c:type:`cork_error` error conditions.  We provide a collection of
-helper macros that make it easier to write this code.
+error conditions.  We provide a collection of helper macros that make it
+easier to write this code.
 
 .. note::
 
    Unlike most libcork modules, these macros are **not** automatically
-   defined when you include the ``libcork/core.h`` header file.  Since
-   they're used so often, the macros don't include a ``cork_`` prefix,
-   saving a handful of keystrokes.  Because of this, we don't want to
-   pollute your namespace unless you ask for the macros.  To do so, you
-   must explicitly include their header file::
+   defined when you include the ``libcork/core.h`` header file, since
+   they don't include a ``cork_`` prefix.  Because of this, we don't
+   want to pollute your namespace unless you ask for the macros.  To do
+   so, you must explicitly include their header file::
 
-     #include <libcork/core/checkers.h>
+     #include <libcork/helpers/errors.h>
 
 Additional debugging output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,9 +188,10 @@ Additional debugging output
 .. macro:: CORK_PRINT_ERRORS
 
    If you define this macro to ``1`` before including
-   ``libcork/core/checkers.h``, then we'll output the current function name,
-   file, and line number to stderr whenever an error is detected by one of the
-   macro described in this section.
+   :file:`libcork/helpers/errors.h`, then we'll output the current
+   function name, file, and line number, along with the description of
+   the error, to stderr whenever an error is detected by one of the
+   macros described in this section.
 
 Returning a default error code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -390,83 +295,6 @@ automatically return anything.)
    raises an error, we automatically jump to the current scope's
    ``error`` label.
 
-Allocating new instances
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-All of the previous macros are used to propagate errors from within
-nested function calls.  Another common use case is to allocate a new
-instance of some type (using either a custom allocator or a garbage
-collection context), and to raise a new error if the allocation fails.
-The macros in this section make it easier to write this kind of code.
-
-.. function:: void e_check_new(type, var, desc)
-              void x_check_new(retval, type, var, desc)
-              void ri_check_new(type, var, desc)
-              void rp_check_new(type, var, desc)
-
-   Allocates a new instance using a custom allocator.  These macros
-   assume that you have an error condition parameter or variable named
-   ``err``, and that you've already declared a variable named *var*, of
-   type *type*.  *desc* should be a human-readable name of the kind of
-   object you're trying to allocate.  We'll automatically allocate a new
-   instance, storing it into *var*.  If the allocation fails, we'll fill
-   in *err* with a :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
-
-.. function:: void e_check_gc_new(type, var, desc)
-              void x_check_gc_new(retval, type, var, desc)
-              void ri_check_gc_new(type, var, desc)
-              void rp_check_gc_new(type, var, desc)
-
-   Allocates a new instance of a garbage-collected object.  These macros
-   assume that you have an error condition parameter named ``err``, and
-   that you've already declared a variable named *var*, of type *type*.
-   They also assume that the garbage collection interface for *type* is
-   named ``[type]_gc_iface``.  *desc* should be a human-readable name of
-   the kind of object you're trying to allocate.  We'll automatically
-   allocate a new instance, storing it into *var*.  If the allocation
-   fails, we'll fill in *err* with a
-   :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
-
-   .. note::
-
-      Note that *type* should **not** contain the ``struct`` prefix of
-      your garbage-collected type.  We add that to the type name
-      automatically.  (This lets us construct the default garbage
-      collection interface name.)
-
-.. function:: void e_check_gc_inew(type, iface, var, desc)
-              void x_check_gc_inew(retval, type, iface, var, desc)
-              void ri_check_gc_inew(type, iface, var, desc)
-              void rp_check_gc_inew(type, iface, var, desc)
-
-   Allocates a new instance of a garbage-collected object.  These macros
-   assume that you have an error condition parameter named ``err``, and
-   that you've already declared a variable named *var*, of type *type*.
-   They also assume that the garbage collection interface for *type* is
-   named *iface*.  *desc* should be a human-readable name of the kind of
-   object you're trying to allocate.  We'll automatically allocate a new
-   instance, storing it into *var*.  If the allocation fails, we'll fill
-   in *err* with a :c:macro:`CORK_CANNOT_ALLOCATE` error
-   condition.
-
-   .. note::
-
-      Note that *type* should **not** contain the ``struct`` prefix of
-      your garbage-collected type.  We add that to the type name
-      automatically.
-
-.. function:: void e_check_alloc(call, desc)
-              void x_check_alloc(retval, call, desc)
-              void ri_check_alloc(call, desc)
-              void rp_check_alloc(call, desc)
-
-   Checks the result of an arbitrary allocation.  *call* should be a
-   statement that allocates some new memory.  These macros assume that
-   you have and an error condition parameter named ``err``.  *desc*
-   should be a human-readable name of the kind of object you're trying
-   to allocate.    If the allocation fails, we'll fill in *err* with a
-   :c:macro:`CORK_CANNOT_ALLOCATE` error condition.
-
 
 Defining a new error class
 --------------------------
@@ -538,7 +366,8 @@ error class and code instead.
    The error class and codes used for the error conditions described in
    this section.
 
-.. function:: int cork_unknown_error_set(struct cork_error \*err)
+.. function:: int cork_unknown_error_set(void)
 
-   Fills in *err* to indicate that there was some unknown error.  The
-   error description will include the name of the current function.
+   Fills in the current error condition to indicate that there was some
+   unknown error.  The error description will include the name of the
+   current function.

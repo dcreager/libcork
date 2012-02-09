@@ -95,29 +95,41 @@ just need to provide an instance of this interface type.
    Return whether a slice is empty.
 
 
-.. function:: int cork_slice_copy(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_copy_offset(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, struct cork_error \*err)
+.. function:: int cork_slice_copy(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length)
+              int cork_slice_copy_offset(struct cork_slice \*dest, struct cork_slice \*src, size_t offset)
+              int cork_slice_copy_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length)
+              int cork_slice_copy_offset_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset)
 
    Initialize a new slice that refers to a subset of an existing slice.
    The *offset* and *length* parameters identify the subset.  (For the
    ``_copy_offset`` variant, the *length* is calculated automatically to
    include all of the original slice content starting from *offset*.)
-   If these parameters don't refer to a valid subset of the slice, we
-   return ``false``, and *dest* will be empty.
+
+   For the ``_fast`` variants, we **don't** verify that the *offset* and
+   *length* parameters refer to a valid subset of the slice.  This is
+   your responsibility.  For the non-\ ``_fast`` variants, we perform a
+   bounds check for you, and return an error if the requested slice is
+   invalid.
 
    Regardless of whether the new slice is valid, you **must** ensure
    that you call :c:func:`cork_slice_finish()` on *dest* when you are
    done with it.
 
-.. function:: int cork_slice_slice(struct cork_slice \*slice, size_t offset, size_t length, struct cork_error \*err)
-              int cork_slice_slice_offset(struct cork_slice \*slice, size_t offset, struct cork_error \*err)
+.. function:: int cork_slice_slice(struct cork_slice \*slice, size_t offset, size_t length)
+              int cork_slice_slice_offset(struct cork_slice \*slice, size_t offset)
+              int cork_slice_slice_fast(struct cork_slice \*slice, size_t offset, size_t length)
+              int cork_slice_slice_offset_fast(struct cork_slice \*slice, size_t offset)
 
    Update a slice to refer to a subset of its contents.  The *offset*
    and *length* parameters identify the subset.  (For the
    ``_slice_offset`` variant, the *length* is calculated automatically
    to include all of the original slice content starting from *offset*.)
-   If these parameters don't refer to a valid subset of the slice, we
-   return ``false``, and *dest* will be empty.
+
+   For the ``_fast`` variants, we **don't** verify that the *offset* and
+   *length* parameters refer to a valid subset of the slice.  This is
+   your responsibility.  For the non-\ ``_fast`` variants, we perform a
+   bounds check for you, and return an error if the requested slice is
+   invalid.
 
 .. function:: void cork_slice_finish(struct cork_slice \*slice)
 
@@ -147,12 +159,12 @@ Slice interface
       This function pointer can be ``NULL`` if you don't need to free
       any underlying buffer.
 
-   .. member:: int (\*copy)(struct cork_slice \*self, struct cork_slice \*dest, size_t offset, size_t length, struct cork_error \*err)
+   .. member:: int (\*copy)(struct cork_slice \*self, struct cork_slice \*dest, size_t offset, size_t length)
 
       Create a copy of a slice.  You can assume that *offset* and
       *length* refer to a valid subset of *self*\ 's content.
 
-   .. member:: int (\*slice)(struct cork_slice \*self, size_t offset, size_t length, struct cork_error \*err)
+   .. member:: int (\*slice)(struct cork_slice \*self, size_t offset, size_t length)
 
       Update *self* to point at a different subset of the underlying
       buffer.  You can assume that *offset* and *length* refer to a
@@ -164,3 +176,35 @@ Slice interface
       :c:func:`cork_slice_slice()` and
       :c:func:`cork_slice_slice_offset()` will update the slice's *buf*
       and *size* fields for you.
+
+
+Built-in slice implementations
+------------------------------
+
+Several libcork classes can be used to initialize a slice:
+
+* :ref:`Managed buffers <managed-buffer>` via the
+  :c:func:`cork_managed_buffer_slice` function
+
+* :ref:`Resizable buffers <buffer>` via the
+  :c:func:`cork_buffer_to_slice` function
+
+In addition, you can initialize a slice to point at a static string
+using the following function:
+
+.. function:: void cork_slice_init_static(struct cork_slice \*dest, const void \*buf, size_t size)
+
+   Initializes *dest* to point at the given static buffer.  Since the
+   buffer is static, and guaranteed to always exist, the slice's
+   :c:member:`~cork_slice.copy` method doesn't copy the underlying data,
+   it just creates a new pointer to the existing buffer.
+
+   .. note::
+
+      You can also use this function to refer to a non-static buffer,
+      but then you take responsibility for ensuring that the underlying
+      buffer exists for at least as long as the slice, and any copies
+      made of the slice.
+
+   As with all slices, you **must** ensure that you call
+   :c:func:`cork_slice_finish` when you're done with the slice.

@@ -43,27 +43,76 @@ This section lists all of the macros that are defined by libcork's
 autodetection logic.  Other libcork modules will use the values of these
 macros to choose among the possible implementations.
 
+
+.. macro:: CORK_CONFIG_ARCH_X86
+           CORK_CONFIG_ARCH_X64
+           CORK_CONFIG_ARCH_PPC
+
+   Exactly one of these macros should be defined to ``1`` to indicate
+   the architecture of the current platform.  All of the other macros
+   should be defined to ``0`` or left undefined.  The macros correspond
+   to the following architectures:
+
+   ============ ================================================
+   Macro suffix Architecture
+   ============ ================================================
+   ``X86``      32-bit Intel (386 or greater)
+   ``X64``      64-bit Intel/AMD (AMD64/EM64T, *not* IA-64)
+   ``PPC``      32-bit PowerPC
+   ============ ================================================
+
+
+.. macro:: CORK_CONFIG_HAVE_GCC_ASM
+
+   Whether the GCC `inline assembler`_ syntax is available.  (This
+   doesn't imply that the compiler is specifically GCC.)  Should be
+   defined to ``0`` or ``1``.
+
+   .. _inline assembler: http://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+
+
+.. macro:: CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+
+   Whether the GCC-style syntax for `compiler attributes`_ is available.
+   (This doesn't imply that the compiler is specifically GCC.)  Should
+   be defined to ``0`` or ``1``.
+
+   .. _compiler attributes: http://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html
+
+
+.. macro:: CORK_CONFIG_HAVE_GCC_ATOMICS
+
+   Whether GCC-style `atomic intrinsics`_ are available.  (This doesn't
+   imply that the compiler is specifically GCC.)  Should be defined to
+   ``0`` or ``1``.
+
+   .. _atomic intrinsics: http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
+
+
+.. macro:: CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS
+
+   Whether GCC-style `statement expressions`_ are available.
+   (This doesn't imply that the compiler is specifically GCC.)  Should
+   be defined to ``0`` or ``1``.
+
+   .. _statement expressions: http://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html
+
+
+.. macro:: CORK_CONFIG_HAVE_REALLOCF
+
+   Whether this platform defines a ``reallocf`` function in
+   ``stdlib.h``.  ``reallocf`` is a BSD extension to the standard
+   ``realloc`` function that frees the existing pointer if a
+   reallocation fails.  If this function exists, we can use it to
+   implement :func:`cork_realloc`.
+
+
 .. macro:: CORK_CONFIG_IS_BIG_ENDIAN
            CORK_CONFIG_IS_LITTLE_ENDIAN
 
    Whether the current system is big-endian or little-endian.  Exactly
    one of these macros should be defined to ``1``; the other should be
    defined to ``0``.
-
-
-.. macro:: CORK_CONFIG_HAVE_GCC_ATTRIBUTES
-
-   Whether the GCC-style syntax for compiler attributes is available.
-   (This doesn't imply that the compiler is specifically GCC.)  Should
-   be defined to ``0`` or ``1``.
-
-
-.. macro:: CORK_CONFIG_HAVE_REALLOCF
-
-   Whether this platform defines a ``reallocf`` function in
-   ``stdlib.h``.  ``reallocf`` is a BSD extension that frees the
-   existing pointer if a reallocation fails.  If this function exists,
-   we can use it to implement :func:`cork_realloc`.
 
 
 .. _skipping-autodetection:

@@ -59,16 +59,44 @@ uint64_sum(struct cork_hash_table_entry *entry, void *vsum)
 static enum cork_hash_table_map_result
 uint64_map_free(struct cork_hash_table_entry *entry, void *ud)
 {
-    cork_delete(uint64_t, entry->key);
-    cork_delete(uint64_t, entry->value);
+    free(entry->key);
+    free(entry->value);
     return CORK_HASH_TABLE_MAP_DELETE;
+}
+
+static void
+test_map_sum(struct cork_hash_table *table, uint64_t expected)
+{
+    uint64_t  sum = 0;
+    cork_hash_table_map(table, uint64_sum, &sum);
+    fail_unless(sum == expected,
+                "Unexpected map sum, got %" PRIu64
+                ", expected %" PRIu64,
+                sum, expected);
+}
+
+static void
+test_iterator_sum(struct cork_hash_table *table, uint64_t expected)
+{
+    uint64_t  sum = 0;
+    struct cork_hash_table_iterator  iterator;
+    struct cork_hash_table_entry  *entry;
+    cork_hash_table_iterator_init(table, &iterator);
+    while ((entry = cork_hash_table_iterator_next(&iterator)) != NULL) {
+        uint64_t  *value_ptr = entry->value;
+        sum += *value_ptr;
+    }
+    fail_unless(sum == expected,
+                "Unexpected iterator sum, got %" PRIu64
+                ", expected %" PRIu64 "",
+                sum, expected);
 }
 
 START_TEST(test_hash_table)
 {
     struct cork_hash_table  *table;
     fail_if_error(table = cork_hash_table_new
-                  (0, uint64_hash, uint64_equals, &err));
+                  (0, uint64_hash, uint64_equals));
 
     uint64_t  key, *key_ptr, *old_key;
     void  *v_key, *v_value;
@@ -83,13 +111,16 @@ START_TEST(test_hash_table)
     fail_unless(cork_hash_table_get(table, &key) == NULL,
                 "Shouldn't get value pointer from empty hash table");
 
+    test_map_sum(table, 0);
+    test_iterator_sum(table, 0);
+
     key_ptr = cork_new(uint64_t);
     *key_ptr = 0;
     value_ptr = cork_new(uint64_t);
     *value_ptr = 32;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
@@ -103,7 +134,7 @@ START_TEST(test_hash_table)
                 "Unexpected size after adding {0->32}");
 
     fail_if_error(entry = cork_hash_table_get_or_create
-                  (table, &key, &is_new, &err));
+                  (table, &key, &is_new));
     fail_if(is_new, "Shouldn't create new {0=>X} entry");
     value_ptr = entry->value;
     fail_unless(*value_ptr == 32,
@@ -114,7 +145,7 @@ START_TEST(test_hash_table)
 
     key = 1;
     fail_if_error(entry = cork_hash_table_get_or_create
-                  (table, &key, &is_new, &err));
+                  (table, &key, &is_new));
     fail_unless(is_new, "Should create new {1=>X} entry");
     key_ptr = cork_new(uint64_t);
     *key_ptr = key;
@@ -126,30 +157,16 @@ START_TEST(test_hash_table)
     fail_unless(cork_hash_table_size(table) == 2,
                 "Unexpected size after adding {1=>2}");
 
-    uint64_t  sum = 0;
-    cork_hash_table_map(table, uint64_sum, &sum);
-    fail_unless(sum == 34,
-                "Unexpected sum, got %lu, expected %lu",
-                (unsigned long) sum, (unsigned long) 34);
-
-    sum = 0;
-    struct cork_hash_table_iterator  iterator;
-    cork_hash_table_iterator_init(table, &iterator);
-    while ((entry = cork_hash_table_iterator_next(&iterator)) != NULL) {
-        value_ptr = entry->value;
-        sum += *value_ptr;
-    }
-    fail_unless(sum == 34,
-                "Unexpected iterator sum, got %lu, expected %lu",
-                (unsigned long) sum, (unsigned long) 34);
+    test_map_sum(table, 34);
+    test_iterator_sum(table, 34);
 
     key = 0;
     fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
                 "Couldn't delete {0=>32}");
     old_key = v_key;
     old_value = v_value;
-    cork_delete(uint64_t, old_key);
-    cork_delete(uint64_t, old_value);
+    free(old_key);
+    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 1,
                 "Unexpected size after deleting entry");
@@ -164,8 +181,8 @@ START_TEST(test_hash_table)
                 "Couldn't delete {1=>2}");
     old_key = v_key;
     old_value = v_value;
-    cork_delete(uint64_t, old_key);
-    cork_delete(uint64_t, old_value);
+    free(old_key);
+    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
@@ -181,7 +198,7 @@ START_TEST(test_hash_table)
     *value_ptr = 32;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
@@ -192,7 +209,7 @@ START_TEST(test_hash_table)
     *value_ptr = 2;
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
-                   &is_new, &v_key, &v_value, &err));
+                   &is_new, &v_key, &v_value));
     fail_unless(is_new, "Couldn't append {1=>2} to hash table");
     old_key = v_key;
     old_value = v_value;

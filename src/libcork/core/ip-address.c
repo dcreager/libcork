@@ -24,8 +24,7 @@
 /*** IPv4 ***/
 
 int
-cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
-               struct cork_error *error)
+cork_ipv4_init(struct cork_ipv4 *addr, const char *str)
 {
     int  rc = inet_pton(AF_INET, str, addr);
 
@@ -35,12 +34,11 @@ cork_ipv4_init(struct cork_ipv4 *addr, const char *str,
     } else if (rc == 0) {
         /* parse error */
         cork_error_set
-            (error, CORK_NET_ADDRESS_ERROR,
-             CORK_NET_ADDRESS_PARSE_ERROR,
+            (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
              "Invalid IPv4 address: \"%s\"", str);
         return -1;
     } else {
-        cork_unknown_error_set(error);
+        cork_unknown_error();
         return -1;
     }
 }
@@ -61,8 +59,7 @@ cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
 /*** IPv6 ***/
 
 int
-cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
-               struct cork_error *error)
+cork_ipv6_init(struct cork_ipv6 *addr, const char *str)
 {
     int  rc = inet_pton(AF_INET6, str, addr);
 
@@ -72,12 +69,11 @@ cork_ipv6_init(struct cork_ipv6 *addr, const char *str,
     } else if (rc == 0) {
         /* parse error */
         cork_error_set
-            (error, CORK_NET_ADDRESS_ERROR,
-             CORK_NET_ADDRESS_PARSE_ERROR,
+            (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
              "Invalid IPv6 address: \"%s\"", str);
         return -1;
     } else {
-        cork_unknown_error_set(error);
+        cork_unknown_error();
         return -1;
     }
 }
@@ -190,7 +186,7 @@ cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
 }
 
 int
-cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
+cork_ip_init(struct cork_ip *addr, const char *str)
 {
     int  rc;
 
@@ -204,7 +200,7 @@ cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
         return 0;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_unknown_error_set(error);
+        cork_unknown_error();
         return -1;
     }
 
@@ -218,13 +214,13 @@ cork_ip_init(struct cork_ip *addr, const char *str, struct cork_error *error)
         return 0;
     } else if (rc != 0) {
         /* non-parse error */
-        cork_unknown_error_set(error);
+        cork_unknown_error();
         return -1;
     }
 
     /* Parse error for both address types */
     cork_error_set
-        (error, CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
+        (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
          "Invalid IP address: \"%s\"", str);
     return -1;
 }

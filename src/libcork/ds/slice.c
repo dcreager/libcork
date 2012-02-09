@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -10,10 +10,10 @@
 
 #include <string.h>
 
-#include "libcork/core/checkers.h"
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/slice.h"
+#include "libcork/helpers/errors.h"
 
 
 /*-----------------------------------------------------------------------
@@ -21,12 +21,11 @@
  */
 
 static void
-cork_slice_invalid_slice_set(struct cork_error *err,
-                             size_t buf_size, size_t requested_offset,
+cork_slice_invalid_slice_set(size_t buf_size, size_t requested_offset,
                              size_t requested_length)
 {
     cork_error_set
-        (err, CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
+        (CORK_SLICE_ERROR, CORK_SLICE_INVALID_SLICE,
          "Cannot slice %zu-byte buffer at %zu:%zu",
          buf_size, requested_offset, requested_length);
 }
@@ -48,7 +47,7 @@ cork_slice_clear(struct cork_slice *slice)
 
 int
 cork_slice_copy(struct cork_slice *dest, struct cork_slice *slice,
-                size_t offset, size_t length, struct cork_error *err)
+                size_t offset, size_t length)
 {
     if ((slice != NULL) &&
         (offset <= slice->size) &&
@@ -59,7 +58,7 @@ cork_slice_copy(struct cork_slice *dest, struct cork_slice *slice,
               offset, length,
               slice->buf + offset, length);
         */
-        return slice->iface->copy(slice, dest, offset, length, err);
+        return slice->iface->copy(slice, dest, offset, length);
     }
 
     else {
@@ -70,7 +69,7 @@ cork_slice_copy(struct cork_slice *dest, struct cork_slice *slice,
         */
         cork_slice_clear(dest);
         cork_slice_invalid_slice_set
-            (err, (slice == NULL)? 0: slice->size, offset, length);
+            ((slice == NULL)? 0: slice->size, offset, length);
         return -1;
     }
 }
@@ -78,22 +77,21 @@ cork_slice_copy(struct cork_slice *dest, struct cork_slice *slice,
 
 int
 cork_slice_copy_offset(struct cork_slice *dest, struct cork_slice *slice,
-                       size_t offset, struct cork_error *err)
+                       size_t offset)
 {
     if (slice == NULL) {
         cork_slice_clear(dest);
-        cork_slice_invalid_slice_set(err, 0, offset, 0);
+        cork_slice_invalid_slice_set(0, offset, 0);
         return -1;
     } else {
         return cork_slice_copy
-            (dest, slice, offset, slice->size - offset, err);
+            (dest, slice, offset, slice->size - offset);
     }
 }
 
 
 int
-cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length,
-                 struct cork_error *err)
+cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length)
 {
     if ((slice != NULL) &&
         (offset <= slice->size) &&
@@ -109,7 +107,7 @@ cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length,
             slice->size = length;
             return 0;
         } else {
-            return slice->iface->slice(slice, offset, length, err);
+            return slice->iface->slice(slice, offset, length);
         }
     }
 
@@ -119,22 +117,21 @@ cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length,
               slice->buf, slice->size,
               offset, length);
         */
-        cork_slice_invalid_slice_set(err, slice->size, offset, length);
+        cork_slice_invalid_slice_set(slice->size, offset, length);
         return -1;
     }
 }
 
 
 int
-cork_slice_slice_offset(struct cork_slice *slice, size_t offset,
-                        struct cork_error *err)
+cork_slice_slice_offset(struct cork_slice *slice, size_t offset)
 {
     if (slice == NULL) {
-        cork_slice_invalid_slice_set(err, 0, offset, 0);
+        cork_slice_invalid_slice_set(0, offset, 0);
         return -1;
     } else {
         return cork_slice_slice
-            (slice, offset, slice->size - offset, err);
+            (slice, offset, slice->size - offset);
     }
 }
 
@@ -167,4 +164,31 @@ cork_slice_equal(const struct cork_slice *slice1,
     }
 
     return (memcmp(slice1->buf, slice2->buf, slice1->size) == 0);
+}
+
+
+static struct cork_slice_iface  cork_static_slice;
+
+static int
+cork_static_slice_copy(struct cork_slice *self, struct cork_slice *dest,
+                       size_t offset, size_t length)
+{
+    dest->buf = self->buf + offset;
+    dest->size = length;
+    dest->iface = &cork_static_slice;
+    dest->user_data = NULL;
+    return 0;
+}
+
+static struct cork_slice_iface  cork_static_slice = {
+    NULL, cork_static_slice_copy, NULL
+};
+
+void
+cork_slice_init_static(struct cork_slice *dest, const void *buf, size_t size)
+{
+    dest->buf = buf;
+    dest->size = size;
+    dest->iface = &cork_static_slice;
+    dest->user_data = NULL;
 }

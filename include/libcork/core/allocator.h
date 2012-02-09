@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -11,55 +11,77 @@
 #ifndef LIBCORK_CORE_ALLOCATOR_H
 #define LIBCORK_CORE_ALLOCATOR_H
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
 
-/* Need to forward declare this since there's a circular dependency
- * between allocator.h and error.h */
-struct cork_error;
-
-
 /*-----------------------------------------------------------------------
- * Error handling
+ * Recoverable
  */
 
-/* hash of "libcork/core/allocator.h" */
-#define CORK_ALLOC_ERROR  0xa6f0c61b
-
-enum cork_alloc_error {
-    /* An error while allocating or reallocating some memory. */
-    CORK_CANNOT_ALLOCATE
-};
-
-void
-cork_cannot_allocate_set(struct cork_error *err, const char *what);
-
-
-/*-----------------------------------------------------------------------
- * Raw allocation macros
- */
+#define cork_xmalloc  malloc
+#define cork_xcalloc  calloc
+#define cork_xfree    free
 
 #if CORK_HAVE_REALLOCF
-#define cork_realloc  reallocf
+#define cork_xrealloc  reallocf
 #else
 void *
-cork_realloc(void *ptr, size_t new_size);
+cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 #endif
 
 /* type-based macros */
-#define cork_new(type)  ((type *) malloc(sizeof(type)))
-#define cork_delete(type, instance)  free((instance))
+#define cork_xnew(type)  ((type *) cork_xmalloc(sizeof(type)))
 
 /* string-related functions */
 
 const char *
-cork_strdup(const char *str);
+cork_xstrdup(const char *str);
 
 void
 cork_strfree(const char *str);
+
+
+/*-----------------------------------------------------------------------
+ * Abort on failure
+ */
+
+#define cork_abort_(func, file, line, fmt, ...) \
+    do { \
+        fprintf(stderr, fmt "\n  in %s (%s:%u)\n", \
+                __VA_ARGS__, (func), (file), (unsigned int) (line)); \
+        abort(); \
+    } while (0)
+
+#define cork_abort(fmt, ...) \
+    cork_abort_(__func__, __FILE__, __LINE__, fmt, __VA_ARGS__)
+
+CORK_ATTR_UNUSED
+static void *
+cork_abort_if_null_(void *ptr, const char *msg, const char *func,
+                    const char *file, unsigned int line)
+{
+    if (CORK_UNLIKELY(ptr == NULL)) {
+        cork_abort_(func, file, line, "%s", msg);
+    } else {
+        return ptr;
+    }
+}
+
+#define cork_abort_if_null(ptr, msg) \
+    (cork_abort_if_null_(ptr, msg, __func__, __FILE__, __LINE__))
+
+#define cork_alloc_or_abort(op, ...) \
+    (cork_abort_if_null(cork_x##op(__VA_ARGS__), #op " failed"))
+
+#define cork_malloc(size)         cork_alloc_or_abort(malloc, size)
+#define cork_calloc(count, size)  cork_alloc_or_abort(calloc, count, size)
+#define cork_realloc(ptr, size)   cork_alloc_or_abort(realloc, ptr, size)
+#define cork_new(type)            cork_alloc_or_abort(new, type)
+#define cork_strdup(str)          cork_alloc_or_abort(strdup, str)
 
 
 #endif /* LIBCORK_CORE_ALLOCATOR_H */

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2012, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
@@ -48,7 +48,10 @@ make_test(test-dllist)
 make_test(test-gc)
 make_test(test-hash-table)
 make_test(test-managed-buffer)
+make_test(test-mempool)
 make_test(test-ring-buffer)
+make_test(test-slice)
+make_test(test-threads)
 
 #-----------------------------------------------------------------------
 # Command-line tests

@@ -64,6 +64,17 @@
 
 
 /*
+ * Declare that a function shouldn't be inlined.
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_ATTR_NOINLINE  __attribute__((noinline))
+#else
+#define CORK_ATTR_NOINLINE
+#endif
+
+
+/*
  * Declare an entity that isn't used.
  *
  * This lets you keep -Wall activated in several cases where you're
