@@ -77,16 +77,25 @@ macros to choose among the possible implementations.
    (This doesn't imply that the compiler is specifically GCC.)  Should
    be defined to ``0`` or ``1``.
 
-   .. _compiler attributes: http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Attribute-Syntax.html
+   .. _compiler attributes: http://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html
 
 
 .. macro:: CORK_CONFIG_HAVE_GCC_ATOMICS
 
-   Whether the GCC-style `atomic intrinsics`_ are available.
+   Whether GCC-style `atomic intrinsics`_ are available.  (This doesn't
+   imply that the compiler is specifically GCC.)  Should be defined to
+   ``0`` or ``1``.
+
+   .. _atomic intrinsics: http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
+
+
+.. macro:: CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS
+
+   Whether GCC-style `statement expressions`_ are available.
    (This doesn't imply that the compiler is specifically GCC.)  Should
    be defined to ``0`` or ``1``.
 
-   .. _atomic intrinsics: http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
+   .. _statement expressions: http://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html
 
 
 .. macro:: CORK_CONFIG_HAVE_REALLOCF

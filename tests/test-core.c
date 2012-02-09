@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the LICENSE.txt file in this distribution for license
@@ -14,6 +14,7 @@
 
 #include <check.h>
 
+#include "libcork/config.h"
 #include "libcork/core/byte-order.h"
 #include "libcork/core/error.h"
 #include "libcork/core/hash.h"
@@ -427,6 +428,20 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Statement expressions
+ */
+
+START_TEST(test_statement_expr)
+{
+#if CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS
+    int  value = ({ int __x = 0; __x += 2; __x;});
+    fail_unless_equal("Statement expression result", "%d", 2, value);
+#endif
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -458,6 +473,10 @@ test_suite()
     TCase  *tc_timestamp = tcase_create("timestamp");
     tcase_add_test(tc_timestamp, test_timestamp);
     suite_add_tcase(s, tc_timestamp);
+
+    TCase  *tc_statement_expr = tcase_create("statement_expr");
+    tcase_add_test(tc_statement_expr, test_statement_expr);
+    suite_add_tcase(s, tc_statement_expr);
 
     return s;
 }
