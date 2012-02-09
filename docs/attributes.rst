@@ -53,6 +53,11 @@ common compiler attributes.
      void *custom_malloc(size_t size) CORK_ATTR_MALLOC;
 
 
+.. macro:: CORK_ATTR_NOINLINE
+
+   Declare that a function shouldn't be eligible for inlining.
+
+
 .. macro:: CORK_ATTR_PRINTF(format_index, args_index)
 
    Declare a function that takes in ``printf``\ -like parameters.

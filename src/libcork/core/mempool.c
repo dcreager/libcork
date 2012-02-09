@@ -85,7 +85,11 @@ cork_mempool_done(struct cork_mempool *mp)
 
 
 /* If this function succeeds, then we guarantee that there will be at
- * least one object in mp->free_list. */
+ * least one object in mp->free_list.
+ *
+ * We don't want this inlined to keep the fast path of cork_mempool_new
+ * as lean as possible. */
+CORK_ATTR_NOINLINE
 static int
 cork_mempool_new_block(struct cork_mempool *mp)
 {
