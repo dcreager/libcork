@@ -43,6 +43,7 @@ Contents
    gc
    mempool
    ds
+   threads
 
 
 Indices and tables

@@ -50,5 +50,10 @@
         cork_error_done(&err); \
     } while (0)
 
+#define fail_unless_equal(what, format, expected, actual) \
+    (fail_unless((expected) == (actual), \
+                 "%s not equal (expected " format \
+                 ", got " format ")", \
+                 (what), (expected), (actual)))
 
 #endif /* TESTS_HELPERS_H */

@@ -28,6 +28,11 @@
 /* Otherwise autodetect! */
 
 
+/**** ARCHITECTURES ****/
+
+#include <libcork/config/arch.h>
+
+
 /**** PLATFORMS ****/
 
 #if defined(__linux)

@@ -27,9 +27,23 @@
  * Compiler attributes
  */
 
-/*
- * The attributes we want to use are available as of GCC 2.96.
- */
+/* The GCC assembly syntax has been available basically forever. */
+
+#if defined(CORK_CONFIG_GCC_VERSION)
+#define CORK_CONFIG_HAVE_GCC_ASM  1
+#else
+#define CORK_CONFIG_HAVE_GCC_ASM  0
+#endif
+
+/* The GCC atomic instrinsics are available as of GCC 4.1.0. */
+
+#if CORK_CONFIG_GCC_VERSION >= 40100
+#define CORK_CONFIG_HAVE_GCC_ATOMICS  1
+#else
+#define CORK_CONFIG_HAVE_GCC_ATOMICS  0
+#endif
+
+/* The attributes we want to use are available as of GCC 2.96. */
 
 #if CORK_CONFIG_GCC_VERSION >= 29600
 #define CORK_CONFIG_HAVE_GCC_ATTRIBUTES  1

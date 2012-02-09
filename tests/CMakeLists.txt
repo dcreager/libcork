@@ -51,6 +51,7 @@ make_test(test-managed-buffer)
 make_test(test-mempool)
 make_test(test-ring-buffer)
 make_test(test-slice)
+make_test(test-threads)
 
 #-----------------------------------------------------------------------
 # Command-line tests
