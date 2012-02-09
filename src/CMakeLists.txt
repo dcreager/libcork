@@ -17,7 +17,7 @@ file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
 add_library(libcork SHARED ${LIBCORK_SRC})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 5.0.0)
+    SOVERSION 6.0.0)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
