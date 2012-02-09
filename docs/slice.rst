@@ -97,13 +97,19 @@ just need to provide an instance of this interface type.
 
 .. function:: int cork_slice_copy(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length, struct cork_error \*err)
               int cork_slice_copy_offset(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, struct cork_error \*err)
+              int cork_slice_copy_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, size_t length, struct cork_error \*err)
+              int cork_slice_copy_offset_fast(struct cork_slice \*dest, struct cork_slice \*src, size_t offset, struct cork_error \*err)
 
    Initialize a new slice that refers to a subset of an existing slice.
    The *offset* and *length* parameters identify the subset.  (For the
    ``_copy_offset`` variant, the *length* is calculated automatically to
    include all of the original slice content starting from *offset*.)
-   If these parameters don't refer to a valid subset of the slice, we
-   return ``false``, and *dest* will be empty.
+
+   For the ``_fast`` variants, we **don't** verify that the *offset* and
+   *length* parameters refer to a valid subset of the slice.  This is
+   your responsibility.  For the non-\ ``_fast`` variants, we perform a
+   bounds check for you, and return an error if the requested slice is
+   invalid.
 
    Regardless of whether the new slice is valid, you **must** ensure
    that you call :c:func:`cork_slice_finish()` on *dest* when you are
@@ -111,13 +117,19 @@ just need to provide an instance of this interface type.
 
 .. function:: int cork_slice_slice(struct cork_slice \*slice, size_t offset, size_t length, struct cork_error \*err)
               int cork_slice_slice_offset(struct cork_slice \*slice, size_t offset, struct cork_error \*err)
+              int cork_slice_slice_fast(struct cork_slice \*slice, size_t offset, size_t length, struct cork_error \*err)
+              int cork_slice_slice_offset_fast(struct cork_slice \*slice, size_t offset, struct cork_error \*err)
 
    Update a slice to refer to a subset of its contents.  The *offset*
    and *length* parameters identify the subset.  (For the
    ``_slice_offset`` variant, the *length* is calculated automatically
    to include all of the original slice content starting from *offset*.)
-   If these parameters don't refer to a valid subset of the slice, we
-   return ``false``, and *dest* will be empty.
+
+   For the ``_fast`` variants, we **don't** verify that the *offset* and
+   *length* parameters refer to a valid subset of the slice.  This is
+   your responsibility.  For the non-\ ``_fast`` variants, we perform a
+   bounds check for you, and return an error if the requested slice is
+   invalid.
 
 .. function:: void cork_slice_finish(struct cork_slice \*slice)
 

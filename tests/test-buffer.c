@@ -133,10 +133,31 @@ START_TEST(test_buffer_slicing)
     fail_if_error(buffer = cork_buffer_new(&err));
     fail_if_error(cork_buffer_set_string(buffer, SRC, &err));
 
-    struct cork_slice  slice;
-    fail_if_error(cork_buffer_to_slice(buffer, &slice, &err));
-    fail_if_error(cork_slice_slice_offset(&slice, buffer->size, &err));
-    cork_slice_finish(&slice);
+    struct cork_slice  slice1;
+    struct cork_slice  slice2;
+
+    fail_if_error(cork_buffer_to_slice(buffer, &slice1, &err));
+
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 2, &err));
+    cork_slice_finish(&slice2);
+
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, buffer->size, &err));
+    cork_slice_finish(&slice2);
+
+    fail_if_error(cork_slice_copy_fast(&slice2, &slice1, 2, 2, &err));
+    cork_slice_finish(&slice2);
+
+    fail_if_error(cork_slice_copy_offset_fast(&slice2, &slice1, 2, &err));
+    cork_slice_finish(&slice2);
+
+    fail_if_error(cork_slice_copy_offset(&slice2, &slice1, 0, &err));
+    fail_if_error(cork_slice_slice_offset_fast(&slice2, 2, &err));
+    fail_if_error(cork_slice_slice_fast(&slice2, 0, 2, &err));
+    fail_if_error(cork_slice_slice(&slice1, 2, 2, &err));
+    fail_unless(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
+    cork_slice_finish(&slice2);
+
+    cork_slice_finish(&slice1);
 }
 END_TEST
 
