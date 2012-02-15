@@ -12,11 +12,11 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include <libcork/config.h>
-#include <libcork/core/allocator.h>
-#include <libcork/core/error.h>
-#include <libcork/ds/buffer.h>
-#include <libcork/threads/basics.h>
+#include "libcork/config.h"
+#include "libcork/core/allocator.h"
+#include "libcork/core/error.h"
+#include "libcork/ds/buffer.h"
+#include "libcork/threads/basics.h"
 
 
 /*-----------------------------------------------------------------------

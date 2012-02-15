@@ -15,18 +15,7 @@
 #include <libcork/core/types.h>
 
 
-/* An internal structure allocated with every garbage-collected object. */
-struct cork_gc_header;
-
-/* A garbage collector context. */
-struct cork_gc {
-    /* The possible roots of garbage cycles.  This is a fixed-size
-     * array. */
-    struct cork_gc_header  **roots;
-    /* The number of used entries in roots. */
-    size_t  root_count;
-};
-
+struct cork_gc;
 
 /* A callback for recursing through the children of a garbage-collected
  * object. */
@@ -34,7 +23,7 @@ typedef void
 (*cork_gc_recurser)(struct cork_gc *gc, void *obj, void *ud);
 
 typedef void
-(*cork_gc_free_func)(struct cork_gc *gc, void *obj);
+(*cork_gc_free_func)(void *obj);
 
 typedef void
 (*cork_gc_recurse_func)(struct cork_gc *gc, void *self,
@@ -49,27 +38,29 @@ struct cork_gc_obj_iface {
 };
 
 
-int
-cork_gc_init(struct cork_gc *gc);
+void
+cork_gc_init(void);
 
 void
-cork_gc_done(struct cork_gc *gc);
+cork_gc_done(void);
 
 
 void *
-cork_gc_alloc(struct cork_gc *gc, size_t instance_size,
-              struct cork_gc_obj_iface *iface);
+cork_gc_alloc(size_t instance_size, struct cork_gc_obj_iface *iface);
 
-#define cork_gc_new(gc, obj_type, iface) \
+#define cork_gc_new_iface(obj_type, iface) \
     ((obj_type *) \
-     (cork_gc_alloc((gc), sizeof(obj_type), (iface))))
+     (cork_gc_alloc(sizeof(obj_type), (iface))))
+
+#define cork_gc_new(struct_name) \
+    (cork_gc_new_iface(struct struct_name, &struct_name##__gc))
 
 
 void *
-cork_gc_incref(struct cork_gc *gc, void *obj);
+cork_gc_incref(void *obj);
 
 void
-cork_gc_decref(struct cork_gc *gc, void *obj);
+cork_gc_decref(void *obj);
 
 
 #endif /* LIBCORK_GC_REFCOUNT_H */

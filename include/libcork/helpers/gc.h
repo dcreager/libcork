@@ -18,7 +18,7 @@
 
 #define _free_(name) \
 static void \
-name##__free(struct cork_gc *gc, void *obj)
+name##__free(void *obj)
 
 
 #define _recurse_(name) \
