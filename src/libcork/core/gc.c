@@ -47,68 +47,10 @@ struct cork_gc {
     struct cork_gc_header  *roots[ROOTS_SIZE];
 };
 
+cork_tls(struct cork_gc, cork_gc);
+
 static void
 cork_gc_collect_cycles(struct cork_gc *gc);
-
-
-/*-----------------------------------------------------------------------
- * Thread-local GC context
- */
-
-/* Prefer, in order:
- *
- * 1) __thread storage class
- * 2) pthread_key_t
- */
-
-#if CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS
-static __thread struct cork_gc  gc =
-    { 0, {NULL} };
-
-static struct cork_gc *
-cork_gc_get(void)
-{
-    return &gc;
-}
-
-#elif CORK_HAVE_PTHREADS
-#include <pthread.h>
-
-static pthread_key_t  gc_key;
-cork_once_barrier(gc_once);
-
-static void
-cork_gc_destroy(void *vgc)
-{
-    struct cork_gc  *gc = vgc;
-    free(gc);
-}
-
-static void
-cork_gc_init_key(void)
-{
-    cork_once
-        (gc_once, assert(pthread_key_create(&gc_key, cork_gc_destroy) == 0));
-}
-
-static struct cork_gc *
-cork_gc_get(void)
-{
-    struct cork_gc  *gc;
-    cork_gc_init_key();
-    gc = pthread_getspecific(gc_key);
-
-    if (CORK_UNLIKELY(gc == NULL)) {
-        gc = cork_calloc(1, sizeof(struct cork_gc));
-        pthread_setspecific(gc_key, gc);
-    }
-
-    return gc;
-}
-
-#else
-#error "No thread-local storage implementation!"
-#endif
 
 
 /*-----------------------------------------------------------------------

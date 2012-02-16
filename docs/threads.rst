@@ -182,3 +182,55 @@ initialized instance of ``struct my_type``.  Regardless of how many
 threads call this function, and how often they call it, the value will
 be initialized exactly once, and will be guaranteed to be initialized
 before any thread tries to use it.
+
+
+.. _tls:
+
+Thread-local storage
+====================
+
+The macro in this section can be used to create thread-local storage in
+a platform-agnostic manner.
+
+.. macro:: cork_tls(TYPE type, SYMBOL name)
+
+   Creates a static function called :samp:`{[name]}_get`, which will
+   return a pointer to a thread-local instance of *type*.  This is a
+   static function, so it won't be visible outside of the current
+   compilation unit.
+
+   When a particular thread's instance is created for the first time, it
+   will be filled with ``0`` bytes.  If the actual type needs more
+   complex initialization before it can be used, you can create a
+   wrapper struct that contains a boolean indiciating whether that
+   initialization has happened::
+
+       struct wrapper {
+           bool  initialized;
+           struct real_type  val;
+       };
+
+       cork_tls(struct wrapper, wrapper);
+
+       static struct real_type *
+       real_type_get(void)
+       {
+           struct wrapper * wrapper = wrapper_get();
+           struct real_type * real_val = &wrapper->val;
+           if (CORK_UNLIKELY(!wrapper->initialized)) {
+               expensive_initialization(real_val);
+           }
+           return real_val;
+       }
+
+   It's also not possible to provide a finalization function; if your
+   thread-local variable acquires any resources or memory that needs to
+   be freed when the thread finishes, you must make a “thread cleanup”
+   function that you explicitly call at the end of each thread.
+
+   .. note::
+
+      On some platforms, the number of thread-local values that can be
+      created by any given process is limited (i.e., on the order of 128
+      or 256 values).  This means that you should limit the number of
+      thread-local values you create, especially in a library.

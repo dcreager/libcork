@@ -43,68 +43,7 @@ cork_error_done(struct cork_error *err)
     cork_buffer_done(&err->message);
 }
 
-
-/*-----------------------------------------------------------------------
- * Thread-local error struct
- */
-
-/* Prefer, in order:
- *
- * 1) __thread storage class
- * 2) pthread_key_t
- */
-
-#if CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS
-static __thread struct cork_error  error =
-    { CORK_ERROR_NONE, 0, CORK_BUFFER_INIT() };
-
-static struct cork_error *
-cork_error_get(void)
-{
-    return &error;
-}
-
-#elif CORK_HAVE_PTHREADS
-#include <pthread.h>
-
-static pthread_key_t  error_key;
-cork_once_barrier(error_once);
-
-static void
-cork_error_destroy(void *verr)
-{
-    struct cork_error  *err = verr;
-    cork_error_done(err);
-    free(err);
-}
-
-static void
-cork_error_init_key(void)
-{
-    cork_once
-        (error_once,
-         assert(pthread_key_create(&error_key, cork_error_destroy) == 0));
-}
-
-static struct cork_error *
-cork_error_get(void)
-{
-    struct cork_error  *err;
-    cork_error_init_key();
-    err = pthread_getspecific(error_key);
-
-    if (CORK_UNLIKELY(err == NULL)) {
-        err = cork_new(struct cork_error);
-        cork_error_init(err);
-        pthread_setspecific(error_key, err);
-    }
-
-    return err;
-}
-
-#else
-#error "No thread-local storage implementation!"
-#endif
+cork_tls(struct cork_error, cork_error);
 
 
 /*-----------------------------------------------------------------------

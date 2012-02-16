@@ -17,6 +17,10 @@
 #include <libcork/threads/atomics.h>
 
 
+/*-----------------------------------------------------------------------
+ * Executing something once
+ */
+
 #if CORK_CONFIG_HAVE_GCC_ASM && (CORK_CONFIG_ARCH_X86 || CORK_CONFIG_ARCH_X64)
 #define cork_pause() \
     do { \
@@ -47,6 +51,66 @@
             } \
         } \
     } while (0)
+
+
+/*-----------------------------------------------------------------------
+ * Thread-local storage
+ */
+
+/* Prefer, in order:
+ *
+ * 1) __thread storage class
+ * 2) pthread_key_t
+ */
+
+#if CORK_CONFIG_HAVE_THREAD_STORAGE_CLASS
+#define cork_tls(TYPE, NAME) \
+static __thread TYPE  NAME##__tls; \
+\
+static TYPE * \
+NAME##_get(void) \
+{ \
+    return &NAME##__tls; \
+}
+
+#elif CORK_HAVE_PTHREADS
+#include <pthread.h>
+
+#define cork_tls(NAME, TYPE, INIT) \
+static pthread_key_t  NAME##__tls_key; \
+cork_once_barrier(NAME##__tls_barrier); \
+\
+static void \
+NAME##__tls_destroy(void *vself) \
+{ \
+    free(vself); \
+} \
+\
+static void \
+NAME##__tls_init_key(void) \
+{ \
+    cork_once \
+        (NAME##__tls_barrier, \
+         assert(pthread_key_create(&NAME##__tls_key, &NAME##__tls_destroy) \
+                == 0)); \
+} \
+\
+static TYPE * \
+NAME##_get(void) \
+{ \
+    TYPE  *self; \
+    NAME##__tls_init_key(); \
+    self = pthread_getspecific(NAME##__tls_key); \
+    if (CORK_UNLIKELY(self == NULL)) { \
+        self = cork_calloc(1, sizeof(TYPE)); \
+        pthread_setspecific(NAME##__tls_key, self); \
+    } \
+    return self; \
+}
+
+#else
+#error "No thread-local storage implementation!"
+#endif
 
 
 #endif /* LIBCORK_THREADS_BASICS_H */
