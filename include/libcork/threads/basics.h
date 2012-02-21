@@ -76,7 +76,7 @@ NAME##_get(void) \
 #elif CORK_HAVE_PTHREADS
 #include <pthread.h>
 
-#define cork_tls(NAME, TYPE, INIT) \
+#define cork_tls(TYPE, NAME) \
 static pthread_key_t  NAME##__tls_key; \
 cork_once_barrier(NAME##__tls_barrier); \
 \
