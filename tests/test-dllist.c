@@ -45,6 +45,9 @@ START_TEST(test_dllist)
                 "Unexpected size of list: got %zu, expected 0",
                 cork_dllist_size(&list));
 
+    fail_unless(cork_dllist_is_empty(&list),
+                "Expected empty list");
+
     struct int64_item  item1;
     struct int64_item  item2;
     struct int64_item  item3;

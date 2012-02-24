@@ -62,7 +62,7 @@ cork_dllist_size(const struct cork_dllist *list);
 
 
 #define cork_dllist_is_empty(list) \
-    (cork_is_end((list), cork_dllist_start((list))))
+    (cork_dllist_is_end((list), cork_dllist_start((list))))
 
 
 #define cork_dllist_head(list) \
