@@ -175,33 +175,13 @@ START_TEST(test_buffer_stream)
     fail_if_error(consumer =
                   cork_buffer_to_stream_consumer(&buffer1));
 
-    struct cork_managed_buffer  *src;
-    struct cork_slice  slice;
-
     /* chunk #1 */
-
-    fail_if_error(src = cork_managed_buffer_new_copy
-                  (SRC1, SRC1_LEN));
-    fail_if_error(cork_managed_buffer_slice_offset
-                  (&slice, src, 0));
-    fail_if_error(cork_stream_consumer_data
-                  (consumer, &slice, true));
-    cork_slice_finish(&slice);
-    cork_managed_buffer_unref(src);
+    fail_if_error(cork_stream_consumer_data(consumer, SRC1, SRC1_LEN, true));
 
     /* chunk #2 */
-
-    fail_if_error(src = cork_managed_buffer_new_copy
-                  (SRC2, SRC2_LEN));
-    fail_if_error(cork_managed_buffer_slice_offset
-                  (&slice, src, 0));
-    fail_if_error(cork_stream_consumer_data
-                  (consumer, &slice, false));
-    cork_slice_finish(&slice);
-    cork_managed_buffer_unref(src);
+    fail_if_error(cork_stream_consumer_data(consumer, SRC2, SRC2_LEN, false));
 
     /* eof */
-
     fail_if_error(cork_stream_consumer_eof(consumer));
 
     /* check the result */

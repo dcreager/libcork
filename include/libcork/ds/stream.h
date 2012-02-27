@@ -14,13 +14,11 @@
 
 #include <libcork/core/types.h>
 
-#include <libcork/ds/slice.h>
-
 
 struct cork_stream_consumer {
     int
     (*data)(struct cork_stream_consumer *consumer,
-            struct cork_slice *slice, bool is_first_chunk);
+            const void *buf, size_t size, bool is_first_chunk);
 
     int
     (*eof)(struct cork_stream_consumer *consumer);
@@ -30,8 +28,8 @@ struct cork_stream_consumer {
 };
 
 
-#define cork_stream_consumer_data(consumer, slice, is_first) \
-    ((consumer)->data((consumer), (slice), (is_first)))
+#define cork_stream_consumer_data(consumer, buf, size, is_first) \
+    ((consumer)->data((consumer), (buf), (size), (is_first)))
 
 #define cork_stream_consumer_eof(consumer) \
     ((consumer)->eof((consumer)))
