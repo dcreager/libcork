@@ -32,6 +32,7 @@ string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
 # Check for prerequisite libraries
 
 find_package(PkgConfig)
+find_package(Threads)
 
 #-----------------------------------------------------------------------
 # Set some options

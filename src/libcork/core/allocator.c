@@ -23,7 +23,7 @@
 
 #if !CORK_HAVE_REALLOCF
 void *
-cork_realloc(void *ptr, size_t new_size)
+cork_xrealloc(void *ptr, size_t new_size)
 {
     void  *result = realloc(ptr, new_size);
     if (result == NULL) {

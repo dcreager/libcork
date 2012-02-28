@@ -15,14 +15,16 @@ include_directories(../include)
 file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
 
 add_library(libcork SHARED ${LIBCORK_SRC})
+target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 6.0.0)
+    SOVERSION 7.0.0)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
 
 add_library(embedded_libcork STATIC ${LIBCORK_SRC})
+target_link_libraries(embedded_libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(embedded_libcork PROPERTIES
     OUTPUT_NAME cork-embedded)
 

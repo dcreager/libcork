@@ -25,13 +25,13 @@ condition if the stream of data is malformed.  If possible, the stream
 producer can try to recover from the error condition, but more often,
 the stream producer will simply pass the error back up to its caller.
 
-.. function:: int cork_stream_consumer_data(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk)
+.. function:: int cork_stream_consumer_data(struct cork_stream_consumer \*consumer, const void \*buf, size_t size, bool is_first_chunk)
 
    Send the next chunk of data into a stream consumer.  You only have to
-   ensure that *slice* is valid for the duration of this function call;
+   ensure that *buf* is valid for the duration of this function call;
    the stream consumer is responsible for saving a copy of the data if
    it needs to be processed later.  In particular, this means that it's
-   perfectly safe for *slice* to refer to a stack-allocated memory
+   perfectly safe for *buf* to refer to a stack-allocated memory
    region.
 
 .. function:: int cork_stream_consumer_eof(struct cork_stream_consumer \*consumer)
@@ -57,8 +57,6 @@ producer that reads data from a file::
 
   #define BUFFER_SIZE  65536
 
-  static struct cork_slice_iface  slice_iface = { NULL, NULL, NULL };
-
   int
   stream_read_file(struct cork_stream_consumer *consumer, FILE *fp)
   {
@@ -67,8 +65,7 @@ producer that reads data from a file::
       bool  first = true;
 
       while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp)) > 0) {
-          struct cork_slice  slice = { buf, bytes_read, &slice_iface, NULL };
-          rip_check(cork_stream_consumer_data(consumer, &slice, first));
+          rip_check(cork_stream_consumer_data(consumer, buf, size, first));
           first = false;
       }
 
@@ -95,13 +92,12 @@ Writing a new stream consumer
    stream.  Once the stream has been exhausted, the producer will call
    :c:func:`cork_stream_consumer_eof()` to signal the end of the stream.
 
-   .. member:: int (\*data)(struct cork_stream_consumer \*consumer, struct cork_slice \*slice, bool is_first_chunk)
+   .. member:: int (\*data)(struct cork_stream_consumer \*consumer, void \*buf, size_t size, bool is_first_chunk)
 
-      Process the next chunk of data in the stream.  *slice* is only
+      Process the next chunk of data in the stream.  *buf* is only
       guaranteed to be valid for the duration of this function call.  If
       you need to access the contents of the slice later, you must save
-      it somewhere yourself (usually via the :c:func:`cork_slice_copy()`
-      function).
+      it somewhere yourself.
 
       If there is an error processing this chunk of data, you should
       return ``-1`` and fill in the current error condition using
@@ -141,15 +137,14 @@ consumer that writes data to a file::
 
   static int
   file_consumer_data(struct cork_stream_consumer *vself,
-                     struct cork_slice *slice, bool is_first)
+                     void *buf, size_t size, bool is_first)
   {
       struct file_consumer  *self =
           cork_container_of(vself, struct file_consumer, parent);
-      size_t  bytes_written =
-          fwrite(slice->buf, 1, slice->size, self->fp);
+      size_t  bytes_written = fwrite(buf, 1, size, self->fp);
       /* If there was an error writing to the file, then signal this to
        * the producer */
-      if (bytes_written == slice->size) {
+      if (bytes_written == size) {
           return 0;
       } else {
           /* fill in an error condition */

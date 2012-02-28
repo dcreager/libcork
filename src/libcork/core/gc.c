@@ -10,10 +10,12 @@
 
 #include <stdlib.h>
 
+#include "libcork/config/config.h"
 #include "libcork/core/allocator.h"
 #include "libcork/core/gc.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/dllist.h"
+#include "libcork/threads/basics.h"
 
 
 #if !defined(CORK_DEBUG_GC)
@@ -28,6 +30,33 @@
 #endif
 
 
+/*-----------------------------------------------------------------------
+ * GC context life cycle
+ */
+
+#define ROOTS_SIZE  1024
+
+/* An internal structure allocated with every garbage-collected object. */
+struct cork_gc_header;
+
+/* A garbage collector context. */
+struct cork_gc {
+    /* The number of used entries in roots. */
+    size_t  root_count;
+    /* The possible roots of garbage cycles */
+    struct cork_gc_header  *roots[ROOTS_SIZE];
+};
+
+cork_tls(struct cork_gc, cork_gc);
+
+static void
+cork_gc_collect_cycles(struct cork_gc *gc);
+
+
+/*-----------------------------------------------------------------------
+ * Garbage collection functions
+ */
+
 struct cork_gc_header {
     /* The current reference count for this object, along with its color
      * during the mark/sweep process. */
@@ -36,9 +65,6 @@ struct cork_gc_header {
     /* The allocated size of this garbage-collected object (including
      * the header). */
     size_t  allocated_size;
-
-    /* The garbage collection context that this object belongs to. */
-    struct cork_gc  *gc;
 
     /* The garbage collection interface for this object. */
     struct cork_gc_obj_iface  *iface;
@@ -92,16 +118,16 @@ struct cork_gc_header {
 #define cork_gc_free(hdr) \
     do { \
         if ((hdr)->iface->free != NULL) { \
-            (hdr)->iface->free((hdr)->gc, cork_gc_get_object((hdr))); \
+            (hdr)->iface->free(cork_gc_get_object((hdr))); \
         } \
         free((hdr)); \
     } while (0)
 
-#define cork_gc_recurse(hdr, recurser) \
+#define cork_gc_recurse(gc, hdr, recurser) \
     do { \
         if ((hdr)->iface->recurse != NULL) { \
             (hdr)->iface->recurse \
-                ((hdr)->gc, cork_gc_get_object((hdr)), (recurser), NULL); \
+                ((gc), cork_gc_get_object((hdr)), (recurser), NULL); \
         } \
     } while (0)
 
@@ -123,53 +149,33 @@ enum cork_gc_color {
     ((void *) (((struct cork_gc_header *) (hdr)) + 1))
 
 
-#define ROOTS_SIZE  1024
-
-static void
-cork_gc_collect_cycles(struct cork_gc *gc);
-
-int
-cork_gc_init(struct cork_gc *gc)
+void
+cork_gc_init(void)
 {
-    gc->roots = calloc(ROOTS_SIZE, sizeof(struct cork_gc_header *));
-    if (gc->roots == NULL) {
-        return 1;
-    }
-
-    gc->root_count = 0;
-    return 0;
+    cork_gc_get();
 }
 
 void
-cork_gc_done(struct cork_gc *gc)
+cork_gc_done(void)
 {
-    cork_gc_collect_cycles(gc);
-    free(gc->roots);
-    gc->roots = NULL;
-    gc->root_count = 0;
+    cork_gc_collect_cycles(cork_gc_get());
 }
 
 void *
-cork_gc_alloc(struct cork_gc *gc, size_t instance_size,
-              struct cork_gc_obj_iface *iface)
+cork_gc_alloc(size_t instance_size, struct cork_gc_obj_iface *iface)
 {
     size_t  full_size = instance_size + sizeof(struct cork_gc_header);
     DEBUG("Allocating %zu (%zu) bytes\n", instance_size, full_size);
-    struct cork_gc_header  *header = malloc(full_size);
-    if (header == NULL) {
-        return NULL;
-    }
-
+    struct cork_gc_header  *header = cork_malloc(full_size);
     DEBUG("  Result is %p[%p]\n", cork_gc_get_object(header), header);
     header->ref_count_color = cork_gc_ref_count_color(1, false, GC_BLACK);
     header->allocated_size = full_size;
-    header->gc = gc;
     header->iface = iface;
     return cork_gc_get_object(header);
 }
 
 void *
-cork_gc_incref(struct cork_gc *gc, void *obj)
+cork_gc_incref(void *obj)
 {
     if (obj != NULL) {
         struct cork_gc_header  *header = cork_gc_get_header(obj);
@@ -185,9 +191,9 @@ static void
 cork_gc_decref_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
-cork_gc_release(struct cork_gc_header *header)
+cork_gc_release(struct cork_gc *gc, struct cork_gc_header *header)
 {
-    cork_gc_recurse(header, cork_gc_decref_step);
+    cork_gc_recurse(gc, header, cork_gc_decref_step);
     cork_gc_set_color(header, GC_BLACK);
     if (!cork_gc_get_buffered(header)) {
         cork_gc_free(header);
@@ -195,17 +201,17 @@ cork_gc_release(struct cork_gc_header *header)
 }
 
 static void
-cork_gc_possible_root(struct cork_gc_header *header)
+cork_gc_possible_root(struct cork_gc *gc, struct cork_gc_header *header)
 {
     if (cork_gc_get_color(header) != GC_PURPLE) {
         DEBUG("  Possible garbage cycle root\n");
         cork_gc_set_color(header, GC_PURPLE);
         if (!cork_gc_get_buffered(header)) {
             cork_gc_set_buffered(header, true);
-            if (header->gc->root_count >= ROOTS_SIZE) {
-                cork_gc_collect_cycles(header->gc);
+            if (gc->root_count >= ROOTS_SIZE) {
+                cork_gc_collect_cycles(gc);
             }
-            header->gc->roots[header->gc->root_count++] = header;
+            gc->roots[gc->root_count++] = header;
         }
     } else {
         DEBUG("  Already marked as possible garbage cycle root\n");
@@ -222,17 +228,29 @@ cork_gc_decref_step(struct cork_gc *gc, void *obj, void *ud)
               obj, cork_gc_get_ref_count(header));
         if (cork_gc_get_ref_count(header) == 0) {
             DEBUG("  Releasing %p\n", header);
-            cork_gc_release(header);
+            cork_gc_release(gc, header);
         } else {
-            cork_gc_possible_root(header);
+            cork_gc_possible_root(gc, header);
         }
     }
 }
 
 void
-cork_gc_decref(struct cork_gc *gc, void *obj)
+cork_gc_decref(void *obj)
 {
-    cork_gc_decref_step(gc, obj, NULL);
+    if (obj != NULL) {
+        struct cork_gc  *gc = cork_gc_get();
+        struct cork_gc_header  *header = cork_gc_get_header(obj);
+        cork_gc_dec_ref_count(header);
+        DEBUG("Decrementing %p -> %d\n",
+              obj, cork_gc_get_ref_count(header));
+        if (cork_gc_get_ref_count(header) == 0) {
+            DEBUG("  Releasing %p\n", header);
+            cork_gc_release(gc, header);
+        } else {
+            cork_gc_possible_root(gc, header);
+        }
+    }
 }
 
 
@@ -240,12 +258,12 @@ static void
 cork_gc_mark_gray_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
-cork_gc_mark_gray(struct cork_gc_header *header)
+cork_gc_mark_gray(struct cork_gc *gc, struct cork_gc_header *header)
 {
     if (cork_gc_get_color(header) != GC_GRAY) {
         DEBUG("      Setting color to gray\n");
         cork_gc_set_color(header, GC_GRAY);
-        cork_gc_recurse(header, cork_gc_mark_gray_step);
+        cork_gc_recurse(gc, header, cork_gc_mark_gray_step);
     }
 }
 
@@ -257,7 +275,7 @@ cork_gc_mark_gray_step(struct cork_gc *gc, void *obj, void *ud)
         struct cork_gc_header  *header = cork_gc_get_header(obj);
         cork_gc_dec_ref_count(header);
         DEBUG("      Reference count now %d\n", cork_gc_get_ref_count(header));
-        cork_gc_mark_gray(header);
+        cork_gc_mark_gray(gc, header);
     }
 }
 
@@ -272,7 +290,7 @@ cork_gc_mark_roots(struct cork_gc *gc)
                   cork_gc_get_object(header));
             DEBUG("    cork_gc_mark_gray(%p)\n",
                   cork_gc_get_object(header));
-            cork_gc_mark_gray(header);
+            cork_gc_mark_gray(gc, header);
         } else {
             DEBUG("  Possible garbage cycle root %p already checked\n",
                   cork_gc_get_object(header));
@@ -291,12 +309,12 @@ static void
 cork_gc_scan_black_step(struct cork_gc *gc, void *obj, void *ud);
 
 static void
-cork_gc_scan_black(struct cork_gc_header *header)
+cork_gc_scan_black(struct cork_gc *gc, struct cork_gc_header *header)
 {
     DEBUG("      Setting color of %p to BLACK\n",
           cork_gc_get_object(header));
     cork_gc_set_color(header, GC_BLACK);
-    cork_gc_recurse(header, cork_gc_scan_black_step);
+    cork_gc_recurse(gc, header, cork_gc_scan_black_step);
 }
 
 static void
@@ -308,7 +326,7 @@ cork_gc_scan_black_step(struct cork_gc *gc, void *obj, void *ud)
         DEBUG("      Increasing reference count %p -> %d\n",
               obj, cork_gc_get_ref_count(header));
         if (cork_gc_get_color(header) != GC_BLACK) {
-            cork_gc_scan_black(header);
+            cork_gc_scan_black(gc, header);
         }
     }
 }
@@ -322,11 +340,11 @@ cork_gc_scan(struct cork_gc *gc, void *obj, void *ud)
         if (cork_gc_get_color(header) == GC_GRAY) {
             if (cork_gc_get_ref_count(header) > 0) {
                 DEBUG("    Remaining references; can't be a cycle\n");
-                cork_gc_scan_black(header);
+                cork_gc_scan_black(gc, header);
             } else {
                 DEBUG("    Definitely a garbage cycle\n");
                 cork_gc_set_color(header, GC_WHITE);
-                cork_gc_recurse(header, cork_gc_scan);
+                cork_gc_recurse(gc, header, cork_gc_scan);
             }
         } else {
             DEBUG("    Already checked\n");
@@ -355,7 +373,7 @@ cork_gc_collect_white(struct cork_gc *gc, void *obj, void *ud)
             !cork_gc_get_buffered(header)) {
             DEBUG("  Releasing %p\n", obj);
             cork_gc_set_color(header, GC_BLACK);
-            cork_gc_recurse(header, cork_gc_collect_white);
+            cork_gc_recurse(gc, header, cork_gc_collect_white);
             DEBUG("  Freeing %p\n", header);
             cork_gc_free(header);
         }

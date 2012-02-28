@@ -81,7 +81,9 @@ cork_abort_if_null_(void *ptr, const char *msg, const char *func,
 #define cork_calloc(count, size)  cork_alloc_or_abort(calloc, count, size)
 #define cork_realloc(ptr, size)   cork_alloc_or_abort(realloc, ptr, size)
 #define cork_new(type)            cork_alloc_or_abort(new, type)
-#define cork_strdup(str)          cork_alloc_or_abort(strdup, str)
+#define cork_strdup(str) \
+    ((const char *) cork_abort_if_null \
+     ((void *) cork_xstrdup((str)), "strdup failed"))
 
 
 #endif /* LIBCORK_CORE_ALLOCATOR_H */

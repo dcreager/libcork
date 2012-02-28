@@ -237,7 +237,8 @@ struct cork_buffer__stream_consumer {
 
 static int
 cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
-                                 struct cork_slice *slice, bool is_first_chunk)
+                                 const void *buf, size_t size,
+                                 bool is_first_chunk)
 {
     struct cork_buffer__stream_consumer  *bconsumer = cork_container_of
         (consumer, struct cork_buffer__stream_consumer, consumer);
@@ -246,7 +247,7 @@ cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
         cork_buffer_clear(bconsumer->buffer);
     }
 
-    cork_buffer_append(bconsumer->buffer, slice->buf, slice->size);
+    cork_buffer_append(bconsumer->buffer, buf, size);
     return 0;
 }
 
