@@ -492,8 +492,12 @@ cork_hash_table_map(struct cork_hash_table *table,
             if (result == CORK_HASH_TABLE_MAP_ABORT) {
                 return;
             } else if (result == CORK_HASH_TABLE_MAP_DELETE) {
+                struct cork_hash_table_entry  *entry =
+                    cork_container_of
+                    (curr, struct cork_hash_table_entry, siblings);
                 DEBUG("      Delete requested");
                 cork_dllist_remove(curr);
+                free(entry);
                 table->entry_count--;
             }
 
