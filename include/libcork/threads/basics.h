@@ -42,9 +42,11 @@
             /* Try to claim the ability to perform the initialization */ \
             int  prior_state = cork_int_cas(&barrier, 0, 1); \
             if (CORK_LIKELY(prior_state == 0)) { \
+                CORK_ATTR_UNUSED int  result; \
                 /* we get to initialize */ \
                 call; \
-                assert(cork_int_cas(&barrier, 1, 2) == 1); \
+                result = cork_int_cas(&barrier, 1, 2); \
+                assert(result == 1); \
             } else { \
                 /* someone else is initializing, spin/wait until done */ \
                 while (barrier != 2) { cork_pause(); } \
@@ -87,19 +89,18 @@ NAME##__tls_destroy(void *vself) \
 } \
 \
 static void \
-NAME##__tls_init_key(void) \
+NAME##__create_key(void) \
 { \
-    cork_once \
-        (NAME##__tls_barrier, \
-         assert(pthread_key_create(&NAME##__tls_key, &NAME##__tls_destroy) \
-                == 0)); \
+    CORK_ATTR_UNUSED int  rc; \
+    rc = pthread_key_create(&NAME##__tls_key, &NAME##__tls_destroy); \
+    assert(rc == 0); \
 } \
 \
 static TYPE * \
 NAME##_get(void) \
 { \
     TYPE  *self; \
-    NAME##__tls_init_key(); \
+    cork_once(NAME##__tls_barrier, NAME##__create_key()); \
     self = pthread_getspecific(NAME##__tls_key); \
     if (CORK_UNLIKELY(self == NULL)) { \
         self = cork_calloc(1, sizeof(TYPE)); \

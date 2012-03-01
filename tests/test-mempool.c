@@ -143,7 +143,12 @@ test_suite()
 
     TCase  *tc_mempool = tcase_create("mempool");
     tcase_add_test(tc_mempool, test_mempool_01);
+#if NDEBUG
+    /* If we're not compiling assertions then this test won't abort */
+    tcase_add_test(tc_mempool, test_mempool_fail_01);
+#else
     tcase_add_test_raise_signal(tc_mempool, test_mempool_fail_01, SIGABRT);
+#endif
     tcase_add_test(tc_mempool, test_mempool_reuse_01);
     suite_add_tcase(s, tc_mempool);
 
