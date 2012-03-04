@@ -56,6 +56,36 @@ cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
              addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
 }
 
+bool
+cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
+                           unsigned int cidr_prefix)
+{
+    uint32_t  cidr_mask;
+    uint32_t  ip_addr_int;
+
+    if (cidr_prefix > 32) {
+        return false;
+    } else if (cidr_prefix == 32) {
+        /* This handles undefined behavior for overflow bit shifts. */
+        cidr_mask = 0;
+    } else {
+        cidr_mask = 0xffffffff >> cidr_prefix;
+    }
+
+    ip_addr_int = (addr->u8[0] << 24) | (addr->u8[1] << 16) |
+                  (addr->u8[2] << 8) | addr->u8[3];
+
+    if ((ip_addr_int == 0) && (cidr_prefix > 0)) {
+        /* Check for 0.0.0.0/n where n > 0 as a special case. */
+        return false;
+    } else if ((cidr_mask & ip_addr_int) != 0) {
+        return false;
+    } else {
+        /* Valid IP address and CIDR pair */
+        return true;
+    }
+}
+
 /*** IPv6 ***/
 
 int
@@ -168,6 +198,16 @@ cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
     *tp++ = '\0';
 }
 
+bool
+cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
+                           unsigned int cidr_prefix)
+{
+    if (cidr_prefix > 128) {
+        return false;
+    }
+    return true;
+}
+
 
 /*** IP ***/
 
@@ -267,5 +307,18 @@ cork_ip_to_raw_string(const struct cork_ip *addr, char *dest)
         default:
             strncpy(dest, "<INVALID>", CORK_IP_STRING_LENGTH);
             return;
+    }
+}
+
+bool
+cork_ip_is_valid_network(const struct cork_ip *addr, unsigned int cidr_prefix)
+{
+    switch (addr->version) {
+        case 4:
+            return cork_ipv4_is_valid_network(&addr->ip.v4, cidr_prefix);
+        case 6:
+            return cork_ipv6_is_valid_network(&addr->ip.v6, cidr_prefix);
+        default:
+            return false;
     }
 }
