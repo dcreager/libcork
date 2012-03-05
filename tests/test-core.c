@@ -256,6 +256,22 @@ START_TEST(test_ipv4_address)
 
 #undef ROUND_TRIP
 #undef BAD
+
+    struct cork_ipv4  addr4;
+    unsigned int  ipv4_cidr_good = 30;
+    unsigned int  ipv4_cidr_bad_value = 24;
+    unsigned int  ipv4_cidr_bad_range = 33;
+
+    cork_ipv4_init(&addr4, "1.2.3.4");
+    fail_unless(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_good),
+                "Bad CIDR block for 1.2.3.4 and %u",
+                ipv4_cidr_good);
+    fail_if(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_value),
+            "IPv4 CIDR check should fail for %u",
+            ipv4_cidr_bad_value);
+    fail_if(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_range),
+            "IPv4 CIDR check should fail for %u",
+            ipv4_cidr_bad_range);
 }
 END_TEST
 
@@ -299,6 +315,14 @@ START_TEST(test_ipv6_address)
 
 #undef ROUND_TRIP
 #undef BAD
+
+    struct cork_ipv6  addr6;
+    unsigned int  ipv6_cidr_bad_range = 129;
+
+    cork_ipv6_init(&addr6, "fe80::200:f8ff:fe21:67cf");
+    fail_if(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_bad_range),
+            "IPv6 CIDR check should fail for %u",
+            ipv6_cidr_bad_range);
 }
 END_TEST
 
