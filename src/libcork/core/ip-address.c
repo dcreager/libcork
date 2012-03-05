@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "libcork/core.h"
+#include "libcork/core/byte-order.h"
 #include "libcork/core/error.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
