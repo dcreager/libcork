@@ -36,11 +36,17 @@ enum cork_net_address_error {
  */
 
 struct cork_ipv4 {
-    uint8_t  u8[4];
+    union {
+        uint8_t  u8[4];
+        uint32_t  u32;
+    } _;
 };
 
 struct cork_ipv6 {
-    uint8_t  u8[16];
+    union {
+        uint8_t  u8[16];
+        uint64_t  u64[2];
+    } _;
 };
 
 struct cork_ip {
