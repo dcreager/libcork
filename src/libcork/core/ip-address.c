@@ -210,7 +210,7 @@ cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
         cidr_mask[1] = 0xffffffffffffffff;
     }
 
-    return (CORK_UINT64_BIG_TO_HOST(addr->_.u64[0] & cidr_mask[0]) == 0) &
+    return (CORK_UINT64_BIG_TO_HOST(addr->_.u64[0] & cidr_mask[0]) == 0) &&
            (CORK_UINT64_BIG_TO_HOST(addr->_.u64[1] & cidr_mask[1]) == 0);
 }
 
