@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libcork/core/byte-order.h"
 #include "libcork/core/error.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/types.h"
@@ -53,7 +54,25 @@ void
 cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest)
 {
     snprintf(dest, CORK_IPV4_STRING_LENGTH, "%u.%u.%u.%u",
-             addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
+             addr->_.u8[0], addr->_.u8[1], addr->_.u8[2], addr->_.u8[3]);
+}
+
+bool
+cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
+                           unsigned int cidr_prefix)
+{
+    uint32_t  cidr_mask;
+
+    if (cidr_prefix > 32) {
+        return false;
+    } else if (cidr_prefix == 32) {
+        /* This handles undefined behavior for overflow bit shifts. */
+        cidr_mask = 0;
+    } else {
+        cidr_mask = 0xffffffff >> cidr_prefix;
+    }
+
+    return (CORK_UINT32_BIG_TO_HOST(addr->_.u32) & cidr_mask) == 0;
 }
 
 /*** IPv6 ***/
@@ -90,7 +109,7 @@ cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2)
 void
 cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
 {
-    const uint8_t  *src = addr->u8;
+    const uint8_t  *src = addr->_.u8;
 
     /*
      * Note that int32_t and int16_t need only be "at least" large enough
@@ -166,6 +185,33 @@ cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest)
         (NS_IN6ADDRSZ / NS_INT16SZ))
         *tp++ = ':';
     *tp++ = '\0';
+}
+
+bool
+cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
+                           unsigned int cidr_prefix)
+{
+    uint64_t  cidr_mask[2];
+
+    if (cidr_prefix > 128) {
+        return false;
+    } else if (cidr_prefix == 128) {
+        /* This handles undefined behavior for overflow bit shifts. */
+        cidr_mask[0] = cidr_mask[1] = 0;
+    } else if (cidr_prefix == 64) {
+        /* This handles undefined behavior for overflow bit shifts. */
+        cidr_mask[0] = 0;
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff);
+    } else if (cidr_prefix > 64) {
+        cidr_mask[0] = 0;
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff) >> (cidr_prefix-64);
+    } else {
+        cidr_mask[0] = UINT64_C(0xffffffffffffffff) >> cidr_prefix;
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff);
+    }
+
+    return (CORK_UINT64_BIG_TO_HOST(addr->_.u64[0] & cidr_mask[0]) == 0) &&
+           (CORK_UINT64_BIG_TO_HOST(addr->_.u64[1] & cidr_mask[1]) == 0);
 }
 
 
@@ -267,5 +313,18 @@ cork_ip_to_raw_string(const struct cork_ip *addr, char *dest)
         default:
             strncpy(dest, "<INVALID>", CORK_IP_STRING_LENGTH);
             return;
+    }
+}
+
+bool
+cork_ip_is_valid_network(const struct cork_ip *addr, unsigned int cidr_prefix)
+{
+    switch (addr->version) {
+        case 4:
+            return cork_ipv4_is_valid_network(&addr->ip.v4, cidr_prefix);
+        case 6:
+            return cork_ipv6_is_valid_network(&addr->ip.v6, cidr_prefix);
+        default:
+            return false;
     }
 }
