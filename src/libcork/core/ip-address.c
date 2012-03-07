@@ -201,13 +201,13 @@ cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
     } else if (cidr_prefix == 64) {
         /* This handles undefined behavior for overflow bit shifts. */
         cidr_mask[0] = 0;
-        cidr_mask[1] = 0xffffffffffffffff;
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff);
     } else if (cidr_prefix > 64) {
         cidr_mask[0] = 0;
-        cidr_mask[1] = 0xffffffffffffffff >> (cidr_prefix-64);
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff) >> (cidr_prefix-64);
     } else {
-        cidr_mask[0] = 0xffffffffffffffff >> cidr_prefix;
-        cidr_mask[1] = 0xffffffffffffffff;
+        cidr_mask[0] = UINT64_C(0xffffffffffffffff) >> cidr_prefix;
+        cidr_mask[1] = UINT64_C(0xffffffffffffffff);
     }
 
     return (CORK_UINT64_BIG_TO_HOST(addr->_.u64[0] & cidr_mask[0]) == 0) &&
