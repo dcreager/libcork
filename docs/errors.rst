@@ -361,12 +361,19 @@ applicable.  In almost all cases, you'll want to define a more specific
 error class and code instead.
 
 .. macro:: CORK_BUILTIN_ERROR
+           CORK_SYSTEM_ERROR
            CORK_UNKNOWN_ERROR
 
    The error class and codes used for the error conditions described in
    this section.
 
-.. function:: int cork_unknown_error_set(void)
+.. function:: void cork_system_error_set(void)
+
+   Fills in the current error condition with information from the C
+   library's ``errno`` variable.  The human-readable description of the
+   error will be obtained from the standard ``strerror`` function.
+
+.. function:: void cork_unknown_error_set(void)
 
    Fills in the current error condition to indicate that there was some
    unknown error.  The error description will include the name of the

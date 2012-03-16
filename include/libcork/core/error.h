@@ -53,9 +53,14 @@ cork_error_clear(void);
 #define CORK_BUILTIN_ERROR  0xd178dde5
 
 enum cork_builtin_error {
+    /* An error reported by the C library's errno mechanism */
+    CORK_SYSTEM_ERROR,
     /* An unknown error */
     CORK_UNKNOWN_ERROR
 };
+
+void
+cork_system_error_set(void);
 
 void
 cork_unknown_error_set_(const char *location);

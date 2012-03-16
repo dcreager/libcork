@@ -8,9 +8,11 @@
  * ----------------------------------------------------------------------
  */
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <check.h>
 
@@ -163,6 +165,28 @@ START_TEST(test_endianness)
                 1, 2, 3, 4, 5, 6, 7, 8);
 
 #undef TEST_ENDIAN
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
+ * Built-in errors
+ */
+
+START_TEST(test_system_error)
+{
+    DESCRIBE_TEST;
+
+    /* Artificially flag a system error and make sure we can detect it */
+    errno = ENOMEM;
+    cork_error_clear();
+    cork_system_error_set();
+    fail_unless(cork_error_get_class() == CORK_BUILTIN_ERROR,
+                "Expected a built-in error");
+    fail_unless(cork_error_get_code() == CORK_SYSTEM_ERROR,
+                "Expected a system error");
+    printf("Got error: %s\n", cork_error_message());
+    cork_error_clear();
 }
 END_TEST
 
@@ -491,6 +515,10 @@ test_suite()
     TCase  *tc_endianness = tcase_create("endianness");
     tcase_add_test(tc_endianness, test_endianness);
     suite_add_tcase(s, tc_endianness);
+
+    TCase  *tc_errors = tcase_create("errors");
+    tcase_add_test(tc_errors, test_system_error);
+    suite_add_tcase(s, tc_errors);
 
     TCase  *tc_hash = tcase_create("hash");
     tcase_add_test(tc_hash, test_hash);
