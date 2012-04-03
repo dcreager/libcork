@@ -129,6 +129,20 @@ Compare-and-swap
    compare-and-swap was successful.)
 
 
+.. _threads:
+
+Thread information
+==================
+
+.. type:: cork_thread_id
+
+   An identifier for a thread in the current process.
+
+.. function:: cork_thread_id cork_thread_get_id(void)
+
+   Returns the identifier of the currently executing thread.
+
+
 .. _once:
 
 Executing something once
@@ -156,6 +170,10 @@ execution at roughly the same time.
    *barrier*, then exactly one *call* will succeed.  If the *call*
    statements are different in those ``cork_once`` invocations, then
    it's undefined which one gets executed.
+
+   It's fine if the function that contains the ``cork_once`` call is
+   recursive; if the same thread tries to obtain the underlying lock
+   multiple times, the second and later calls will silently succeed.
 
 These macros are usually used to initialize a static variable that will
 be shared across multiple threads::
