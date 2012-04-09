@@ -11,10 +11,10 @@
 #ifndef LIBCORK_CORE_ALLOCATOR_H
 #define LIBCORK_CORE_ALLOCATOR_H
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <libcork/core/attributes.h>
+#include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
 
@@ -48,31 +48,6 @@ cork_strfree(const char *str);
 /*-----------------------------------------------------------------------
  * Abort on failure
  */
-
-#define cork_abort_(func, file, line, fmt, ...) \
-    do { \
-        fprintf(stderr, fmt "\n  in %s (%s:%u)\n", \
-                __VA_ARGS__, (func), (file), (unsigned int) (line)); \
-        abort(); \
-    } while (0)
-
-#define cork_abort(fmt, ...) \
-    cork_abort_(__func__, __FILE__, __LINE__, fmt, __VA_ARGS__)
-
-CORK_ATTR_UNUSED
-static void *
-cork_abort_if_null_(void *ptr, const char *msg, const char *func,
-                    const char *file, unsigned int line)
-{
-    if (CORK_UNLIKELY(ptr == NULL)) {
-        cork_abort_(func, file, line, "%s", msg);
-    } else {
-        return ptr;
-    }
-}
-
-#define cork_abort_if_null(ptr, msg) \
-    (cork_abort_if_null_(ptr, msg, __func__, __FILE__, __LINE__))
 
 #define cork_alloc_or_abort(op, ...) \
     (cork_abort_if_null(cork_x##op(__VA_ARGS__), #op " failed"))

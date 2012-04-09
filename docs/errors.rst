@@ -378,3 +378,15 @@ error class and code instead.
    Fills in the current error condition to indicate that there was some
    unknown error.  The error description will include the name of the
    current function.
+
+.. function:: void cork_abort(const char \*fmt, ...)
+
+   Aborts the current program with an error message given by *fmt* and any
+   additional parameters.
+
+.. function:: void cork_unreachable(void)
+
+   Aborts the current program with a message indicating that the code path
+   should be unreachable.  This can be useful in the ``default`` clause of a
+   ``switch`` statement if you can ensure that one of the non-``default``
+   branches will always be selected.
