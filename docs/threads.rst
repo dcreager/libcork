@@ -26,38 +26,14 @@ atomic operations.
 Addition
 ~~~~~~~~
 
-.. function:: void cork_int8_atomic_add(volatile int8_t \*var, int8_t delta)
-              void cork_int16_atomic_add(volatile int16_t \*var, int16_t delta)
-              void cork_int32_atomic_add(volatile int32_t \*var, int32_t delta)
-              void cork_int64_atomic_add(volatile int64_t \*var, int64_t delta)
-              void cork_uint8_atomic_add(volatile uint8_t \*var, uint8_t delta)
-              void cork_uint16_atomic_add(volatile uint16_t \*var, uint16_t delta)
-              void cork_uint32_atomic_add(volatile uint32_t \*var, uint32_t delta)
-              void cork_uint64_atomic_add(volatile uint64_t \*var, uint64_t delta)
-              void cork_short_atomic_add(volatile short \*var, short delta)
-              void cork_int_atomic_add(volatile int \*var, int delta)
-              void cork_long_atomic_add(volatile long \*var, long delta)
-              void cork_ushort_atomic_add(volatile unsigned short \*var, unsigned short delta)
-              void cork_uint_atomic_add(volatile unsigned int \*var, unsigned int delta)
-              void cork_ulong_atomic_add(volatile unsigned long \*var, unsigned long delta)
+.. function:: void cork_int_atomic_add(volatile int_t \*var, int_t delta)
+              void cork_uint_atomic_add(volatile uint_t \*var, uint_t delta)
 
    Atomically add *delta* to the variable pointed to by *var*, returning
    the result of the addition.
 
-.. function:: void cork_int8_atomic_pre_add(volatile int8_t \*var, int8_t delta)
-              void cork_int16_atomic_pre_add(volatile int16_t \*var, int16_t delta)
-              void cork_int32_atomic_pre_add(volatile int32_t \*var, int32_t delta)
-              void cork_int64_atomic_pre_add(volatile int64_t \*var, int64_t delta)
-              void cork_uint8_atomic_pre_add(volatile uint8_t \*var, uint8_t delta)
-              void cork_uint16_atomic_pre_add(volatile uint16_t \*var, uint16_t delta)
-              void cork_uint32_atomic_pre_add(volatile uint32_t \*var, uint32_t delta)
-              void cork_uint64_atomic_pre_add(volatile uint64_t \*var, uint64_t delta)
-              void cork_short_atomic_pre_add(volatile short \*var, short delta)
-              void cork_int_atomic_pre_add(volatile int \*var, int delta)
-              void cork_long_atomic_pre_add(volatile long \*var, long delta)
-              void cork_ushort_atomic_pre_add(volatile unsigned short \*var, unsigned short delta)
-              void cork_uint_atomic_pre_add(volatile unsigned int \*var, unsigned int delta)
-              void cork_ulong_atomic_pre_add(volatile unsigned long \*var, unsigned long delta)
+.. function:: void cork_int_atomic_pre_add(volatile int_t \*var, int_t delta)
+              void cork_uint_atomic_pre_add(volatile uint_t \*var, uint_t delta)
 
    Atomically add *delta* to the variable pointed to by *var*, returning
    the value from before the addition.
@@ -66,38 +42,14 @@ Addition
 Subtraction
 ~~~~~~~~~~~
 
-.. function:: void cork_int8_atomic_sub(volatile int8_t \*var, int8_t delta)
-              void cork_int16_atomic_sub(volatile int16_t \*var, int16_t delta)
-              void cork_int32_atomic_sub(volatile int32_t \*var, int32_t delta)
-              void cork_int64_atomic_sub(volatile int64_t \*var, int64_t delta)
-              void cork_uint8_atomic_sub(volatile uint8_t \*var, uint8_t delta)
-              void cork_uint16_atomic_sub(volatile uint16_t \*var, uint16_t delta)
-              void cork_uint32_atomic_sub(volatile uint32_t \*var, uint32_t delta)
-              void cork_uint64_atomic_sub(volatile uint64_t \*var, uint64_t delta)
-              void cork_short_atomic_sub(volatile short \*var, short delta)
-              void cork_int_atomic_sub(volatile int \*var, int delta)
-              void cork_long_atomic_sub(volatile long \*var, long delta)
-              void cork_ushort_atomic_sub(volatile unsigned short \*var, unsigned short delta)
-              void cork_uint_atomic_sub(volatile unsigned int \*var, unsigned int delta)
-              void cork_ulong_atomic_sub(volatile unsigned long \*var, unsigned long delta)
+.. function:: void cork_int_atomic_sub(volatile int_t \*var, int_t delta)
+              void cork_uint_atomic_sub(volatile uint_t \*var, uint_t delta)
 
    Atomically subtract *delta* from the variable pointed to by *var*,
    returning the result of the subtraction.
 
-.. function:: void cork_int8_atomic_pre_sub(volatile int8_t \*var, int8_t delta)
-              void cork_int16_atomic_pre_sub(volatile int16_t \*var, int16_t delta)
-              void cork_int32_atomic_pre_sub(volatile int32_t \*var, int32_t delta)
-              void cork_int64_atomic_pre_sub(volatile int64_t \*var, int64_t delta)
-              void cork_uint8_atomic_pre_sub(volatile uint8_t \*var, uint8_t delta)
-              void cork_uint16_atomic_pre_sub(volatile uint16_t \*var, uint16_t delta)
-              void cork_uint32_atomic_pre_sub(volatile uint32_t \*var, uint32_t delta)
-              void cork_uint64_atomic_pre_sub(volatile uint64_t \*var, uint64_t delta)
-              void cork_short_atomic_pre_sub(volatile short \*var, short delta)
-              void cork_int_atomic_pre_sub(volatile int \*var, int delta)
-              void cork_long_atomic_pre_sub(volatile long \*var, long delta)
-              void cork_ushort_atomic_pre_sub(volatile unsigned short \*var, unsigned short delta)
-              void cork_uint_atomic_pre_sub(volatile unsigned int \*var, unsigned int delta)
-              void cork_ulong_atomic_pre_sub(volatile unsigned long \*var, unsigned long delta)
+.. function:: void cork_int_atomic_pre_sub(volatile int_t \*var, int_t delta)
+              void cork_uint_atomic_pre_sub(volatile uint_t \*var, uint_t delta)
 
    Atomically subtract *delta* from the variable pointed to by *var*,
    returning the value from before the subtraction.
@@ -106,20 +58,8 @@ Subtraction
 Compare-and-swap
 ~~~~~~~~~~~~~~~~
 
-.. function:: int8_t cork_int8_cas(volatile int8_t \*var, int8_t old_value, int8_t new_value)
-              int16_t cork_int16_cas(volatile int16_t \*var, int16_t old_value, int16_t new_value)
-              int32_t cork_int32_cas(volatile int32_t \*var, int32_t old_value, int32_t new_value)
-              int64_t cork_int64_cas(volatile int64_t \*var, int64_t old_value, int64_t new_value)
-              uint8_t cork_uint8_cas(volatile uint8_t \*var, uint8_t old_value, uint8_t new_value)
-              uint16_t cork_uint16_cas(volatile uint16_t \*var, uint16_t old_value, uint16_t new_value)
-              uint32_t cork_uint32_cas(volatile uint32_t \*var, uint32_t old_value, uint32_t new_value)
-              uint64_t cork_uint64_cas(volatile uint64_t \*var, uint64_t old_value, uint64_t new_value)
-              short cork_short_cas(volatile short \*var, short old_value, short new_value)
-              int cork_int_cas(volatile int \*var, int old_value, int new_value)
-              long cork_long_cas(volatile long \*var, long old_value, long new_value)
-              unsigned short cork_ushort_cas(volatile unsigned short \*var, unsigned short old_value, unsigned short new_value)
-              unsigned int cork_uint_cas(volatile unsigned int \*var, unsigned int old_value, unsigned int new_value)
-              unsigned long cork_ulong_cas(volatile unsigned long \*var, unsigned long old_value, unsigned long new_value)
+.. function:: int_t cork_int_cas(volatile int_t \*var, int_t old_value, int_t new_value)
+              uint_t cork_uint_cas(volatile uint_t \*var, uint_t old_value, uint_t new_value)
               TYPE \*cork_ptr_cas(TYPE \* volatile \*var, TYPE \*old_value, TYPE \*new_value)
 
    Atomically check whether the variable pointed to by *var* contains
