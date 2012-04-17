@@ -478,6 +478,7 @@ END_TEST
 
 START_TEST(test_timestamp)
 {
+    DESCRIBE_TEST;
     static char  buf[4096];
     static size_t  size = sizeof(buf);
 
@@ -509,25 +510,54 @@ START_TEST(test_timestamp)
     cork_timestamp_init_sec(&ts, TEST_TIME_1);
     test(sec, TEST_TIME_1);
     test(gsec, 0);
+    test(msec, 0);
+    test(usec, 0);
+    test(nsec, 0);
     test_format(FORMATTED_TIME_1);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_2);
     test(sec, TEST_TIME_2);
     test(gsec, 0);
+    test(msec, 0);
+    test(usec, 0);
+    test(nsec, 0);
     test_format(FORMATTED_TIME_2);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_3);
     test(sec, TEST_TIME_3);
     test(gsec, 0);
+    test(msec, 0);
+    test(usec, 0);
+    test(nsec, 0);
     test_format(FORMATTED_TIME_3);
+
+    cork_timestamp_init_gsec(&ts, TEST_TIME_1, 1 << 30);
+    test(sec, TEST_TIME_1);
+    test(gsec, 1 << 30);
+    test(msec, 250);
+    test(usec, 250000);
+    test(nsec, 250000000);
 
     cork_timestamp_init_msec(&ts, TEST_TIME_1, 500);
     test(sec, TEST_TIME_1);
     test(gsec, 1 << 31);
+    test(msec, 500);
+    test(usec, 500000);
+    test(nsec, 500000000);
 
     cork_timestamp_init_usec(&ts, TEST_TIME_1, 500000);
     test(sec, TEST_TIME_1);
     test(gsec, 1 << 31);
+    test(msec, 500);
+    test(usec, 500000);
+    test(nsec, 500000000);
+
+    cork_timestamp_init_nsec(&ts, TEST_TIME_1, 500000000);
+    test(sec, TEST_TIME_1);
+    test(gsec, 1 << 31);
+    test(msec, 500);
+    test(usec, 500000);
+    test(nsec, 500000000);
 }
 END_TEST
 
