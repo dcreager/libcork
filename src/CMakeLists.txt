@@ -12,7 +12,22 @@ include_directories(../include)
 #-----------------------------------------------------------------------
 # Build the library
 
-file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
+set(LIBCORK_SRC
+    libcork/core/allocator.c
+    libcork/core/error.c
+    libcork/core/gc.c
+    libcork/core/hash.c
+    libcork/core/ip-address.c
+    libcork/core/mempool.c
+    libcork/core/timestamp.c
+    libcork/ds/array.c
+    libcork/ds/buffer.c
+    libcork/ds/dllist.c
+    libcork/ds/hash-table.c
+    libcork/ds/managed-buffer.c
+    libcork/ds/ring-buffer.c
+    libcork/ds/slice.c
+)
 
 add_library(libcork SHARED ${LIBCORK_SRC})
 target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
@@ -31,7 +46,7 @@ set_target_properties(embedded_libcork PROPERTIES
 #-----------------------------------------------------------------------
 # Utility commands
 
-file(GLOB_RECURSE CORK_HASH_SRC cork-hash/*.c)
+set(CORK_HASH_SRC cork-hash/cork-hash.c)
 add_executable(cork-hash ${CORK_HASH_SRC})
 target_link_libraries(cork-hash embedded_libcork)
 
