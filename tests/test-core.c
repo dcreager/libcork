@@ -242,43 +242,94 @@ END_TEST
  * IP addresses
  */
 
+#define IPV4_TESTS(good, bad) \
+    good("192.168.1.100", "192.168.1.100"); \
+    good("01.002.0003.00000004", "1.2.3.4"); \
+    good("010.0020.00034.00000089", "10.20.34.89"); \
+    good("0100.000200.00.000", "100.200.0.0"); \
+    bad("", -1); \
+    bad(".", -1); \
+    bad("192.168.0.", -1); \
+    bad("192.168.0.1.", -1); \
+    bad("192..168.0.1", -1); \
+    bad("192.168.0.1.2", -1); \
+    bad(".168.0.1.2", -1); \
+    bad("256.0.0.0", -1); \
+    bad("00256.0.0.0", -1); \
+    bad("392.0.0.0", -1); \
+    bad("1920.0.0.0", -1); \
+    bad("stuv", -1); \
+
+#define IPV6_TESTS(good, bad) \
+    good("::", "::"); \
+    good("0:0:0:0:0:0:0:0", "::"); \
+    good("0000:0000:0000:0000:0000:0000:0000:0000", "::"); \
+    good("fe80::", "fe80::"); \
+    good("fe80:0:0:0:0:0:0:0", "fe80::"); \
+    good("fe80:0000:0000:0000:0000:0000:0000:0000", "fe80::"); \
+    good("::1", "::1"); \
+    good("0:0:0:0:0:0:0:1", "::1"); \
+    good("0000:0000:0000:0000:0000:0000:0000:0001", "::1"); \
+    good("fe80::1", "fe80::1"); \
+    good("fe80:0:0:0:0:0:0:1", "fe80::1"); \
+    good("fe80:0000:0000:0000:0000:0000:0000:0001", "fe80::1"); \
+    good("0:1:2:3:4:5:6:7", "0:1:2:3:4:5:6:7"); \
+    good("1230:4567:89ab:cdef:1230:4567:89ab:cdef", \
+         "1230:4567:89ab:cdef:1230:4567:89ab:cdef"); \
+    good("::ffff:192.168.1.100", "::ffff:192.168.1.100"); \
+    bad("", -1); \
+    bad(":", -1); \
+    bad("fe80:", -1); \
+    bad("fe80::1::2", -1); \
+    bad("1:2:3:4:5:6:7", -1); \
+    bad("1:2:3:4:5:6:7:8:9", -1); \
+    bad("::1:", -1); \
+    bad("fe800::", -1); \
+    bad("stuv", -1); \
+    /* RFC 5952 recommendations */ \
+    good("2001:0db8::0001", "2001:db8::1"); \
+    good("2001:db8:0:0:0:0:2:1", "2001:db8::2:1"); \
+    good("2001:db8:0:1:1:1:1:1", "2001:db8:0:1:1:1:1:1"); \
+    good("2001:0:0:1:0:0:0:1", "2001:0:0:1::1"); \
+    good("2001:db8:0:0:1:0:0:1", "2001:db8::1:0:0:1"); \
+    good("0:1:A:B:C:D:E:F", "0:1:a:b:c:d:e:f"); \
+
 START_TEST(test_ipv4_address)
 {
     DESCRIBE_TEST;
 
-#define ROUND_TRIP(str) \
+#define GOOD(str, normalized) \
     { \
         struct cork_ipv4  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ipv4_init(&addr, str)); \
         char  actual[CORK_IPV4_STRING_LENGTH]; \
         cork_ipv4_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, str) == 0, \
+        fail_unless(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
-                    "got %s, expected %s", \
-                    actual, str); \
+                    "got \"%s\", expected \"%s\"", \
+                    actual, normalized); \
         \
         struct cork_ipv4  addr2; \
-        cork_ipv4_init(&addr2, str); \
+        cork_ipv4_init(&addr2, normalized); \
         fail_unless(cork_ipv4_equal(&addr, &addr2), \
-                    "IPv4 cork_eq_t instances should be equal"); \
+                    "IPv4 instances should be equal"); \
     }
 
-#define BAD(str) \
+#define BAD(str, unused) \
     { \
         struct cork_ipv4  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ipv4_init(&addr, str), \
-             "Shouldn't be able to initialize IPv4 address from %s", \
+             "Shouldn't be able to initialize IPv4 address from \"%s\"", \
              str); \
     }
 
-    ROUND_TRIP("192.168.1.100");
-    BAD("192.168.0.");
-    BAD("fe80::1");
-    BAD("::ffff:192.168.1.100");
-    BAD("abcd");
+    IPV4_TESTS(GOOD, BAD);
+    IPV6_TESTS(BAD, BAD);
 
-#undef ROUND_TRIP
+#undef GOOD
 #undef BAD
 
     struct cork_ipv4  addr4;
@@ -286,6 +337,7 @@ START_TEST(test_ipv4_address)
     unsigned int  ipv4_cidr_bad_value = 24;
     unsigned int  ipv4_cidr_bad_range = 33;
 
+    fprintf(stderr, "Testing network prefixes\n");
     cork_ipv4_init(&addr4, "1.2.3.4");
     fail_unless(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_good),
                 "Bad CIDR block for 1.2.3.4 and %u",
@@ -304,40 +356,38 @@ START_TEST(test_ipv6_address)
 {
     DESCRIBE_TEST;
 
-#define ROUND_TRIP(str) \
+#define GOOD(str, normalized) \
     { \
         struct cork_ipv6  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ipv6_init(&addr, str)); \
         char  actual[CORK_IPV6_STRING_LENGTH]; \
         cork_ipv6_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, str) == 0, \
+        fail_unless(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
-                    "got %s, expected %s", \
-                    actual, str); \
+                    "got \"%s\", expected \"%s\"", \
+                    actual, normalized); \
         \
         struct cork_ipv6  addr2; \
-        cork_ipv6_init(&addr2, str); \
+        cork_ipv6_init(&addr2, normalized); \
         fail_unless(cork_ipv6_equal(&addr, &addr2), \
-                    "IPv6 cork_eq_t instances should be equal"); \
+                    "IPv6 instances should be equal"); \
     }
 
-#define BAD(str) \
+#define BAD(str, unused) \
     { \
         struct cork_ipv6  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ipv6_init(&addr, str), \
-             "Shouldn't be able to initialize IPv6 address from %s", \
+             "Shouldn't be able to initialize IPv6 address from \"%s\"", \
              str); \
     }
 
-    ROUND_TRIP("fe80::1");
-    ROUND_TRIP("::ffff:192.168.1.100");
-    BAD("fe80:");
-    BAD("fe80::1::2");
-    BAD("192.168.1.100");
-    BAD("abcd");
+    IPV6_TESTS(GOOD, BAD);
+    IPV4_TESTS(BAD, BAD);
 
-#undef ROUND_TRIP
+#undef GOOD
 #undef BAD
 
     struct cork_ipv6  addr6;
@@ -345,6 +395,7 @@ START_TEST(test_ipv6_address)
     unsigned int  ipv6_cidr_bad_value = 64;
     unsigned int  ipv6_cidr_bad_range = 129;
 
+    fprintf(stderr, "Testing network prefixes\n");
     cork_ipv6_init(&addr6, "fe80::200:f8ff:fe21:6000");
     fail_unless(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_good),
                 "Bad CIDR block %u",
@@ -364,46 +415,44 @@ START_TEST(test_ip_address)
     DESCRIBE_TEST;
     struct cork_ip  addr;
 
-#define ROUND_TRIP(str) \
+#define GOOD(str, normalized) \
     { \
         struct cork_ip  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ip_init(&addr, str)); \
         char  actual[CORK_IP_STRING_LENGTH]; \
         cork_ip_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, str) == 0, \
+        fail_unless(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
-                    "got %s, expected %s", \
-                    actual, str); \
+                    "got \"%s\", expected \"%s\"", \
+                    actual, normalized); \
         \
         struct cork_ip  addr2; \
-        cork_ip_init(&addr2, str); \
+        cork_ip_init(&addr2, normalized); \
         fail_unless(cork_ip_equal(&addr, &addr2), \
-                    "IP cork_eq_t instances should be equal"); \
+                    "IP instances should be equal"); \
     }
 
-#define BAD(str) \
+#define BAD(str, unused) \
     { \
         struct cork_ip  addr; \
+        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ip_init(&addr, str), \
-             "Shouldn't be able to initialize IP address from %s", \
+             "Shouldn't be able to initialize IP address from \"%s\"", \
              str); \
     }
 
-    ROUND_TRIP("192.168.1.100");
-    ROUND_TRIP("fe80::1");
-    ROUND_TRIP("::ffff:192.168.1.100");
-    BAD("192.168.0.");
-    BAD("fe80:");
-    BAD("fe80::1::2");
-    BAD("abcd");
+    IPV4_TESTS(GOOD, BAD);
+    IPV6_TESTS(GOOD, BAD);
 
-#undef ROUND_TRIP
+#undef GOOD
 #undef BAD
 
     struct cork_ipv4  addr4;
     struct cork_ipv6  addr6;
 
+    fprintf(stderr, "Testing IP address versions\n");
     cork_ip_init(&addr, "192.168.1.1");
     cork_ipv4_init(&addr4, "192.168.1.1");
     fail_unless(addr.version == 4,
