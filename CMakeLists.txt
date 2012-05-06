@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2012, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
@@ -61,5 +61,6 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 
 add_subdirectory(docs)
 add_subdirectory(include)
+add_subdirectory(share)
 add_subdirectory(src)
 add_subdirectory(tests)
