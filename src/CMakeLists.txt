@@ -13,6 +13,7 @@ include_directories(../include)
 # Build the library
 
 set(LIBCORK_SRC
+    libcork/cli/commands.c
     libcork/core/allocator.c
     libcork/core/error.c
     libcork/core/gc.c
@@ -50,9 +51,14 @@ set(CORK_HASH_SRC cork-hash/cork-hash.c)
 add_executable(cork-hash ${CORK_HASH_SRC})
 target_link_libraries(cork-hash embedded_libcork)
 
+set(CORK_TEST_SRC cork-test/cork-test.c)
+add_executable(cork-test ${CORK_TEST_SRC})
+target_link_libraries(cork-test embedded_libcork)
+
 #-----------------------------------------------------------------------
 # Install everything
 
+# Note that we don't install cork-test; that's just for our test cases!
 install(TARGETS libcork cork-hash
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib)

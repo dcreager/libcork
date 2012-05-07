@@ -43,6 +43,7 @@ Contents
    gc
    mempool
    ds
+   cli
    threads
 
 
