@@ -27,14 +27,17 @@ High-precision timestamps
 
 
 .. function:: void cork_timestamp_init_sec(cork_timestamp \*ts, uint32_t sec)
+              void cork_timestamp_init_gsec(cork_timestamp \*ts, uint32_t sec, uint32_t gsec)
               void cork_timestamp_init_msec(cork_timestamp \*ts, uint32_t sec, uint32_t msec)
               void cork_timestamp_init_usec(cork_timestamp \*ts, uint32_t sec, uint32_t usec)
+              void cork_timestamp_init_nsec(cork_timestamp \*ts, uint32_t sec, uint32_t nsec)
 
    Initializes a timestamp from a separate seconds part and fractional
    part.  For the ``_sec`` variant, the fractional part will be set to
-   ``0``.  For the ``_msec`` and ``_usec`` variants, the fractional part
-   will be translated into gammaseconds from milliseconds or
-   microseconds, respectively.
+   ``0``.  For the ``_gsec`` variant, you provide the fractional part in
+   gammaseconds.  For the ``_msec``, ``_usec``, and ``_nsec`` variants, the
+   fractional part will be translated into gammaseconds from milliseconds,
+   microseconds, or nanoseconds, respectively.
 
 
 .. function:: void cork_timestamp_init_now(cork_timestamp \*ts)
@@ -47,10 +50,17 @@ High-precision timestamps
 
 
 .. function:: uint32_t cork_timestamp_sec(const cork_timestamp ts)
-              uint32_t cork_timestamp_gsec(const cork_timestamp ts)
 
-   Returns the seconds or fractional portion, respectively, of a
-   timestamp.  The fractional portion is represented in gammaseconds.
+   Returns the seconds portion of a timestamp.
+
+.. function:: uint32_t cork_timestamp_gsec(const cork_timestamp ts)
+              uint32_t cork_timestamp_msec(const cork_timestamp ts)
+              uint32_t cork_timestamp_usec(const cork_timestamp ts)
+              uint32_t cork_timestamp_nsec(const cork_timestamp ts)
+
+   Returns the fractional portion of a timestamp.  The variants return the
+   fractional portion in, respectively, gammaseconds, milliseconds,
+   microseconds, or nanoseconds.
 
 
 .. function:: bool cork_timestamp_format_utc(const cork_timestamp ts, const char \*format, char \*buf, size_t size)

@@ -24,6 +24,12 @@ typedef uint64_t  cork_timestamp;
         *(ts) = (((uint64_t) (sec)) << 32); \
     } while (0)
 
+#define cork_timestamp_init_gsec(ts, sec, gsec) \
+    do { \
+        *(ts) = (((uint64_t) (sec)) << 32) | \
+                (((uint64_t) (gsec)) & 0xffffffff); \
+    } while (0)
+
 #define cork_timestamp_init_msec(ts, sec, msec) \
     do { \
         *(ts) = (((uint64_t) (sec)) << 32) | \
@@ -36,13 +42,24 @@ typedef uint64_t  cork_timestamp;
                 ((((uint64_t) (usec)) << 32) / 1000000); \
     } while (0)
 
+#define cork_timestamp_init_nsec(ts, sec, nsec) \
+    do { \
+        *(ts) = (((uint64_t) (sec)) << 32) | \
+                ((((uint64_t) (nsec)) << 32) / 1000000000); \
+    } while (0)
+
 
 void
 cork_timestamp_init_now(cork_timestamp *ts);
 
 
 #define cork_timestamp_sec(ts)  ((uint32_t) ((ts) >> 32))
-#define cork_timestamp_gsec(ts)  ((uint32_t) ((ts) & 0xFFFFFFFF))
+#define cork_timestamp_gsec(ts)  ((uint32_t) ((ts) & 0xffffffff))
+#define cork_timestamp_gsec_to_units(ts, denom) \
+    (((uint64_t) (ts) & 0xffffffff) * (denom) >> 32)
+#define cork_timestamp_msec(ts)  cork_timestamp_gsec_to_units(ts, 1000)
+#define cork_timestamp_usec(ts)  cork_timestamp_gsec_to_units(ts, 1000000)
+#define cork_timestamp_nsec(ts)  cork_timestamp_gsec_to_units(ts, 1000000000)
 
 
 bool
