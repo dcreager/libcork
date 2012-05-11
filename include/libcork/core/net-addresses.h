@@ -36,11 +36,20 @@ enum cork_net_address_error {
  */
 
 struct cork_ipv4 {
-    uint8_t  u8[4];
+    union {
+        uint8_t  u8[4];
+        uint16_t  u16[2];
+        uint32_t  u32;
+    } _;
 };
 
 struct cork_ipv6 {
-    uint8_t  u8[16];
+    union {
+        uint8_t  u8[16];
+        uint16_t  u16[8];
+        uint32_t  u32[4];
+        uint64_t  u64[2];
+    } _;
 };
 
 struct cork_ip {
@@ -74,6 +83,10 @@ cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
 void
 cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
 
+bool
+cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
+                           unsigned int cidr_prefix);
+
 
 /*** IPv6 ***/
 
@@ -89,6 +102,10 @@ cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
 
 void
 cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest);
+
+bool
+cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
+                           unsigned int cidr_prefix);
 
 
 /*** Generic IP ***/
@@ -109,6 +126,9 @@ cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2);
 
 void
 cork_ip_to_raw_string(const struct cork_ip *addr, char *dest);
+
+bool
+cork_ip_is_valid_network(const struct cork_ip *addr, unsigned int cidr_prefix);
 
 
 #endif /* LIBCORK_CORE_NET_ADDRESSES_H */

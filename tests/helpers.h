@@ -45,6 +45,7 @@
         } else { \
             print_expected_failure(); \
         } \
+        cork_error_clear(); \
     } while (0)
 
 #define fail_unless_equal(what, format, expected, actual) \

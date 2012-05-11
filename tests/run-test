@@ -49,7 +49,7 @@ if [ -f "${SPEC_DIR}"/err ]; then
     diff -u "${SPEC_DIR}"/err results/${TEST_NAME}.err || GOOD=0
 fi
 
-if [ ${GOOD} == 0 ]; then
+if [ ${GOOD} = 0 ]; then
     echo "Test failed"
     exit 1
 fi

@@ -60,22 +60,8 @@ START_TEST(test_atomic_##name) \
 } \
 END_TEST
 
-test_atomic(int8,   int8_t,   "%" PRId8);
-test_atomic(int16,  int16_t,  "%" PRId16);
-test_atomic(int32,  int32_t,  "%" PRId32);
-test_atomic(int64,  int64_t,  "%" PRId64);
-test_atomic(uint8,  uint8_t,  "%" PRIu8);
-test_atomic(uint16, uint16_t, "%" PRIu16);
-test_atomic(uint32, uint32_t, "%" PRIu32);
-test_atomic(uint64, uint64_t, "%" PRIu64);
-
-test_atomic(short, short, "%hd");
 test_atomic(int,   int,   "%d");
-test_atomic(long,  long,  "%ld");
-
-test_atomic(ushort, unsigned short, "%hu");
 test_atomic(uint,   unsigned int,   "%u");
-test_atomic(ulong,  unsigned long,  "%lu");
 
 START_TEST(test_atomic_ptr)
 {
@@ -134,20 +120,8 @@ test_suite()
     Suite  *s = suite_create("threads");
 
     TCase  *tc_atomic = tcase_create("atomic");
-    tcase_add_test(tc_atomic, test_atomic_int8);
-    tcase_add_test(tc_atomic, test_atomic_int16);
-    tcase_add_test(tc_atomic, test_atomic_int32);
-    tcase_add_test(tc_atomic, test_atomic_int64);
-    tcase_add_test(tc_atomic, test_atomic_uint8);
-    tcase_add_test(tc_atomic, test_atomic_uint16);
-    tcase_add_test(tc_atomic, test_atomic_uint32);
-    tcase_add_test(tc_atomic, test_atomic_uint64);
-    tcase_add_test(tc_atomic, test_atomic_short);
     tcase_add_test(tc_atomic, test_atomic_int);
-    tcase_add_test(tc_atomic, test_atomic_long);
-    tcase_add_test(tc_atomic, test_atomic_ushort);
     tcase_add_test(tc_atomic, test_atomic_uint);
-    tcase_add_test(tc_atomic, test_atomic_ulong);
     tcase_add_test(tc_atomic, test_atomic_ptr);
     suite_add_tcase(s, tc_atomic);
 

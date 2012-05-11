@@ -12,13 +12,29 @@ include_directories(../include)
 #-----------------------------------------------------------------------
 # Build the library
 
-file(GLOB_RECURSE LIBCORK_SRC libcork/*.c)
+set(LIBCORK_SRC
+    libcork/cli/commands.c
+    libcork/core/allocator.c
+    libcork/core/error.c
+    libcork/core/gc.c
+    libcork/core/hash.c
+    libcork/core/ip-address.c
+    libcork/core/mempool.c
+    libcork/core/timestamp.c
+    libcork/ds/array.c
+    libcork/ds/buffer.c
+    libcork/ds/dllist.c
+    libcork/ds/hash-table.c
+    libcork/ds/managed-buffer.c
+    libcork/ds/ring-buffer.c
+    libcork/ds/slice.c
+)
 
 add_library(libcork SHARED ${LIBCORK_SRC})
 target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 7.0.0)
+    SOVERSION 8.0.0)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
@@ -31,13 +47,18 @@ set_target_properties(embedded_libcork PROPERTIES
 #-----------------------------------------------------------------------
 # Utility commands
 
-file(GLOB_RECURSE CORK_HASH_SRC cork-hash/*.c)
+set(CORK_HASH_SRC cork-hash/cork-hash.c)
 add_executable(cork-hash ${CORK_HASH_SRC})
 target_link_libraries(cork-hash embedded_libcork)
+
+set(CORK_TEST_SRC cork-test/cork-test.c)
+add_executable(cork-test ${CORK_TEST_SRC})
+target_link_libraries(cork-test embedded_libcork)
 
 #-----------------------------------------------------------------------
 # Install everything
 
+# Note that we don't install cork-test; that's just for our test cases!
 install(TARGETS libcork cork-hash
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib)

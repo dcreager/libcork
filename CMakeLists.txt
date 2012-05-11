@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2012, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
@@ -38,9 +38,6 @@ find_package(Threads)
 # Set some options
 
 if(APPLE)
-    if (NOT CMAKE_OSX_ARCHITECTURES)
-        set(CMAKE_OSX_ARCHITECTURES "i386;x86_64" CACHE STRING "Build architectures for Mac OS X")
-    endif (NOT CMAKE_OSX_ARCHITECTURES)
     if (NOT CMAKE_INSTALL_NAME_DIR)
         set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
     endif (NOT CMAKE_INSTALL_NAME_DIR)
@@ -61,5 +58,6 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 
 add_subdirectory(docs)
 add_subdirectory(include)
+add_subdirectory(share)
 add_subdirectory(src)
 add_subdirectory(tests)

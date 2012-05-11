@@ -72,7 +72,7 @@ producer that reads data from a file::
       if (feof(fp)) {
           return cork_stream_consumer_eof(consumer);
       } else {
-          /* fill in an error condition */
+          cork_system_error_set();
           return -1;
       }
   }
@@ -147,7 +147,7 @@ consumer that writes data to a file::
       if (bytes_written == size) {
           return 0;
       } else {
-          /* fill in an error condition */
+          cork_system_error_set();
           return -1;
       }
   }
@@ -171,9 +171,7 @@ consumer that writes data to a file::
   struct cork_stream_consumer *
   file_consumer_new(FILE *fp)
   {
-      struct file_consumer  *self;
-      rp_check_new(struct file_consumer, self);
-
+      struct file_consumer  *self = cork_new(struct file_consumer);
       self->parent.data = file_consumer_data;
       self->parent.eof = file_consumer_eof;
       self->parent.free = file_consumer_free;

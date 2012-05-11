@@ -1,0 +1,15 @@
+# Valgrind suppressions for libcork
+
+{
+   libcork/cork_error_get
+   Memcheck:Leak
+   fun:calloc
+   fun:cork_error_get
+}
+
+{
+   libcork/cork_gc_get
+   Memcheck:Leak
+   fun:calloc
+   fun:cork_gc_get
+}

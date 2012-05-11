@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -97,6 +98,14 @@ cork_error_clear(void)
     struct cork_error  *error = cork_error_get();
     error->error_class = CORK_ERROR_NONE;
     error->error_code = 0;
+}
+
+void
+cork_system_error_set(void)
+{
+    cork_error_set
+        (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
+         "%s", strerror(errno));
 }
 
 void

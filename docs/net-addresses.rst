@@ -119,6 +119,14 @@ and the equivalent ``::ffff:0:0/96`` IPv4-mapped IPv6 address.)
      cork_ipv4_to_raw_string(&addr, buf);
 
 
+.. function:: bool cork_ipv4_is_valid_network(const struct cork_ipv4 \*addr, unsigned int cidr_prefix)
+              bool cork_ipv6_is_valid_network(const struct cork_ipv6 \*addr, unsigned int cidr_prefix)
+              bool cork_ip_is_valid_network(const struct cork_ipv6 \*addr, unsigned int cidr_prefix)
+
+    Checks an IP address for alignment with a CIDR block prefix. For example,
+    10.1.2.4/24 is invalid, but 10.1.2.4/30 is valid.
+
+
 .. macro:: CORK_NET_ADDRESS_ERROR
            CORK_NET_ADDRESS_PARSE_ERROR
 
