@@ -262,10 +262,11 @@ is trivial::
 Help text
 =========
 
-The functions in this section automatically support generating several flavors
-of help text for the subcommands in your executable.  You don't need to do
-anything special, except for ensuring that the actual help text that you provide
-to the macros defined below is intelligble and useful.
+The command-line programs created with this framework automatically support
+generating several flavors of help text for its subcommands.  You don't need to
+do anything special, except for ensuring that the actual help text that you
+provide to the :c:macro:`cork_leaf_command` and :c:macro:`cork_command_set`
+macros defined is intelligble and useful.
 
 Your executable will automatically include a ``help`` command in every command
 set, as well as ``--help`` and ``-h`` options in every command set and leaf
@@ -327,8 +328,8 @@ can easily be used in an option parsing function.)
    with subcommand selection and argument processing.  (Note that ``getopt``'s
    ``optind`` variable is exactly what you need for the return value.)
 
-As mentioned above, each option parsing function is used to parse options from a
-particular point in the command line.  Given the following command:
+As mentioned above, different option parsing functions are used to parse options
+from a particular point in the command line.  Given the following command:
 
 .. code-block:: none
 

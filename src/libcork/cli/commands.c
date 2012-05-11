@@ -109,6 +109,10 @@ cork_command_set_run_help(struct cork_command *command, int argc, char **argv)
      * remaining arguments to identifity which subcommand the user wants help
      * with. */
 
+    /* Skip over the name of the command set */
+    argc--;
+    argv++;
+
     while (argc > 0 && command->type == CORK_COMMAND_SET) {
         struct cork_command  *subcommand =
             cork_command_set_get_subcommand(command, argv[0]);
@@ -141,8 +145,6 @@ cork_command_set_run(struct cork_command *command, int argc, char **argv)
     }
 
     command_name = argv[0];
-    argc--;
-    argv++;
 
     /* The "help" command is special. */
     if (streq(command_name, "help")) {
@@ -181,7 +183,7 @@ cork_command_run(struct cork_command *command, int argc, char **argv)
 
     /* If the gives the --help option at this point, describe the current
      * command. */
-    if (argc >= 1 && (streq(argv[0], "--help") || streq(argv[0], "-h"))) {
+    if (argc >= 2 && (streq(argv[1], "--help") || streq(argv[1], "-h"))) {
         cork_command_show_help(command, NULL);
         return;
     }
@@ -191,6 +193,9 @@ cork_command_run(struct cork_command *command, int argc, char **argv)
         int  option_count = command->parse_options(argc, argv);
         argc -= option_count;
         argv += option_count;
+    } else {
+        argc--;
+        argv++;
     }
 
     switch (command->type) {
@@ -213,10 +218,6 @@ cork_command_main(struct cork_command *root, int argc, char **argv)
 {
     /* Clean up after ourselves when the command finishes. */
     atexit(cork_command_cleanup);
-
-    /* Skip over the executable name. */
-    argc--;
-    argv++;
 
     /* Run the root command. */
     cork_command_run(root, argc, argv);
