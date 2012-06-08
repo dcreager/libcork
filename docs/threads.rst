@@ -111,6 +111,7 @@ execution at roughly the same time.
    macro.
 
 .. macro:: cork_once(barrier, call)
+           cork_once_recursive(barrier, call)
 
    Ensure that *call* (which can be an arbitrary statement) is executed
    exactly once, regardless of how many times control reaches the call
@@ -124,9 +125,11 @@ execution at roughly the same time.
    statements are different in those ``cork_once`` invocations, then
    it's undefined which one gets executed.
 
-   It's fine if the function that contains the ``cork_once`` call is
-   recursive; if the same thread tries to obtain the underlying lock
-   multiple times, the second and later calls will silently succeed.
+   If the function that contains the ``cork_once`` call is recursive, then you
+   should call the ``_recursive`` variant of the macro.  With the ``_recursive``
+   variant, if the same thread tries to obtain the underlying lock multiple
+   times, the second and later calls will silently succeed.  With the regular
+   variant, you'll get a deadlock in this case.
 
 These macros are usually used to initialize a static variable that will
 be shared across multiple threads::

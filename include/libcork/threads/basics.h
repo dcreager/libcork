@@ -59,6 +59,26 @@ cork_thread_get_id(void);
             if (CORK_LIKELY(prior_state == 0)) { \
                 CORK_ATTR_UNUSED int  result; \
                 /* we get to initialize */ \
+                call; \
+                result = cork_int_cas(&name##__once.barrier, 1, 2); \
+                assert(result == 1); \
+            } else { \
+                /* someone else is initializing, spin/wait until done */ \
+                while (name##__once.barrier != 2) { cork_pause(); } \
+            } \
+        } \
+    } while (0)
+
+#define cork_once_recursive(name, call) \
+    do { \
+        if (CORK_LIKELY(name##__once.barrier == 2)) { \
+            /* already initialized */ \
+        } else { \
+            /* Try to claim the ability to perform the initialization */ \
+            int  prior_state = cork_int_cas(&name##__once.barrier, 0, 1); \
+            if (CORK_LIKELY(prior_state == 0)) { \
+                CORK_ATTR_UNUSED int  result; \
+                /* we get to initialize */ \
                 name##__once.initializing_thread = cork_thread_get_id(); \
                 call; \
                 result = cork_int_cas(&name##__once.barrier, 1, 2); \
