@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2012, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
@@ -28,6 +28,7 @@ set(LIBCORK_SRC
     libcork/ds/managed-buffer.c
     libcork/ds/ring-buffer.c
     libcork/ds/slice.c
+    libcork/threads/descriptor.c
 )
 
 add_library(libcork SHARED ${LIBCORK_SRC})

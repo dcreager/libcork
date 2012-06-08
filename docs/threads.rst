@@ -14,6 +14,33 @@ libcork provides several functions for handling threads and writing
 thread-aware code in a portable way.
 
 
+.. _threads:
+
+Thread information
+==================
+
+.. type:: unsigned int cork_thread_id
+
+   An identifier for a thread in the current process.  This is a portable type;
+   it is not based on the "raw" thread ID used by the underlying thread
+   implementation.  This type will always be equivalent to ``unsigned int``, on
+   all platforms.  Furthermore, :c:data:`CORK_THREAD_NONE` will always refer to
+   an instance of this type that we guarantee will not be used by any thread.
+
+.. var:: cork_thread_id CORK_THREAD_NONE
+
+   A :c:type:`cork_thread_id` value that will not be used as the ID of any
+   thread.  You can use this value to represent "no thread" in any data
+   structures you create.  Moreover, we guarantee that ``CORK_THREAD_NONE`` will
+   have the value ``0``, which lets you zero-initialize a data structure
+   containing a :c:type:`cork_thread_id`, and have its initial state
+   automatically represent "no thread".
+
+.. function:: cork_thread_id cork_thread_get_id(void)
+
+   Returns the identifier of the currently executing thread.
+
+
 .. _atomics:
 
 Atomic operations
@@ -67,20 +94,6 @@ Compare-and-swap
    *new_value*.  We return the value of *var* before the
    compare-and-swap.  (If this value is equal to *old_value*, then the
    compare-and-swap was successful.)
-
-
-.. _threads:
-
-Thread information
-==================
-
-.. type:: cork_thread_id
-
-   An identifier for a thread in the current process.
-
-.. function:: cork_thread_id cork_thread_get_id(void)
-
-   Returns the identifier of the currently executing thread.
 
 
 .. _once:

@@ -111,6 +111,18 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Thread IDs
+ */
+
+START_TEST(test_thread_ids)
+{
+    cork_thread_id  id = cork_thread_get_id();
+    fail_if(id == CORK_THREAD_NONE, "Expected a valid thread ID");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -127,6 +139,7 @@ test_suite()
 
     TCase  *tc_basics = tcase_create("basics");
     tcase_add_test(tc_basics, test_once);
+    tcase_add_test(tc_basics, test_thread_ids);
     suite_add_tcase(s, tc_basics);
 
     return s;

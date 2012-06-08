@@ -21,15 +21,12 @@
  * Thread IDs
  */
 
-#if CORK_HAVE_PTHREADS
-#include <pthread.h>
-typedef pthread_t  cork_thread_id;
+typedef unsigned int  cork_thread_id;
 
-#define cork_thread_get_id()  (pthread_self())
+#define CORK_THREAD_NONE  ((cork_thread_id) 0)
 
-#else
-#error "Unknown thread implementation"
-#endif
+cork_thread_id
+cork_thread_get_id(void);
 
 
 /*-----------------------------------------------------------------------
@@ -101,7 +98,10 @@ NAME##_get(void) \
 }
 
 #elif CORK_HAVE_PTHREADS
+#include <stdlib.h>
 #include <pthread.h>
+
+#include <libcork/core/allocator.h>
 
 #define cork_tls(TYPE, NAME) \
 static pthread_key_t  NAME##__tls_key; \
