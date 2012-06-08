@@ -109,6 +109,43 @@ START_TEST(test_once)
 }
 END_TEST
 
+START_TEST(test_once_recursive)
+{
+    cork_once_barrier(once);
+    static size_t  call_count = 0;
+    static int  value = 0;
+
+#define go \
+    do { \
+        call_count++; \
+        value = 1; \
+    } while (0)
+
+    cork_once_recursive(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once_recursive(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once_recursive(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+    cork_once_recursive(once, go);
+    fail_unless_equal("Value", "%d", 1, value);
+
+    fail_unless_equal("Call count", "%zu", 1, call_count);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
+ * Thread IDs
+ */
+
+START_TEST(test_thread_ids)
+{
+    cork_thread_id  id = cork_thread_get_id();
+    fail_if(id == CORK_THREAD_NONE, "Expected a valid thread ID");
+}
+END_TEST
+
 
 /*-----------------------------------------------------------------------
  * Testing harness
@@ -127,6 +164,8 @@ test_suite()
 
     TCase  *tc_basics = tcase_create("basics");
     tcase_add_test(tc_basics, test_once);
+    tcase_add_test(tc_basics, test_once_recursive);
+    tcase_add_test(tc_basics, test_thread_ids);
     suite_add_tcase(s, tc_basics);
 
     return s;

@@ -21,15 +21,12 @@
  * Thread IDs
  */
 
-#if CORK_HAVE_PTHREADS
-#include <pthread.h>
-typedef pthread_t  cork_thread_id;
+typedef unsigned int  cork_thread_id;
 
-#define cork_thread_get_id()  (pthread_self())
+#define CORK_THREAD_NONE  ((cork_thread_id) 0)
 
-#else
-#error "Unknown thread implementation"
-#endif
+cork_thread_id
+cork_thread_get_id(void);
 
 
 /*-----------------------------------------------------------------------
@@ -53,6 +50,26 @@ typedef pthread_t  cork_thread_id;
     } name##__once;
 
 #define cork_once(name, call) \
+    do { \
+        if (CORK_LIKELY(name##__once.barrier == 2)) { \
+            /* already initialized */ \
+        } else { \
+            /* Try to claim the ability to perform the initialization */ \
+            int  prior_state = cork_int_cas(&name##__once.barrier, 0, 1); \
+            if (CORK_LIKELY(prior_state == 0)) { \
+                CORK_ATTR_UNUSED int  result; \
+                /* we get to initialize */ \
+                call; \
+                result = cork_int_cas(&name##__once.barrier, 1, 2); \
+                assert(result == 1); \
+            } else { \
+                /* someone else is initializing, spin/wait until done */ \
+                while (name##__once.barrier != 2) { cork_pause(); } \
+            } \
+        } \
+    } while (0)
+
+#define cork_once_recursive(name, call) \
     do { \
         if (CORK_LIKELY(name##__once.barrier == 2)) { \
             /* already initialized */ \
@@ -101,7 +118,10 @@ NAME##_get(void) \
 }
 
 #elif CORK_HAVE_PTHREADS
+#include <stdlib.h>
 #include <pthread.h>
+
+#include <libcork/core/allocator.h>
 
 #define cork_tls(TYPE, NAME) \
 static pthread_key_t  NAME##__tls_key; \
