@@ -112,9 +112,9 @@ cork_ipv4_init(struct cork_ipv4 *addr, const char *str)
 }
 
 bool
-cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2)
+cork_ipv4_equal_(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(struct cork_ipv4)) == 0);
+    return cork_ipv4_equal(addr1, addr2);
 }
 
 void
@@ -338,9 +338,9 @@ parse_error:
 }
 
 bool
-cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2)
+cork_ipv6_equal_(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2)
 {
-    return (memcmp(addr1, addr2, sizeof(struct cork_ipv6)) == 0);
+    return cork_ipv6_equal(addr1, addr2);
 }
 
 #define NS_IN6ADDRSZ 16
@@ -458,17 +458,15 @@ cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
 /*** IP ***/
 
 void
-cork_ip_from_ipv4(struct cork_ip *addr, const void *src)
+cork_ip_from_ipv4_(struct cork_ip *addr, const void *src)
 {
-    addr->version = 4;
-    cork_ipv4_copy(&addr->ip.v4, src);
+    cork_ip_from_ipv4(addr, src);
 }
 
 void
-cork_ip_from_ipv6(struct cork_ip *addr, const void *src)
+cork_ip_from_ipv6_(struct cork_ip *addr, const void *src)
 {
-    addr->version = 6;
-    cork_ipv6_copy(&addr->ip.v6, src);
+    cork_ip_from_ipv6(addr, src);
 }
 
 int
@@ -501,30 +499,9 @@ cork_ip_init(struct cork_ip *addr, const char *str)
 }
 
 bool
-cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2)
+cork_ip_equal_(const struct cork_ip *addr1, const struct cork_ip *addr2)
 {
-    if (addr1 == addr2) {
-        return true;
-    }
-
-    if (!addr1 || !addr2) {
-        return false;
-    }
-
-    if (addr1->version != addr2->version) {
-        return false;
-    }
-
-    switch (addr1->version) {
-        case 4:
-            return cork_ipv4_equal(&addr1->ip.v4, &addr2->ip.v4);
-
-        case 6:
-            return cork_ipv6_equal(&addr1->ip.v6, &addr2->ip.v6);
-
-        default:
-            return false;
-    }
+    return cork_ip_equal(addr1, addr2);
 }
 
 void
