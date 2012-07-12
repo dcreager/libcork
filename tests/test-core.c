@@ -195,45 +195,153 @@ END_TEST
  * Hash values
  */
 
+#define test_hash_func(func, expected, ...) \
+    fail_unless(func(0, __VA_ARGS__) == expected, \
+                "Unexpected hash value 0x%08" PRIx32 \
+                " (expected 0x%08" PRIx32 ")", \
+                func(0, __VA_ARGS__), expected);
+
+#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+#if CORK_SIZEOF_POINTER == 8
+#define test_hash_buf(buf, len, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_buffer, little64, buf, len)
+#define test_hash_var(var, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_variable, little64, var)
+#else
+#define test_hash_buf(buf, len, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_buffer, little32, buf, len)
+#define test_hash_var(var, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_variable, little32, var)
+#endif
+#else
+#if CORK_SIZEOF_POINTER == 8
+#define test_hash_buf(buf, len, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_buffer, big64, buf, len)
+#define test_hash_var(var, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_variable, big64, var)
+#else
+#define test_hash_buf(buf, len, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_buffer, big32, buf, len)
+#define test_hash_var(var, little32, big32, little64, big64) \
+    test_hash_func(cork_hash_variable, big32, var)
+#endif
+#endif
+
+
+#define test_stable_hash_buf(buf, len, expected) \
+    test_hash_func(cork_stable_hash_buffer, expected, buf, len)
+#define test_stable_hash_var(var, expected) \
+    test_hash_func(cork_stable_hash_variable, expected, var)
+
+
+#define test_big_hash_func(buf, len, e1, e2) \
+    do { \
+        struct cork_big_hash  expected = {{{e1,e2}}}; \
+        struct cork_big_hash  actual = CORK_BIG_HASH_INIT(); \
+        cork_big_hash_buffer(0, buf, len, &actual); \
+        fail_unless(cork_big_hash_equal(&actual, &expected), \
+                    "\nUnexpected hash value 0x%016" PRIx64 ".%016" PRIx64 \
+                    "\n            (expected 0x%016" PRIx64 ".%016" PRIx64 ")", \
+                    actual._.u64[0], actual._.u64[1], \
+                    expected._.u64[0], expected._.u64[1]); \
+    } while (0)
+
+#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+#if CORK_SIZEOF_POINTER == 8
+#define test_big_hash_buf(buf,len,l32a,l32b,b32a,b32b,l64a,l64b,b64a,b64b) \
+    test_big_hash_func(buf, len, l64a, l64b)
+#else
+#define test_big_hash_buf(buf,len,l32a,l32b,b32a,b32b,l64a,l64b,b64a,b64b) \
+    test_big_hash_func(buf, len, l32a, l32b)
+#endif
+#else
+#if CORK_SIZEOF_POINTER == 8
+#define test_big_hash_buf(buf,len,l32a,l32b,b32a,b32b,l64a,l64b,b64a,b64b) \
+    test_big_hash_func(buf, len, b64a, b64b)
+#else
+#define test_big_hash_buf(buf,len,l32a,l32b,b32a,b32b,l64a,l64b,b64a,b64b) \
+    test_big_hash_func(buf, len, b32a, b32b)
+#endif
+#endif
+
+
 START_TEST(test_hash)
 {
     static const char  BUF[] = "test";
     static size_t  LEN = sizeof(BUF);
+    static const char  LONG_BUF[] =
+        "this is a much longer test string in the hopes that we have to "
+        "go through a few iterations of the hashing loop in order to "
+        "calculate the value of the hash which we are trying to compute.";
+    static size_t  LONG_LEN = sizeof(LONG_BUF);
+    uint32_t  val32 = 1234;
+    uint64_t  val64 = 1234;
 
     /* without the NUL terminator */
-    fail_unless(cork_hash_buffer(0, BUF, LEN-1) ==
-#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
-                0xba6bd213,
-#else
-                0x29d175e5,
-#endif
-                "Unexpected hash value 0x%08lx",
-                (unsigned long) cork_hash_buffer(0, BUF, LEN-1));
+    test_stable_hash_buf(BUF, LEN-1, 0xba6bd213);
+    test_hash_buf(BUF, LEN-1,
+      /* little 32 */ 0xba6bd213,
+      /*    big 32 */ 0x29d175e5,
+      /* little 64 */ 0x74bde19d,
+      /*    big 64 */ 0x74bde19d);
+    test_big_hash_buf(BUF, LEN-1,
+      /* little 32 */ 0x550c7d686f02ef30, 0x550c7d68550c7d68,
+      /*    big 32 */ 0x550c7d686f02ef30, 0x550c7d68550c7d68,
+      /* little 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82,
+      /*    big 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82);
+
     /* with the NUL terminator */
-    fail_unless(cork_hash_buffer(0, BUF, LEN) ==
-#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
-                0x586fce33,
-#else
-                0xe31d1ce0,
-#endif
-                "Unexpected hash value 0x%08lx",
-                (unsigned long) cork_hash_buffer(0, BUF, LEN));
+    test_stable_hash_buf(BUF, LEN, 0x586fce33);
+    test_hash_buf(BUF, LEN,
+      /* little 32 */ 0x586fce33,
+      /*    big 32 */ 0xe31d1ce0,
+      /* little 64 */ 0x4d18f852,
+      /*    big 64 */ 0x4d18f852);
+    test_big_hash_buf(BUF, LEN,
+      /* little 32 */ 0x29ab177c98c2b52b, 0x29ab177c29ab177c,
+      /*    big 32 */ 0x29ab177c98c2b52b, 0x29ab177c29ab177c,
+      /* little 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec,
+      /*    big 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec);
 
-    uint32_t  val32 = 1234;
-    fail_unless(cork_hash_variable(0, val32) ==
-                0x6bb65380,
-                "Unexpected hash value: 0x%08lx",
-                (unsigned long) cork_hash_variable(0, val32));
+    /* without the NUL terminator */
+    test_stable_hash_buf(LONG_BUF, LONG_LEN-1, 0x5caacc30);
+    test_hash_buf(LONG_BUF, LONG_LEN-1,
+      /* little 32 */ 0x5caacc30,
+      /*    big 32 */ 0x88f94165,
+      /* little 64 */ 0x8fa72e9c,
+      /*    big 64 */ 0x03578c96);
+    test_big_hash_buf(LONG_BUF, LONG_LEN-1,
+      /* little 32 */ 0x4fb7793c4240d513, 0x799f335aee7e281c,
+      /*    big 32 */ 0x029c92a4ab564a5e, 0x1093400f0bd80c74,
+      /* little 64 */ 0xcbdc20928fa72e9c, 0x48de52d2c680420e,
+      /*    big 64 */ 0x5935f90a03578c96, 0x163e514fff9c30a8);
 
-    uint64_t  val64 = 1234;
-    fail_unless(cork_hash_variable(0, val64) ==
-#if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
-                0x4d5c4063,
-#else
-                0xbaeee6e9,
-#endif
-                "Unexpected hash value: 0x%08lx",
-                (unsigned long) cork_hash_variable(0, val64));
+    /* with the NUL terminator */
+    test_stable_hash_buf(LONG_BUF, LONG_LEN, 0x5e37d33d);
+    test_hash_buf(LONG_BUF, LONG_LEN,
+      /* little 32 */ 0x5e37d33d,
+      /*    big 32 */ 0x4977421a,
+      /* little 64 */ 0x4becb434,
+      /*    big 64 */ 0x8c919559);
+    test_big_hash_buf(LONG_BUF, LONG_LEN,
+      /* little 32 */ 0xc261514663bcdcd0, 0xece3cab68e7fd7aa,
+      /*    big 32 */ 0xa3fc07fd250b47cd, 0x06aafbd0840c4bb6,
+      /* little 64 */ 0xe89ec0054becb434, 0x826391b83f0b4d3e,
+      /*    big 64 */ 0xf00a12ab8c919559, 0x684ecf4973c66eac);
+
+    test_stable_hash_var(val32, 0x6bb65380);
+    test_hash_var(val32,
+      /* little 32 */ 0x6bb65380,
+      /*    big 32 */ 0xf9cbc101,
+      /* little 64 */ 0x7e1b3998,
+      /*    big 64 */ 0x7e1b3998);
+
+    test_stable_hash_var(val64, 0x4d5c4063);
+    test_hash_var(val64,
+      /* little 32 */ 0x4d5c4063,
+      /*    big 32 */ 0x5f426cab,
+      /* little 64 */ 0x267305fb,
+      /*    big 64 */ 0x267305fb);
 }
 END_TEST
 
@@ -301,7 +409,6 @@ START_TEST(test_ipv4_address)
 #define GOOD(str, normalized) \
     { \
         struct cork_ipv4  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ipv4_init(&addr, str)); \
         char  actual[CORK_IPV4_STRING_LENGTH]; \
         cork_ipv4_to_raw_string(&addr, actual); \
@@ -319,7 +426,6 @@ START_TEST(test_ipv4_address)
 #define BAD(str, unused) \
     { \
         struct cork_ipv4  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ipv4_init(&addr, str), \
              "Shouldn't be able to initialize IPv4 address from \"%s\"", \
@@ -359,7 +465,6 @@ START_TEST(test_ipv6_address)
 #define GOOD(str, normalized) \
     { \
         struct cork_ipv6  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ipv6_init(&addr, str)); \
         char  actual[CORK_IPV6_STRING_LENGTH]; \
         cork_ipv6_to_raw_string(&addr, actual); \
@@ -377,7 +482,6 @@ START_TEST(test_ipv6_address)
 #define BAD(str, unused) \
     { \
         struct cork_ipv6  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ipv6_init(&addr, str), \
              "Shouldn't be able to initialize IPv6 address from \"%s\"", \
@@ -418,7 +522,6 @@ START_TEST(test_ip_address)
 #define GOOD(str, normalized) \
     { \
         struct cork_ip  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting \"%s\"\n", str, normalized); \
         fail_if_error(cork_ip_init(&addr, str)); \
         char  actual[CORK_IP_STRING_LENGTH]; \
         cork_ip_to_raw_string(&addr, actual); \
@@ -436,7 +539,6 @@ START_TEST(test_ip_address)
 #define BAD(str, unused) \
     { \
         struct cork_ip  addr; \
-        fprintf(stderr, "Trying \"%s\", expecting parse error\n", str); \
         fail_unless_error \
             (cork_ip_init(&addr, str), \
              "Shouldn't be able to initialize IP address from \"%s\"", \

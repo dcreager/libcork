@@ -12,16 +12,14 @@ Hash values
 
 
 The functions in this section can be used to produce fast, good hash
-values.  The implementation provides by these functions can change over
-time, and doesn't have to be consistent across different platforms.  The
-only guarantee is that hash values will be consistest for the duration
-of the current process.
+values.
 
 .. note::
 
    For the curious, libcork currently uses the public-domain
    `MurmurHash3 <http://code.google.com/p/smhasher/>`_ as its hash
    implementation.
+
 
 Hashing in C code
 -----------------
@@ -59,14 +57,32 @@ this using the :ref:`cork-hash <cork-hash>` script described below::
 .. type:: uint32_t  cork_hash
 
 .. function:: cork_hash cork_hash_buffer(cork_hash seed, const void \*src, size_t len)
+              cork_hash cork_hash_variable(cork_hash seed, TYPE val)
 
-   Incorporate the contents of the given binary buffer into a hash
-   value.
+   Incorporate the contents of the given binary buffer or variable into a hash
+   value.  For the ``_variable`` variant, *val* must be an lvalue visible in the
+   current scope.
 
-.. function:: cork_hash cork_hash_variable(cork_hash seed, TYPE val)
+   The hash values produces by these functions can change over time, and might
+   not be consistent across different platforms.  The only guarantee is that
+   hash values will be consistest for the duration of the current process.
 
-   Incorporate the contents of a variable into the hash value.  *val*
-   must be an lvalue visible in the current scope.
+.. function:: cork_hash cork_stable_hash_buffer(cork_hash seed, const void \*src, size_t len)
+              cork_hash cork_stable_hash_variable(cork_hash seed, TYPE val)
+
+   Stable versions of :c:func:`cork_hash_buffer` and
+   :c:func:`cork_hash_variable`.  We guarantee that the hash values produced by
+   this function will be consistent across different platforms, and across
+   different versions of the libcork library.
+
+
+.. type:: struct cork_big_hash
+
+.. function:: void cork_big_hash_buffer(cork_hash seed, const void \*src, size_t len, struct cork_big_hash \*dest)
+
+   Incorporate the contents of the given binary buffer into a "big" hash value.
+   A big hash value has a much larger space of possible hash values (128 bits vs
+   32).
 
 
 .. _cork-hash:
