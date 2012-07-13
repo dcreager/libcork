@@ -41,59 +41,24 @@
  * number of bins. */
 #define CORK_HASH_TABLE_MAX_DENSITY  5
 
-/* A table of prime numbers, each greater than a power of two.  @details
- * @$ 2^n + a, 2 <= n <= 30 @$. */
-static size_t  CORK_HASH_TABLE_PRIMES[] =
-{
-    8 + 3,
-    16 + 3,
-    32 + 5,
-    64 + 3,
-    128 + 3,
-    256 + 27,
-    512 + 9,
-    1024 + 9,
-    2048 + 5,
-    4096 + 3,
-    8192 + 27,
-    16384 + 43,
-    32768 + 3,
-    65536 + 45,
-    131072 + 29,
-    262144 + 3,
-    524288 + 21,
-    1048576 + 7,
-    2097152 + 17,
-    4194304 + 15,
-    8388608 + 9,
-    16777216 + 43,
-    33554432 + 35,
-    67108864 + 15,
-    134217728 + 29,
-    268435456 + 3,
-    536870912 + 11,
-    1073741824 + 85,
-    0
-};
-
-#define CORK_HASH_TABLE_PRIME_COUNT \
-    (sizeof(CORK_HASH_TABLE_PRIMES) / sizeof(CORK_HASH_TABLE_PRIMES[0]))
-
-/* Return a prime number bin count that's at least as big as the given
- * requested size. */
-static size_t
+/* Return a power-of-2 bin count that's at least as big as the given requested
+ * size. */
+static inline size_t
 cork_hash_table_new_size(size_t desired_count)
 {
-    size_t  new_size = CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE;
-    unsigned int  i;
-    for (i = 0; i < CORK_HASH_TABLE_PRIME_COUNT; i++, new_size <<= 1) {
-        if (new_size > desired_count) {
-            return CORK_HASH_TABLE_PRIMES[i];
-        }
+    size_t  v = desired_count;
+    size_t  r = 1;
+    while (v >>= 1) {
+        r <<= 1;
     }
-
-    return 0;
+    if (r != desired_count) {
+        r <<= 1;
+    }
+    return r;
 }
+
+#define bin_index(table, hash) \
+    ((hash) & ((table)->bin_count - 1))
 
 /* Allocates a new bins array in a hash table.  We overwrite the old
  * array, so make sure to stash it away somewhere safe first. */
@@ -203,7 +168,7 @@ cork_hash_table_ensure_size(struct cork_hash_table *table,
                         (curr, struct cork_hash_table_entry, siblings);
                     struct cork_dllist_item  *next = curr->next;
 
-                    size_t  bin_index = entry->hash % table->bin_count;
+                    size_t  bin_index = bin_index(table, entry->hash);
                     DEBUG("      Rehashing %p from bin %zu to bin %zu",
                           entry, i, bin_index);
                     cork_dllist_add(&table->bins[bin_index], curr);
@@ -237,7 +202,7 @@ cork_hash_table_get_entry(const struct cork_hash_table *table, const void *key)
         return NULL;
     }
 
-    size_t  bin_index = hash_value % table->bin_count;
+    size_t  bin_index = bin_index(table, hash_value);
     DEBUG("(get) Searching for key %p (hash 0x%lx, bin %zu)",
           key, (unsigned long) hash_value, bin_index);
 
@@ -282,7 +247,7 @@ cork_hash_table_get_or_create(struct cork_hash_table *table,
     size_t  bin_index;
 
     if (table->bin_count > 0) {
-        bin_index = hash_value % table->bin_count;
+        bin_index = bin_index(table, hash_value);
         DEBUG("(get_or_create) Searching for key %p (hash 0x%lx, bin %zu)",
               key, (unsigned long) hash_value, bin_index);
 
@@ -310,14 +275,14 @@ cork_hash_table_get_or_create(struct cork_hash_table *table,
         if ((table->entry_count / table->bin_count) >
             CORK_HASH_TABLE_MAX_DENSITY) {
             cork_hash_table_rehash(table);
-            bin_index = hash_value % table->bin_count;
+            bin_index = bin_index(table, hash_value);
         }
     } else {
         DEBUG("(get_or_create) Searching for key %p (hash 0x%lx)",
               key, (unsigned long) hash_value);
         DEBUG("  Empty table");
         cork_hash_table_rehash(table);
-        bin_index = hash_value % table->bin_count;
+        bin_index = bin_index(table, hash_value);
     }
 
     DEBUG("    Allocating new entry");
@@ -347,7 +312,7 @@ cork_hash_table_put(struct cork_hash_table *table,
     size_t  bin_index;
 
     if (table->bin_count > 0) {
-        bin_index = hash_value % table->bin_count;
+        bin_index = bin_index(table, hash_value);
         DEBUG("(put) Searching for key %p (hash 0x%lx, bin %zu)",
               key, (unsigned long) hash_value, bin_index);
 
@@ -388,14 +353,14 @@ cork_hash_table_put(struct cork_hash_table *table,
         if ((table->entry_count / table->bin_count) >
             CORK_HASH_TABLE_MAX_DENSITY) {
             cork_hash_table_rehash(table);
-            bin_index = hash_value % table->bin_count;
+            bin_index = bin_index(table, hash_value);
         }
     } else {
         DEBUG("(put) Searching for key %p (hash 0x%lx)",
               key, (unsigned long) hash_value);
         DEBUG("  Empty table");
         cork_hash_table_rehash(table);
-        bin_index = hash_value % table->bin_count;
+        bin_index = bin_index(table, hash_value);
     }
 
     DEBUG("    Allocating new entry");
@@ -435,7 +400,7 @@ cork_hash_table_delete(struct cork_hash_table *table, const void *key,
         return false;
     }
 
-    size_t  bin_index = hash_value % table->bin_count;
+    size_t  bin_index = bin_index(table, hash_value);
     DEBUG("(delete) Searching for key %p (hash 0x%lx, bin %zu)",
           key, (unsigned long) hash_value, bin_index);
 
