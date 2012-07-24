@@ -70,5 +70,7 @@ bool
 cork_timestamp_format_local(const cork_timestamp ts, const char *format,
                             char *buf, size_t size);
 
+bool
+cork_timestamp_format_iso8601(const cork_timestamp ts, char *buf, size_t size);
 
 #endif /* LIBCORK_CORE_TIMESTAMP_H */
