@@ -51,8 +51,8 @@ cork_timestamp_format_local(const cork_timestamp ts,
 }
 
 bool
-cork_timestamp_format_iso8601(const cork_timestamp ts,
-                              char *buf, size_t size)
+cork_timestamp_format_iso8601_utc(const cork_timestamp ts,
+                                  char *buf, size_t size)
 {
     time_t  clock;
     struct tm  tm;
@@ -60,4 +60,16 @@ cork_timestamp_format_iso8601(const cork_timestamp ts,
     clock = cork_timestamp_sec(ts);
     gmtime_r(&clock, &tm);
     return strftime(buf, size, "%FT%H:%M:%SZ", &tm) > 0;
+}
+
+bool
+cork_timestamp_format_iso8601_local(const cork_timestamp ts,
+                                    char *buf, size_t size)
+{
+    time_t  clock;
+    struct tm  tm;
+
+    clock = cork_timestamp_sec(ts);
+    localtime_r(&clock, &tm);
+    return strftime(buf, size, "%FT%H:%M:%S%z", &tm) > 0;
 }
