@@ -8,15 +8,33 @@
  * ----------------------------------------------------------------------
  */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "libcork/cli.h"
 #include "libcork/core.h"
+#include "libcork/ds.h"
 
 
 #define streq(s1, s2)  (strcmp((s1), (s2)) == 0)
+
+#define ri_check_exit(call) \
+    do { \
+        if ((call) != 0) { \
+            fprintf(stderr, "%s\n", cork_error_message()); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
+
+#define rp_check_exit(call) \
+    do { \
+        if ((call) == NULL) { \
+            fprintf(stderr, "%s\n", cork_error_message()); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
 
 
 /*-----------------------------------------------------------------------
@@ -71,8 +89,16 @@ c1_s2_run(int argc, char **argv)
 {
     printf("You chose command \"c1 s2\".  Fantastico!\n");
     if (file_option != NULL) {
+        struct cork_stream_consumer  *consumer;
         printf("And you want the file to be %s.  Sure thing.\n", file_option);
+
+        /* Print the contents of the file to stdout. */
+        rp_check_exit(consumer = cork_file_consumer_new(stdout));
+        ri_check_exit(cork_consume_file_from_path
+                      (consumer, file_option, O_RDONLY));
+        cork_stream_consumer_free(consumer);
     }
+
     exit(EXIT_SUCCESS);
 }
 

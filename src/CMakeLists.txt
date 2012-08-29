@@ -24,6 +24,7 @@ set(LIBCORK_SRC
     libcork/ds/array.c
     libcork/ds/buffer.c
     libcork/ds/dllist.c
+    libcork/ds/file-stream.c
     libcork/ds/hash-table.c
     libcork/ds/managed-buffer.c
     libcork/ds/ring-buffer.c
