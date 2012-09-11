@@ -78,6 +78,7 @@ cork_subprocess_terminate(struct cork_subprocess *self)
 {
     if (self->pid > 0) {
         kill(self->pid, SIGTERM);
+        waitpid(self->pid, NULL, 0);
     }
 }
 
@@ -98,6 +99,52 @@ static void
 cork_subprocess_mark_terminated(struct cork_subprocess *self)
 {
     self->pid = 0;
+}
+
+static size_t  sub_count;
+static struct cork_subprocess  **subs;
+static struct sigaction  old_hup;
+static struct sigaction  old_int;
+static struct sigaction  old_term;
+
+static void
+cork_subprocess_signal_handler(int signum)
+{
+    size_t  i;
+    for (i = 0; i < sub_count; i++) {
+        if (subs[i]->pid != 0) {
+            kill(subs[i]->pid, signum);
+        }
+    }
+}
+
+static void
+cork_subprocess_install_one_handler(int signum, struct sigaction *old)
+{
+    sigaction(signum, NULL, old);
+    if (old->sa_handler != SIG_IGN) {
+        struct sigaction  action;
+        action.sa_handler = cork_subprocess_signal_handler;
+        sigemptyset(&action.sa_mask);
+        action.sa_flags = 0;
+        sigaction(signum, &action, NULL);
+    }
+}
+
+static void
+cork_subprocess_install_handlers(void)
+{
+    cork_subprocess_install_one_handler(SIGHUP, &old_hup);
+    cork_subprocess_install_one_handler(SIGINT, &old_int);
+    cork_subprocess_install_one_handler(SIGTERM, &old_term);
+}
+
+static void
+cork_subprocess_restore_handlers(void)
+{
+    sigaction(SIGHUP, &old_hup, NULL);
+    sigaction(SIGINT, &old_int, NULL);
+    sigaction(SIGTERM, &old_term, NULL);
 }
 
 static int
@@ -123,22 +170,34 @@ cork_subprocess_wait(size_t sub_count, struct cork_subprocess **subs)
 }
 
 int
-cork_subprocess_start_and_wait(size_t sub_count, struct cork_subprocess **subs)
+cork_subprocess_start_and_wait(size_t _sub_count,
+                               struct cork_subprocess **_subs)
 {
     size_t  i;
     size_t  j;
 
-    for (i = 0; i < sub_count; i++) {
-        ei_check(cork_subprocess_fork(subs[i]));
+    /* Install signal handlers for a bunch of termination signals. */
+    sub_count = _sub_count;
+    subs = _subs;
+    cork_subprocess_install_handlers();
+
+    /* Start each subprocess. */
+    for (i = 0; i < _sub_count; i++) {
+        ei_check(cork_subprocess_fork(_subs[i]));
     }
 
-    ei_check(cork_subprocess_wait(sub_count, subs));
+    /* Wait for them to finish. */
+    ei_check(cork_subprocess_wait(_sub_count, _subs));
+
+    /* Restore the signal handlers. */
+    cork_subprocess_restore_handlers();
     return 0;
 
 error:
     /* If there's an error, terminate any subprocesses that we already created. */
     for (j = 0; j < i; j++) {
-        cork_subprocess_terminate(subs[i]);
+        cork_subprocess_terminate(_subs[i]);
     }
+    cork_subprocess_restore_handlers();
     return -1;
 }

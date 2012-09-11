@@ -15,9 +15,6 @@
 #include <libcork/ds.h>
 
 
-#define CORK_SUBPROCESS_PROPAGATE_TERMINATION  0x0001
-
-
 struct cork_subprocess;
 
 

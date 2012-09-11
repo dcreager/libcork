@@ -49,13 +49,7 @@ There are several functions that you can use to create child processes.
    corresponding output stream from the current process.  (Usually, this means
    that the child's stdout or stderr will be interleaved with the parent's.)
 
-   *flags* should be a bitwise-OR (``|``) of any of the following flags (or 0 if
-   you don't want any flags):
-
-   .. macro:: CORK_SUBPROCESS_PROPAGATE_TERMINATION
-
-      While the subprocess is executing, propagate any termination signals that
-      the parent process receives in to the children.
+   *flags* is currently ignored.
 
 
 Executing subprocesses
