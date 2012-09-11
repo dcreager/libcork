@@ -30,6 +30,22 @@ cork_thread_get_id(void);
 
 
 /*-----------------------------------------------------------------------
+ * Main functions
+ */
+
+struct cork_thread_body {
+    int
+    (*run)(struct cork_thread_body *self);
+
+    void
+    (*free)(struct cork_thread_body *self);
+};
+
+#define cork_thread_body_run(tb)  ((tb)->run((tb)))
+#define cork_thread_body_free(tb)  ((tb)->free((tb)))
+
+
+/*-----------------------------------------------------------------------
  * Executing something once
  */
 

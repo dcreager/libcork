@@ -19,6 +19,7 @@
 #include "libcork/core.h"
 #include "libcork/ds.h"
 #include "libcork/os/subprocess.h"
+#include "libcork/threads/basics.h"
 #include "libcork/helpers/errors.h"
 
 
@@ -234,34 +235,80 @@ cork_pipe_read(struct cork_pipe *p, struct cork_subprocess_group *group,
  */
 
 struct cork_subprocess {
-    const char  *program;
-    char * const  *params;
     pid_t  pid;
     struct cork_pipe  stdout_pipe;
     struct cork_pipe  stderr_pipe;
+    struct cork_thread_body  *body;
 };
 
-
 struct cork_subprocess *
-cork_subprocess_new_exec(const char *program, char * const *params,
-                         struct cork_stream_consumer *stdout_consumer,
-                         struct cork_stream_consumer *stderr_consumer)
+cork_subprocess_new(struct cork_thread_body *body,
+                    struct cork_stream_consumer *stdout_consumer,
+                    struct cork_stream_consumer *stderr_consumer)
 {
     struct cork_subprocess  *self = cork_new(struct cork_subprocess);
-    self->program = program;
-    self->params = params;
     cork_pipe_init(&self->stdout_pipe, stdout_consumer);
     cork_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
+    self->body = body;
     return self;
 }
 
 void
 cork_subprocess_free(struct cork_subprocess *self)
 {
+    cork_thread_body_free(self->body);
     cork_pipe_done(&self->stdout_pipe);
     cork_pipe_done(&self->stderr_pipe);
     free(self);
+}
+
+
+/*-----------------------------------------------------------------------
+ * Executing another program
+ */
+
+struct cork_exec {
+    struct cork_thread_body  parent;
+    const char  *program;
+    char * const  *params;
+};
+
+static int
+cork_exec__run(struct cork_thread_body *vself)
+{
+    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
+    /* Execute the program */
+    execvp(self->program, self->params);
+    /* If we fall through, there was an error execing the subprocess. */
+    _exit(EXIT_FAILURE);
+}
+
+static void
+cork_exec__free(struct cork_thread_body *vself)
+{
+    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
+    free(self);
+}
+
+static struct cork_thread_body *
+cork_exec_new(const char *program, char * const *params)
+{
+    struct cork_exec  *self = cork_new(struct cork_exec);
+    self->parent.run = cork_exec__run;
+    self->parent.free = cork_exec__free;
+    self->program = program;
+    self->params = params;
+    return &self->parent;
+}
+
+struct cork_subprocess *
+cork_subprocess_new_exec(const char *program, char * const *params,
+                         struct cork_stream_consumer *stdout_consumer,
+                         struct cork_stream_consumer *stderr_consumer)
+{
+    struct cork_thread_body  *body = cork_exec_new(program, params);
+    return cork_subprocess_new(body, stdout_consumer, stderr_consumer);
 }
 
 
@@ -300,11 +347,9 @@ cork_subprocess_fork(struct cork_subprocess *self)
         cork_pipe_close_read(&self->stdout_pipe);
         cork_pipe_close_read(&self->stderr_pipe);
 
-        /* Execute the real program */
-        execvp(self->program, self->params);
-
-        /* If we fall through, there was an error execing the subprocess. */
-        _exit(EXIT_FAILURE);
+        /* Run the subprocess's body */
+        cork_thread_body_run(self->body);
+        _exit(EXIT_SUCCESS);
     } else if (pid < 0) {
         /* Error forking */
         cork_system_error_set();
@@ -496,6 +541,11 @@ error:
 int
 cork_subprocess_group_abort(struct cork_subprocess_group *group)
 {
+    if (current_group == NULL) {
+        /* Nothing is running; immediately return. */
+        return 0;
+    }
+
     assert(current_group == group);
     cork_subprocess_group_terminate(group);
     cork_subprocess_restore_handlers();
@@ -509,6 +559,11 @@ cork_subprocess_group_drain(struct cork_subprocess_group *group)
 {
     int  nfds = 0;
     fd_set  fds;
+
+    if (current_group == NULL) {
+        /* Nothing is running; immediately return. */
+        return 0;
+    }
 
     assert(current_group == group);
     cork_subprocess_set_fds(&fds, &nfds);
@@ -547,6 +602,11 @@ cork_subprocess_group_is_finished(struct cork_subprocess_group *group)
 int
 cork_subprocess_group_wait(struct cork_subprocess_group *group)
 {
+    if (current_group == NULL) {
+        /* Nothing is running; immediately return. */
+        return 0;
+    }
+
     assert(current_group == group);
     while (group->still_running > 0) {
         rii_check(cork_subprocess_group_drain(group));

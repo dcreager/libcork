@@ -13,6 +13,7 @@
 
 #include <libcork/core/types.h>
 #include <libcork/ds/stream.h>
+#include <libcork/threads/basics.h>
 
 
 /*-----------------------------------------------------------------------
@@ -20,6 +21,12 @@
  */
 
 struct cork_subprocess;
+
+/* Takes control of body */
+struct cork_subprocess *
+cork_subprocess_new(struct cork_thread_body *body,
+                    struct cork_stream_consumer *stdout_consumer,
+                    struct cork_stream_consumer *stderr_consumer);
 
 struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,

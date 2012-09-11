@@ -33,6 +33,15 @@ Creating subprocesses
 
 There are several functions that you can use to create child processes.
 
+.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
+
+   Create a new subprocess that will execute the *body* callback object.
+
+   .. type:: struct cork_thread_body
+
+      .. member:: int (\*run)(struct cork_thread_body \*body)
+                  void (\*free)(struct cork_thread_body \*body)
+
 .. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
 
    Create a new subprocess that will execute another program.  *program* should
@@ -42,12 +51,13 @@ There are several functions that you can use to create child processes.
    function.  (It must be ``NULL``\ -terminated, and its first element must be
    the *program*.)
 
-   If you want to collect the data that the subprocess writes to its stdout and
-   stderr streams, you should pass in :ref:`stream consumer <stream-consumers>`
-   instances for the *stdout* and/or *stderr* parameters.  If either (or both)
-   of these parameters is ``NULL``, then the child process will inherit the
-   corresponding output stream from the current process.  (Usually, this means
-   that the child's stdout or stderr will be interleaved with the parent's.)
+For all of these functions, you can collect the data that the subprocess writes
+to its stdout and stderr streams by passing in :ref:`stream consumer
+<stream-consumers>` instances for the *stdout* and/or *stderr* parameters.  If
+either (or both) of these parameters is ``NULL``, then the child process will
+inherit the corresponding output stream from the current process.  (Usually,
+this means that the child's stdout or stderr will be interleaved with the
+parent's.)
 
 
 Executing subprocesses
