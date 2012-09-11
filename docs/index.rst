@@ -44,6 +44,7 @@ Contents
    mempool
    ds
    cli
+   subprocess
    threads
 
 

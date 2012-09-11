@@ -16,6 +16,7 @@
 #include "libcork/cli.h"
 #include "libcork/core.h"
 #include "libcork/ds.h"
+#include "libcork/os.h"
 
 
 #define streq(s1, s2)  (strcmp((s1), (s2)) == 0)
@@ -157,10 +158,33 @@ static struct cork_command  c2 =
                       NULL, c2_run);
 
 
+/*-----------------------------------------------------------------------
+ * Forking subprocesses
+ */
+
+static void
+sub_run(int argc, char **argv)
+{
+    struct cork_subprocess  *sub;
+    rp_check_exit(sub = cork_subprocess_new_exec(argv[0], argv, NULL, NULL, 0));
+    ri_check_exit(cork_subprocess_start_and_wait(1, &sub));
+    cork_subprocess_free(sub);
+}
+
+static struct cork_command  sub =
+    cork_leaf_command("sub", "Run a subcommand", "<program> [<options>]",
+                      "Runs a subcommand.\n",
+                      NULL, sub_run);
+
+
+/*-----------------------------------------------------------------------
+ * Root command
+ */
+
 /* [root] cork-test */
 
 static struct cork_command  *root_subcommands[] = {
-    &c1, &c2, NULL
+    &c1, &c2, &sub, NULL
 };
 
 static struct cork_command  root_command =
