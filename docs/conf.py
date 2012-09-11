@@ -46,7 +46,7 @@ version = None
 if version is None:
     import re
     import subprocess
-    release = subprocess.check_output(["git", "describe"]).rstrip()
+    release = str(subprocess.check_output(["git", "describe"]).rstrip())
     version = re.sub(r"-dev.*$", "-dev", release)
 
 # Project details
