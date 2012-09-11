@@ -33,7 +33,7 @@ Creating subprocesses
 
 There are several functions that you can use to create child processes.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, unsigned int flags)
+.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
 
    Create a new subprocess that will execute another program.  *program* should
    either be an absolute path to an executable on the local filesystem, or the
@@ -49,14 +49,138 @@ There are several functions that you can use to create child processes.
    corresponding output stream from the current process.  (Usually, this means
    that the child's stdout or stderr will be interleaved with the parent's.)
 
-   *flags* is currently ignored.
-
 
 Executing subprocesses
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: int cork_subprocess_start_and_wait(size_t sub_count, struct cork_subprocess \*\*subs)
+The functions for executing subprocesses actually work on a *group* of
+subprocesses.  This lets you start up several subprocesses at the same time, and
+wait for them all to finish.  If you only want to execute one subprocess, that's
+fine; just make a group containing one subprocess.
 
-   Execute several subprocesses, and wait for them all to terminate.  If there
-   are any errors starting the subprocesses, we will return ``-1`` and set an
-   :ref:`error condition <errors>`.
+.. type:: struct cork_subprocess_group
+
+   A group of subprocesses that will all be executed simultaneously.
+
+.. function:: struct cork_subprocess_group \*cork_subprocess_group_new(void)
+
+   Create a new group of subprocesses.  The group will initially be empty.
+
+.. function:: void cork_subprocess_group_free(struct cork_subprocess_group \*group)
+
+   Free a subprocess group.  This frees all of the subprocesses in the group,
+   too.  If you've started executing the subprocesses in the group, you **must
+   not** call this function until they have finished executing.  (You can use
+   the :c:func:`cork_subprocess_group_is_finished` function to see if the group
+   is still executing, and the :c:func:`cork_subprocess_group_abort` to
+   terminate the subprocesses before freeing the group.)
+
+.. function:: void cork_subprocess_group_add(struct cork_subprocess_group \*group, struct cork_subprocess \*sub)
+
+   Add the given subprocess to *group*.  The group takes control of the
+   subprocess; you should not try to free it yourself.
+
+
+Once you've created your group of subprocesses, you can start them executing:
+
+.. function:: int cork_subprocess_group_start(struct cork_subprocess_group \*group)
+
+   Execute all of the subprocesses in *group*.  We immediately return once the
+   processes have been started.  You can use the
+   :c:func:`cork_subprocess_group_drain` and
+   :c:func:`cork_subprocess_group_wait` functions to wait for the subprocesses
+   to complete.
+
+   If there are any errors starting the subprocesses, we'll terminate any
+   subprocesses that we were able to start, set an :ref:`error condition
+   <errors>`, and return ``-1``.
+
+   .. note::
+
+      This function is **not** thread-safe.  You cannot execute two groups of
+      subprocesses simultaneously.
+
+
+Since we immediately return after starting the subprocesses, you must somehow
+wait for them to finish.  There are two strategies for doing so.  If you don't
+need to communicate with the subprocesses (by writing to their stdin streams or
+sending them signals), the simplest strategy is to just wait for them to finish:
+
+.. function:: int cork_subprocess_group_wait(struct cork_subprocess_group \*group)
+
+   Wait until all of the subprocesses in *group* have finished executing.  While
+   waiting, we'll continue to read data from the subprocesses stdout and stderr
+   streams as we can.
+
+   If there are any errors reading from the subprocesses, we'll terminate all of
+   the subprocesses that are still executing, set an :ref:`error condition
+   <errors>`, and return ``-1``.  If the group has already finished, the
+   function doesn't do anything.
+
+As an example::
+
+    struct cork_subprocess_group  *group = /* from somewhere */;
+    /* Wait for the subprocesses to finish */
+    if (cork_subprocess_group_wait(group) == -1) {
+        /* An error occurred; handle it! */
+    }
+
+    /* At this point, we're guaranteed that the subprocesses have all been
+     * terminated; either everything finished successfully, or the subprocesses
+     * were terminated for us when an error was detected. */
+    cork_subprocess_group_free(group);
+
+
+If you do need to communicate with the subprocesses, then you need more control
+over when we try to read from their stdout and stderr streams.  (The pipes that
+connect the subprocesses to the parent process are fixed size, and so without
+careful orchestration, you can easily get a deadlock.  Moreover, the right
+pattern of reading and writing depends on the subprocesses that you're
+executing, so it's not something that we can handle for you automatically.)
+
+.. function:: bool cork_subprocess_group_is_finished(struct cork_subprocess_group \*group)
+
+   Return whether all of the subprocesses in *group* have finished executing.
+
+.. function:: int cork_subprocess_group_abort(struct cork_subprocess_group \*group)
+
+   Immediately terminate the subprocesses in group.  This can be used to clean
+   up if you detect an error condition and need to close the subprocesses early.
+   If the group has already finished, the function doesn't do anything.
+
+.. function:: int cork_subprocess_group_drain(struct cork_subprocess_group \*group)
+
+   Check the subprocesses in *group* for any output on their stdout and stderr
+   streams.  We'll read in as much data as we can from all of the subprocesses
+   without blocking, and then return.  (Of course, we only do those for those
+   subprocesses that you provided stdout or stderr consumers for.)
+
+   This function lets you (**TODO: eventually**) pass data into the
+   subprocesses's stdin streams, or send them signals, and handle any
+   orchestration that's necessarily to ensure that the subprocesses don't
+   deadlock.
+
+   If there are any errors reading from the subprocesses, we'll terminate all of
+   the subprocesses that are still executing, set an :ref:`error condition
+   <errors>`, and return ``-1``.  If the group has already finished, the
+   function doesn't do anything.
+
+To do this, you continue to "drain" the subprocesses whenever you're ready to
+read from their stdout and stderr streams.  You repeat this in a loop, writing
+to the stdin streams or sending signals as necessary, until all of the
+subprocesses have finished::
+
+    struct cork_subprocess_group  *group = /* from somewhere */;
+    while (!cork_subprocess_group_is_finished(group)) {
+        /* Drain the stdout and stderr streams */
+        if (cork_subprocess_group_drain(group) == -1) {
+            /* An error occurred; handle it! */
+        } else {
+            /* Write to the stdin streams or send signals */
+        }
+    }
+
+    /* At this point, we're guaranteed that the subprocesses have all been
+     * terminated; either everything finished successfully, or the subprocesses
+     * were terminated for us when an error was detected. */
+    cork_subprocess_group_free(group);

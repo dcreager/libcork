@@ -105,28 +105,31 @@ static void
 test_subprocesses_(size_t spec_count, struct spec **specs)
 {
     size_t  i;
-    struct cork_subprocess  **subs =
-        cork_calloc(spec_count, sizeof(struct cork_subprocess *));
+    struct cork_subprocess_group  *group = cork_subprocess_group_new();
 
     for (i = 0; i < spec_count; i++) {
         struct spec  *spec = specs[i];
-        spec->verify_stdout = verify_consumer_new("stdout", spec->expected_stdout);
-        spec->verify_stderr = verify_consumer_new("stderr", spec->expected_stderr);
-        fail_if_error(subs[i] = cork_subprocess_new_exec
+        struct cork_subprocess  *sub;
+        spec->verify_stdout =
+            verify_consumer_new("stdout", spec->expected_stdout);
+        spec->verify_stderr =
+            verify_consumer_new("stderr", spec->expected_stderr);
+        fail_if_error(sub = cork_subprocess_new_exec
                       (spec->program, spec->params,
-                       spec->verify_stdout, spec->verify_stderr, 0));
+                       spec->verify_stdout, spec->verify_stderr));
+        cork_subprocess_group_add(group, sub);
     }
 
-    fail_if_error(cork_subprocess_start_and_wait(spec_count, subs));
+    fail_if_error(cork_subprocess_group_start(group));
+    fail_if_error(cork_subprocess_group_wait(group));
 
     for (i = 0; i < spec_count; i++) {
         struct spec  *spec = specs[i];
         cork_stream_consumer_free(spec->verify_stdout);
         cork_stream_consumer_free(spec->verify_stderr);
-        cork_subprocess_free(subs[i]);
     }
 
-    free(subs);
+    cork_subprocess_group_free(group);
 }
 
 #define test_subprocesses(specs) \

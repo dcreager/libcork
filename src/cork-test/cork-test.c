@@ -165,10 +165,14 @@ static struct cork_command  c2 =
 static void
 sub_run(int argc, char **argv)
 {
+    struct cork_subprocess_group  *group;
     struct cork_subprocess  *sub;
-    rp_check_exit(sub = cork_subprocess_new_exec(argv[0], argv, NULL, NULL, 0));
-    ri_check_exit(cork_subprocess_start_and_wait(1, &sub));
-    cork_subprocess_free(sub);
+    rp_check_exit(group = cork_subprocess_group_new());
+    rp_check_exit(sub = cork_subprocess_new_exec(argv[0], argv, NULL, NULL));
+    cork_subprocess_group_add(group, sub);
+    ri_check_exit(cork_subprocess_group_start(group));
+    ri_check_exit(cork_subprocess_group_wait(group));
+    cork_subprocess_group_free(group);
 }
 
 static struct cork_command  sub =
