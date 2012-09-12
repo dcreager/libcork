@@ -102,6 +102,8 @@ errors, and so is a bit more complex.  But this example still works as an
 illustration of how to pass data into a stream consumer.)
 
 
+.. _stream-consumers:
+
 Stream consumers
 ----------------
 
