@@ -10,7 +10,7 @@ Command-line programs
 
   #include <libcork/cli.h>
 
-The commands in this section let you easily create complex command-line
+The functions in this section let you easily create complex command-line
 applications that include subcommands, in the style of the ``git`` or ``svn``
 programs.
 
