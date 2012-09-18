@@ -3,7 +3,7 @@
  * Copyright © 2011, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the LICENSE.txt file in this distribution for license
+ * Please see the COPYING file in this distribution for license
  * details.
  * ----------------------------------------------------------------------
  */
@@ -74,11 +74,14 @@ struct cork_ip {
 #define cork_ipv4_copy(addr, src) \
     (memcpy((addr), (src), sizeof(struct cork_ipv4)))
 
+#define cork_ipv4_equal(a1, a2) \
+    ((a1)->_.u32 == (a2)->_.u32)
+
 int
 cork_ipv4_init(struct cork_ipv4 *addr, const char *str);
 
 bool
-cork_ipv4_equal(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
+cork_ipv4_equal_(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
 
 void
 cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
@@ -94,11 +97,15 @@ cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
 #define cork_ipv6_copy(addr, src) \
     (memcpy((addr), (src), sizeof(struct cork_ipv6)))
 
+#define cork_ipv6_equal(a1, a2) \
+    ((a1)->_.u64[0] == (a2)->_.u64[0] && \
+     (a1)->_.u64[1] == (a2)->_.u64[1])
+
 int
 cork_ipv6_init(struct cork_ipv6 *addr, const char *str);
 
 bool
-cork_ipv6_equal(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
+cork_ipv6_equal_(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
 
 void
 cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest);
@@ -110,19 +117,38 @@ cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
 
 /*** Generic IP ***/
 
+#define cork_ip_equal(a1, a2) \
+    ((a1)->version == 4? \
+     ((a2)->version == 4 && cork_ipv4_equal(&(a1)->ip.v4, &(a2)->ip.v4)): \
+     ((a2)->version == 6 && cork_ipv6_equal(&(a1)->ip.v6, &(a2)->ip.v6)))
+
+/* src must be well-formed: 4 bytes, big-endian */
+#define cork_ip_from_ipv4(addr, src) \
+    do { \
+        (addr)->version = 4; \
+        cork_ipv4_copy(&(addr)->ip.v4, (src)); \
+    } while (0)
+
+/* src must be well-formed: 16 bytes, big-endian */
+#define cork_ip_from_ipv6(addr, src) \
+    do { \
+        (addr)->version = 6; \
+        cork_ipv6_copy(&(addr)->ip.v6, (src)); \
+    } while (0)
+
 /* src must be well-formed: 4 bytes, big-endian */
 void
-cork_ip_from_ipv4(struct cork_ip *addr, const void *src);
+cork_ip_from_ipv4_(struct cork_ip *addr, const void *src);
 
 /* src must be well-formed: 16 bytes, big-endian */
 void
-cork_ip_from_ipv6(struct cork_ip *addr, const void *src);
+cork_ip_from_ipv6_(struct cork_ip *addr, const void *src);
 
 int
 cork_ip_init(struct cork_ip *addr, const char *str);
 
 bool
-cork_ip_equal(const struct cork_ip *addr1, const struct cork_ip *addr2);
+cork_ip_equal_(const struct cork_ip *addr1, const struct cork_ip *addr2);
 
 void
 cork_ip_to_raw_string(const struct cork_ip *addr, char *dest);

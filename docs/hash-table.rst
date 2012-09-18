@@ -66,6 +66,15 @@ you dispose of the hash table.
 
    Translates a key pointer into a :c:type:`cork_hash` hash value.
 
+   .. note::
+
+      It's important to use a hash function that has a uniform distribution of
+      hash values for the set of values you expect to use as hash table keys.
+      In particular, you *should not* rely on there being a prime number of hash
+      table bins to get the desired uniform distribution.  The :ref:`hash value
+      functions <hash-values>` that we provide have uniform distribution, and
+      should be safe to use for most key types.
+
 .. type:: bool (\*cork_hash_table_comparator)(const void \*key1, const void \*key2)
 
    Compares two key pointers for equality.

@@ -3,20 +3,39 @@
  * Copyright © 2012, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the LICENSE.txt file in this distribution for license
+ * Please see the COPYING file in this distribution for license
  * details.
  * ----------------------------------------------------------------------
  */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "libcork/cli.h"
 #include "libcork/core.h"
+#include "libcork/ds.h"
+#include "libcork/os.h"
 
 
 #define streq(s1, s2)  (strcmp((s1), (s2)) == 0)
+
+#define ri_check_exit(call) \
+    do { \
+        if ((call) != 0) { \
+            fprintf(stderr, "%s\n", cork_error_message()); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
+
+#define rp_check_exit(call) \
+    do { \
+        if ((call) == NULL) { \
+            fprintf(stderr, "%s\n", cork_error_message()); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
 
 
 /*-----------------------------------------------------------------------
@@ -71,8 +90,16 @@ c1_s2_run(int argc, char **argv)
 {
     printf("You chose command \"c1 s2\".  Fantastico!\n");
     if (file_option != NULL) {
+        struct cork_stream_consumer  *consumer;
         printf("And you want the file to be %s.  Sure thing.\n", file_option);
+
+        /* Print the contents of the file to stdout. */
+        rp_check_exit(consumer = cork_file_consumer_new(stdout));
+        ri_check_exit(cork_consume_file_from_path
+                      (consumer, file_option, O_RDONLY));
+        cork_stream_consumer_free(consumer);
     }
+
     exit(EXIT_SUCCESS);
 }
 
@@ -131,10 +158,37 @@ static struct cork_command  c2 =
                       NULL, c2_run);
 
 
+/*-----------------------------------------------------------------------
+ * Forking subprocesses
+ */
+
+static void
+sub_run(int argc, char **argv)
+{
+    struct cork_subprocess_group  *group;
+    struct cork_subprocess  *sub;
+    rp_check_exit(group = cork_subprocess_group_new());
+    rp_check_exit(sub = cork_subprocess_new_exec(argv[0], argv, NULL, NULL));
+    cork_subprocess_group_add(group, sub);
+    ri_check_exit(cork_subprocess_group_start(group));
+    ri_check_exit(cork_subprocess_group_wait(group));
+    cork_subprocess_group_free(group);
+}
+
+static struct cork_command  sub =
+    cork_leaf_command("sub", "Run a subcommand", "<program> [<options>]",
+                      "Runs a subcommand.\n",
+                      NULL, sub_run);
+
+
+/*-----------------------------------------------------------------------
+ * Root command
+ */
+
 /* [root] cork-test */
 
 static struct cork_command  *root_subcommands[] = {
-    &c1, &c2, NULL
+    &c1, &c2, &sub, NULL
 };
 
 static struct cork_command  root_command =

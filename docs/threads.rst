@@ -14,6 +14,33 @@ libcork provides several functions for handling threads and writing
 thread-aware code in a portable way.
 
 
+.. _threads:
+
+Thread information
+==================
+
+.. type:: unsigned int cork_thread_id
+
+   An identifier for a thread in the current process.  This is a portable type;
+   it is not based on the "raw" thread ID used by the underlying thread
+   implementation.  This type will always be equivalent to ``unsigned int``, on
+   all platforms.  Furthermore, :c:data:`CORK_THREAD_NONE` will always refer to
+   an instance of this type that we guarantee will not be used by any thread.
+
+.. var:: cork_thread_id CORK_THREAD_NONE
+
+   A :c:type:`cork_thread_id` value that will not be used as the ID of any
+   thread.  You can use this value to represent "no thread" in any data
+   structures you create.  Moreover, we guarantee that ``CORK_THREAD_NONE`` will
+   have the value ``0``, which lets you zero-initialize a data structure
+   containing a :c:type:`cork_thread_id`, and have its initial state
+   automatically represent "no thread".
+
+.. function:: cork_thread_id cork_thread_get_id(void)
+
+   Returns the identifier of the currently executing thread.
+
+
 .. _atomics:
 
 Atomic operations
@@ -69,20 +96,6 @@ Compare-and-swap
    compare-and-swap was successful.)
 
 
-.. _threads:
-
-Thread information
-==================
-
-.. type:: cork_thread_id
-
-   An identifier for a thread in the current process.
-
-.. function:: cork_thread_id cork_thread_get_id(void)
-
-   Returns the identifier of the currently executing thread.
-
-
 .. _once:
 
 Executing something once
@@ -98,6 +111,7 @@ execution at roughly the same time.
    macro.
 
 .. macro:: cork_once(barrier, call)
+           cork_once_recursive(barrier, call)
 
    Ensure that *call* (which can be an arbitrary statement) is executed
    exactly once, regardless of how many times control reaches the call
@@ -111,9 +125,11 @@ execution at roughly the same time.
    statements are different in those ``cork_once`` invocations, then
    it's undefined which one gets executed.
 
-   It's fine if the function that contains the ``cork_once`` call is
-   recursive; if the same thread tries to obtain the underlying lock
-   multiple times, the second and later calls will silently succeed.
+   If the function that contains the ``cork_once`` call is recursive, then you
+   should call the ``_recursive`` variant of the macro.  With the ``_recursive``
+   variant, if the same thread tries to obtain the underlying lock multiple
+   times, the second and later calls will silently succeed.  With the regular
+   variant, you'll get a deadlock in this case.
 
 These macros are usually used to initialize a static variable that will
 be shared across multiple threads::

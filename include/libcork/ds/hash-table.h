@@ -3,7 +3,7 @@
  * Copyright © 2011-2012, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the LICENSE.txt file in this distribution for license
+ * Please see the COPYING file in this distribution for license
  * details.
  * ----------------------------------------------------------------------
  */
@@ -13,6 +13,7 @@
 
 
 #include <libcork/core/hash.h>
+#include <libcork/core/mempool.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/dllist.h>
 
@@ -46,6 +47,8 @@ struct cork_hash_table {
     cork_hash_table_hasher  hasher;
     /* A comparator function. */
     cork_hash_table_comparator  comparator;
+    /* A memory pool for the hash table entries */
+    struct cork_mempool  entry_mempool;
 };
 
 

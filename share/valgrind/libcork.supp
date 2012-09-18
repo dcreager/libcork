@@ -7,6 +7,17 @@
    fun:cork_error_get
 }
 
+
+{
+   libcork/cork_error_set
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   fun:reallocf
+   fun:cork_buffer_append_vprintf
+   fun:cork_error_set
+}
+
 {
    libcork/cork_gc_get
    Memcheck:Leak

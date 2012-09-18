@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2012, RedJack, LLC.
 # All rights reserved.
 #
-# Please see the LICENSE.txt file in this distribution for license
+# Please see the COPYING file in this distribution for license
 # details.
 # ----------------------------------------------------------------------
 
@@ -24,17 +24,20 @@ set(LIBCORK_SRC
     libcork/ds/array.c
     libcork/ds/buffer.c
     libcork/ds/dllist.c
+    libcork/ds/file-stream.c
     libcork/ds/hash-table.c
     libcork/ds/managed-buffer.c
     libcork/ds/ring-buffer.c
     libcork/ds/slice.c
+    libcork/posix/subprocess.c
+    libcork/threads/descriptor.c
 )
 
 add_library(libcork SHARED ${LIBCORK_SRC})
 target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 8.0.0)
+    SOVERSION 9.0.0)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
