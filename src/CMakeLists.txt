@@ -29,6 +29,7 @@ set(LIBCORK_SRC
     libcork/ds/managed-buffer.c
     libcork/ds/ring-buffer.c
     libcork/ds/slice.c
+    libcork/posix/directory-walker.c
     libcork/posix/subprocess.c
     libcork/threads/descriptor.c
 )

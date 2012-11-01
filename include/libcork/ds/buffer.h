@@ -55,6 +55,9 @@ cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size);
 void
 cork_buffer_clear(struct cork_buffer *buffer);
 
+void
+cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
+
 
 /*-----------------------------------------------------------------------
  * A whole bunch of methods for adding data

@@ -109,9 +109,14 @@ terminators.
 
 .. function:: void cork_buffer_clear(struct cork_buffer \*buffer)
 
-   Clears a buffer.  This does not free any storage that the buffer has
-   allocated; this storage will be reused if you add contents back to
-   the buffer.
+   Clear a buffer.  This does not free any storage that the buffer has
+   allocated; this storage will be reused if you add contents back to the
+   buffer.
+
+.. function:: void cork_buffer_truncate(struct cork_buffer \*buffer, size_t length)
+
+   Truncate a buffer so that contains no more than *length* bytes.  If the
+   buffer is already shorter than this, it is not modified.
 
 .. function:: int cork_buffer_set(struct cork_buffer \*buffer, const void \*src, size_t length)
               int cork_buffer_append(struct cork_buffer \*buffer, const void \*src, size_t length)
