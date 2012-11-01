@@ -13,6 +13,7 @@
 
 /*** include all of the parts ***/
 
+#include <libcork/os/files.h>
 #include <libcork/os/subprocess.h>
 
 #endif /* LIBCORK_OS_H */
