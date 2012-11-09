@@ -90,6 +90,12 @@ automatically resizing the underlying buffer when necessary.
    internal storage; if the buffer has already allocated at least
    *desired_size* bytes, the function acts as a no-op.
 
+.. function:: uint8_t cork_buffer_byte(struct cork_buffer \*buffer, size_t index)
+              char cork_buffer_char(struct cork_buffer \*buffer, size_t index)
+
+   Return the byte or character at the given index in *buffer*.
+
+
 Mutator functions
 -----------------
 
@@ -112,6 +118,10 @@ terminators.
    Clear a buffer.  This does not free any storage that the buffer has
    allocated; this storage will be reused if you add contents back to the
    buffer.
+
+.. function:: void cork_buffer_copy(struct cork_buffer \*dest, const struct cork_buffer \*src)
+
+   Copy the contents of the *src* buffer into *dest*.
 
 .. function:: void cork_buffer_truncate(struct cork_buffer \*buffer, size_t length)
 
