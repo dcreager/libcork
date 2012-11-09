@@ -33,10 +33,21 @@ START_TEST(test_buffer)
     size_t  SRC_LEN = strlen(SRC);
 
     struct cork_buffer  buffer1;
+    struct cork_buffer  *buffer2;
+    struct cork_buffer  *buffer3;
+    struct cork_buffer  buffer4;
+
     cork_buffer_init(&buffer1);
     fail_if_error(cork_buffer_set(&buffer1, SRC, SRC_LEN));
 
-    struct cork_buffer  *buffer2;
+    fail_unless(cork_buffer_char(&buffer1, 0) == 'H',
+                "Unexpected character at position 0: got %c, expected %c",
+                (int) cork_buffer_char(&buffer1, 0), (int) 'H');
+
+    fail_unless(cork_buffer_byte(&buffer1, 1) == (uint8_t) 'e',
+                "Unexpected character at position 1: got %c, expected %c",
+                (int) cork_buffer_byte(&buffer1, 1), (int) 'e');
+
     fail_if_error(buffer2 = cork_buffer_new());
     fail_if_error(cork_buffer_set_string(buffer2, SRC));
 
@@ -44,7 +55,6 @@ START_TEST(test_buffer)
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer2->size, buffer2->buf);
 
-    struct cork_buffer  *buffer3;
     fail_if_error(buffer3 = cork_buffer_new());
     fail_if_error(cork_buffer_printf
                   (buffer3, "Here is %s text.", "some"));
@@ -53,9 +63,17 @@ START_TEST(test_buffer)
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
                 buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
 
+    cork_buffer_init(&buffer4);
+    cork_buffer_copy(&buffer4, &buffer1);
+
+    fail_unless(cork_buffer_equal(&buffer1, &buffer4),
+                "Buffers should be equal: got %zu:%s, expected %zu:%s",
+                buffer1.size, buffer1.buf, buffer4.size, buffer4.buf);
+
     cork_buffer_done(&buffer1);
     cork_buffer_free(buffer2);
     cork_buffer_free(buffer3);
+    cork_buffer_done(&buffer4);
 }
 END_TEST
 

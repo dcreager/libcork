@@ -58,10 +58,16 @@ cork_buffer_clear(struct cork_buffer *buffer);
 void
 cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
 
+#define cork_buffer_byte(buffer, i)  (((const uint8_t *) (buffer)->buf)[(i)])
+#define cork_buffer_char(buffer, i)  (((const char *) (buffer)->buf)[(i)])
+
 
 /*-----------------------------------------------------------------------
  * A whole bunch of methods for adding data
  */
+
+#define cork_buffer_copy(dest, src) \
+    (cork_buffer_set((dest), (src)->buf, (src)->size))
 
 void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
