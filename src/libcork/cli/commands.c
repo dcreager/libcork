@@ -48,12 +48,12 @@ cork_command_set_get_subcommand(struct cork_command *command,
 static void
 cork_command_set_show_help(struct cork_command *command)
 {
-    int  max_length = 0;
+    size_t max_length = 0;
     struct cork_command  **curr;
 
     /* Calculate the length of the longest command name. */
     for (curr = command->set; *curr != NULL; curr++) {
-        int  len = strlen((*curr)->name);
+        size_t len = strlen((*curr)->name);
         if (len > max_length) {
             max_length = len;
         }
@@ -65,7 +65,7 @@ cork_command_set_show_help(struct cork_command *command)
            cork_command_breadcrumbs());
 
     for (curr = command->set; *curr != NULL; curr++) {
-        printf("  %*s", -max_length, (*curr)->name);
+        printf("  %*s", (int)-max_length, (*curr)->name);
         if ((*curr)->short_desc != NULL) {
             printf("  %s\n", (*curr)->short_desc);
         } else {
