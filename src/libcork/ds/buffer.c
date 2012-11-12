@@ -98,6 +98,17 @@ cork_buffer_clear(struct cork_buffer *buffer)
     buffer->size = 0;
 }
 
+void
+cork_buffer_truncate(struct cork_buffer *buffer, size_t length)
+{
+    if (buffer->size > length) {
+        buffer->size = length;
+        if (length > 0) {
+            ((char *) buffer->buf)[length] = '\0';
+        }
+    }
+}
+
 
 void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length)

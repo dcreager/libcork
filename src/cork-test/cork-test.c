@@ -182,13 +182,118 @@ static struct cork_command  sub =
 
 
 /*-----------------------------------------------------------------------
+ * Directory walker
+ */
+
+static bool  only_files = false;
+static bool  shallow = false;
+static const char  *dir_path = NULL;
+
+static int
+dir_options(int argc, char **argv)
+{
+    if (argc == 3) {
+        if (streq(argv[1], "--shallow")) {
+            shallow = true;
+            dir_path = argv[2];
+            return 3;
+        } else if (streq(argv[1], "--only-files")) {
+            only_files = true;
+            dir_path = argv[2];
+            return 3;
+        }
+    }
+
+    else if (argc == 2) {
+        dir_path = argv[1];
+        return 2;
+    }
+
+    fprintf(stderr, "Invalid usage.\n");
+    exit(EXIT_FAILURE);
+}
+
+static size_t  indent = 0;
+
+static void
+print_indent(void)
+{
+    size_t  i;
+    for (i = 0; i < indent; i++) {
+        printf("  ");
+    }
+}
+
+static int
+enter_directory(struct cork_dir_walker *walker, const char *full_path,
+                const char *rel_path, const char *base_name)
+{
+    print_indent();
+    if (shallow) {
+        printf("Skipping %s\n", rel_path);
+        return CORK_SKIP_DIRECTORY;
+    } else if (only_files) {
+        return 0;
+    } else {
+        printf("Entering %s (%s)\n", base_name, rel_path);
+        indent++;
+        return 0;
+    }
+}
+
+static int
+print_file(struct cork_dir_walker *walker, const char *full_path,
+           const char *rel_path, const char *base_name)
+{
+    if (only_files) {
+        printf("%s\n", rel_path);
+    } else {
+        print_indent();
+        printf("%s (%s) (%s)\n", base_name, rel_path, full_path);
+    }
+    return 0;
+}
+
+static int
+leave_directory(struct cork_dir_walker *walker, const char *full_path,
+                const char *rel_path, const char *base_name)
+{
+    if (!only_files) {
+        indent--;
+        print_indent();
+        printf("Leaving %s\n", rel_path);
+    }
+    return 0;
+}
+
+static struct cork_dir_walker  walker = {
+    enter_directory,
+    print_file,
+    leave_directory
+};
+
+static void
+dir_run(int argc, char **argv)
+{
+    ri_check_exit(cork_walk_directory(dir_path, &walker));
+    exit(EXIT_SUCCESS);
+}
+
+static struct cork_command  dir =
+    cork_leaf_command("dir", "Print the contents of a directory",
+                      "[--shallow] <path>",
+                      "Prints the contents of a directory.\n",
+                      dir_options, dir_run);
+
+
+/*-----------------------------------------------------------------------
  * Root command
  */
 
 /* [root] cork-test */
 
 static struct cork_command  *root_subcommands[] = {
-    &c1, &c2, &sub, NULL
+    &c1, &c2, &dir, &sub, NULL
 };
 
 static struct cork_command  root_command =
