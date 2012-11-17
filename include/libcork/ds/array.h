@@ -52,7 +52,7 @@
 
 #define cork_array_ensure_size(arr, count) \
     (cork_array_ensure_size_ \
-     ((arr), (count), cork_array_element_size(arr)))
+     ((void *)(arr), (count), cork_array_element_size(arr)))
 
 void
 cork_array_ensure_size_(void *array, size_t desired_count, size_t element_size);
@@ -66,7 +66,7 @@ cork_array_append_get_(void *array, size_t element_size);
 
 #define cork_array_append_get(arr) \
     (cork_array_append_get_ \
-     ((arr), cork_array_element_size(arr)))
+     ((void *)(arr), cork_array_element_size(arr)))
 
 
 #endif /* LIBCORK_DS_ARRAY_H */
