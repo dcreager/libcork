@@ -115,6 +115,29 @@ you dispose of the hash table.
       read-only.
 
 
+Built-in key types
+------------------
+
+With the :c:func:`cork_hash_table_init` and :c:func:`cork_hash_table_new`
+functions, you must provide hasher and comparator functions for the keys that
+you're going to use in the hash table.  To save you from effort, we also provide
+a handful of specialized constructors for common key types.
+
+
+.. function:: void cork_string_hash_table_init(struct cork_hash_table \*table, size_t initial_size)
+              struct cork_hash_table \*cork_string_hash_table_new(size_t initial_size)
+
+   Create a hash table whose keys will be C strings.
+
+
+.. function:: void cork_pointer_hash_table_init(struct cork_hash_table \*table, size_t initial_size)
+              struct cork_hash_table \*cork_pointer_hash_table_new(size_t initial_size)
+
+   Create a hash table where keys should be compared using standard pointer
+   equality.  (In other words, keys should only be considered equal if they
+   point to the same physical object.)
+
+
 Adding and retrieving entries
 -----------------------------
 

@@ -34,6 +34,10 @@
 #endif
 
 
+/*-----------------------------------------------------------------------
+ * Hash tables
+ */
+
 /* The default initial number of bins to allocate in a new table. */
 #define CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE  8
 
@@ -528,4 +532,64 @@ cork_hash_table_iterator_next(struct cork_hash_table_iterator *iterator)
     DEBUG("    Returning entry %p", result);
     iterator->curr = iterator->curr->next;
     return result;
+}
+
+
+/*-----------------------------------------------------------------------
+ * Built-in key types
+ */
+
+static cork_hash
+string_hasher(const void *vk)
+{
+    const char  *k = vk;
+    size_t  len = strlen(k);
+    return cork_hash_buffer(0, k, len);
+}
+
+static bool
+string_comparator(const void *vk1, const void *vk2)
+{
+    const char  *k1 = vk1;
+    const char  *k2 = vk2;
+    return strcmp(k1, k2) == 0;
+}
+
+void
+cork_string_hash_table_init(struct cork_hash_table *table, size_t initial_size)
+{
+    cork_hash_table_init(table, initial_size, string_hasher, string_comparator);
+}
+
+struct cork_hash_table *
+cork_string_hash_table_new(size_t initial_size)
+{
+    return cork_hash_table_new(initial_size, string_hasher, string_comparator);
+}
+
+static cork_hash
+pointer_hasher(const void *vk)
+{
+    return (cork_hash) (uintptr_t) vk;
+}
+
+static bool
+pointer_comparator(const void *vk1, const void *vk2)
+{
+    return vk1 == vk2;
+}
+
+void
+cork_pointer_hash_table_init(struct cork_hash_table *table,
+                              size_t initial_size)
+{
+    cork_hash_table_init
+        (table, initial_size, pointer_hasher, pointer_comparator);
+}
+
+struct cork_hash_table *
+cork_pointer_hash_table_new(size_t initial_size)
+{
+    return cork_hash_table_new
+        (initial_size, pointer_hasher, pointer_comparator);
 }

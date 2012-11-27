@@ -18,6 +18,10 @@
 #include <libcork/ds/dllist.h>
 
 
+/*-----------------------------------------------------------------------
+ * Hash tables
+ */
+
 typedef cork_hash
 (*cork_hash_table_hasher)(const void *key);
 
@@ -135,6 +139,24 @@ cork_hash_table_iterator_init(struct cork_hash_table *table,
 
 struct cork_hash_table_entry *
 cork_hash_table_iterator_next(struct cork_hash_table_iterator *iterator);
+
+
+/*-----------------------------------------------------------------------
+ * Built-in key types
+ */
+
+void
+cork_string_hash_table_init(struct cork_hash_table *table, size_t initial_size);
+
+struct cork_hash_table *
+cork_string_hash_table_new(size_t initial_size);
+
+void
+cork_pointer_hash_table_init(struct cork_hash_table *table,
+                              size_t initial_size);
+
+struct cork_hash_table *
+cork_pointer_hash_table_new(size_t initial_size);
 
 
 #endif /* LIBCORK_DS_HASH_TABLE_H */
