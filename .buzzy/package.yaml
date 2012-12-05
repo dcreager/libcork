@@ -1,0 +1,5 @@
+name: libcork
+build_dependencies:
+  - pkg-config
+  - check
+license: BSD
