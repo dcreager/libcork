@@ -38,7 +38,7 @@ add_library(libcork SHARED ${LIBCORK_SRC})
 target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
-    SOVERSION 10.0.1)
+    SOVERSION 11.0.2)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
