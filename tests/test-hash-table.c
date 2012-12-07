@@ -22,7 +22,7 @@
 #include "helpers.h"
 
 /*-----------------------------------------------------------------------
- * Hash tables
+ * Integer hash tables
  */
 
 static bool
@@ -92,7 +92,7 @@ test_iterator_sum(struct cork_hash_table *table, uint64_t expected)
                 sum, expected);
 }
 
-START_TEST(test_hash_table)
+START_TEST(test_uint64_hash_table)
 {
     struct cork_hash_table  *table;
     fail_if_error(table = cork_hash_table_new
@@ -228,6 +228,71 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * String hash tables
+ */
+
+START_TEST(test_string_hash_table)
+{
+    struct cork_hash_table  *table;
+    char  key[256];
+    void  *value;
+
+    fail_if_error(table = cork_string_hash_table_new(0));
+
+    fail_if_error(cork_hash_table_put
+                  (table, "key1", (void *) (uintptr_t) 1, NULL, NULL, NULL));
+    fail_unless(cork_hash_table_size(table) == 1,
+                "Unexpected size after adding {key1->1}");
+
+    strncpy(key, "key1", sizeof(key));
+    fail_if((value = cork_hash_table_get(table, key)) == NULL,
+            "No entry for key1");
+
+    fail_unless(value == (void *) (uintptr_t) 1,
+                "Unexpected value for key1");
+
+    strncpy(key, "key2", sizeof(key));
+    fail_unless((value = cork_hash_table_get(table, key)) == NULL,
+                "Unexpected entry for key2");
+
+    cork_hash_table_free(table);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
+ * Pointer hash tables
+ */
+
+START_TEST(test_pointer_hash_table)
+{
+    struct cork_hash_table  *table;
+    int  key1;
+    int  key2;
+    void  *value;
+
+    fail_if_error(table = cork_pointer_hash_table_new(0));
+
+    fail_if_error(cork_hash_table_put
+                  (table, &key1, (void *) (uintptr_t) 1, NULL, NULL, NULL));
+    fail_unless(cork_hash_table_size(table) == 1,
+                "Unexpected size after adding {key1->1}");
+
+    fail_if((value = cork_hash_table_get(table, &key1)) == NULL,
+            "No entry for key1");
+
+    fail_unless(value == (void *) (uintptr_t) 1,
+                "Unexpected value for key1");
+
+    fail_unless((value = cork_hash_table_get(table, &key2)) == NULL,
+                "Unexpected entry for key2");
+
+    cork_hash_table_free(table);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -237,7 +302,9 @@ test_suite()
     Suite  *s = suite_create("hash_table");
 
     TCase  *tc_ds = tcase_create("hash_table");
-    tcase_add_test(tc_ds, test_hash_table);
+    tcase_add_test(tc_ds, test_uint64_hash_table);
+    tcase_add_test(tc_ds, test_string_hash_table);
+    tcase_add_test(tc_ds, test_pointer_hash_table);
     suite_add_tcase(s, tc_ds);
 
     return s;

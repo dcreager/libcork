@@ -8,6 +8,6 @@ sphinxdir=${sharedir}/doc/libcork/html
 Name: libcork
 Description: A simple, easily embeddable cross-platform C library
 Version: @VERSION@
-URL: http://github.com/zazzle/libcork
+URL: http://github.com/redjack/libcork
 Libs: -L${libdir} -lcork
 Cflags: -I${includedir}
