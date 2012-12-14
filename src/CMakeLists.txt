@@ -57,6 +57,6 @@ install(TARGETS libappname DESTINATION lib)
 # Generate the pkg-config file
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
-configure_file(appname.pc.in appname.pc @ONLY)
+configure_file(appname.pc.in ${CMAKE_CURRENT_BINARY_DIR}/appname.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/appname.pc
         DESTINATION lib/pkgconfig)
