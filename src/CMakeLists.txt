@@ -12,7 +12,9 @@ include_directories(../include)
 #-----------------------------------------------------------------------
 # Build the library
 
-file(GLOB_RECURSE LIBAPPNAME_SRC libappname/*.c)
+set(LIBAPPNAME_SRC
+    libappname/foo.c
+)
 
 # Update the VERSION and SOVERSION properties below according to the following
 # rules (taken from [1]):
