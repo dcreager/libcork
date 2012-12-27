@@ -35,6 +35,7 @@ Contents
    :maxdepth: 2
 
    config
+   visibility
    basic-types
    byte-order
    attributes

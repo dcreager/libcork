@@ -11,6 +11,7 @@
 #ifndef LIBCORK_OS_PROCESS_H
 #define LIBCORK_OS_PROCESS_H
 
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/stream.h>
 #include <libcork/threads/basics.h>
@@ -23,17 +24,17 @@
 struct cork_subprocess;
 
 /* Takes control of body */
-struct cork_subprocess *
+CORK_API struct cork_subprocess *
 cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer);
 
-struct cork_subprocess *
+CORK_API struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,
                          struct cork_stream_consumer *stdout_consumer,
                          struct cork_stream_consumer *stderr_consumer);
 
-void
+CORK_API void
 cork_subprocess_free(struct cork_subprocess *sub);
 
 
@@ -43,30 +44,30 @@ cork_subprocess_free(struct cork_subprocess *sub);
 
 struct cork_subprocess_group;
 
-struct cork_subprocess_group *
+CORK_API struct cork_subprocess_group *
 cork_subprocess_group_new(void);
 
-void
+CORK_API void
 cork_subprocess_group_free(struct cork_subprocess_group *group);
 
 /* Takes control of sub */
-void
+CORK_API void
 cork_subprocess_group_add(struct cork_subprocess_group *group,
                           struct cork_subprocess *sub);
 
-int
+CORK_API int
 cork_subprocess_group_start(struct cork_subprocess_group *group);
 
-bool
+CORK_API bool
 cork_subprocess_group_is_finished(struct cork_subprocess_group *group);
 
-int
+CORK_API int
 cork_subprocess_group_abort(struct cork_subprocess_group *group);
 
-int
+CORK_API int
 cork_subprocess_group_drain(struct cork_subprocess_group *group);
 
-int
+CORK_API int
 cork_subprocess_group_wait(struct cork_subprocess_group *group);
 
 

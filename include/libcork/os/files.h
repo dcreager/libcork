@@ -11,6 +11,7 @@
 #ifndef LIBCORK_CORE_FILES_H
 #define LIBCORK_CORE_FILES_H
 
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 
 
@@ -40,7 +41,7 @@ struct cork_dir_walker {
     ((w)->leave_directory((w), (fp), (rp), (bn)))
 
 
-int
+CORK_API int
 cork_walk_directory(const char *path, struct cork_dir_walker *walker);
 
 

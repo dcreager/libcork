@@ -13,6 +13,7 @@
 
 
 #include <libcork/config.h>
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
@@ -55,7 +56,7 @@ struct cork_mempool_object {
     ((void *) (((struct cork_mempool_object *) (hdr)) + 1))
 
 
-void
+CORK_API void
 cork_mempool_init_size_ex(struct cork_mempool *mp, size_t element_size,
                           size_t block_size);
 
@@ -69,11 +70,11 @@ cork_mempool_init_size_ex(struct cork_mempool *mp, size_t element_size,
 #define cork_mempool_init(mp, type) \
     (cork_mempool_init_size((mp), sizeof(type)))
 
-void
+CORK_API void
 cork_mempool_done(struct cork_mempool *mp);
 
 
-void
+CORK_API void
 cork_mempool_new_block(struct cork_mempool *mp);
 
 
@@ -97,7 +98,7 @@ cork_mempool_new(struct cork_mempool *mp)
 }
 
 
-void
+CORK_API void
 cork_mempool_free(struct cork_mempool *mp, void *ptr);
 
 

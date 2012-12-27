@@ -132,5 +132,20 @@
 #define CORK_UNLIKELY(expr)  (expr)
 #endif
 
+/*
+ * Declare that a function is part of the current library's public API, or that
+ * it's internal to the current library.
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_EXPORT  __attribute__((visibility("default")))
+#define CORK_IMPORT  __attribute__((visibility("default")))
+#define CORK_LOCAL   __attribute__((visibility("hidden")))
+#else
+#define CORK_EXPORT
+#define CORK_IMPORT
+#define CORK_LOCAL
+#endif
+
 
 #endif /* LIBCORK_CORE_ATTRIBUTES_H */

@@ -11,7 +11,7 @@
 #ifndef LIBCORK_DS_DLLIST_H
 #define LIBCORK_DS_DLLIST_H
 
-
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 
 
@@ -29,19 +29,19 @@ struct cork_dllist {
 };
 
 
-void
+CORK_API void
 cork_dllist_init(struct cork_dllist *list);
 
 
 typedef void
 (*cork_dllist_map_func)(struct cork_dllist_item *element, void *user_data);
 
-void
+CORK_API void
 cork_dllist_map(struct cork_dllist *list,
                 cork_dllist_map_func func, void *user_data);
 
 
-size_t
+CORK_API size_t
 cork_dllist_size(const struct cork_dllist *list);
 
 
