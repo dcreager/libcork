@@ -133,4 +133,25 @@
 #endif
 
 
+/*
+ * Declare a static function that should automatically be called at program
+ * startup.
+ */
+
+/* TODO: When we implement a full Windows port, [1] describes how best to
+ * implement an initialization function under Visual Studio.
+ *
+ * [1] http://stackoverflow.com/questions/1113409/attribute-constructor-equivalent-in-vc
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_INITIALIZER(name) \
+__attribute__((constructor)) \
+static void \
+name(void)
+#else
+#error "Don't know how to implement initialization functions of this platform"
+#endif
+
+
 #endif /* LIBCORK_CORE_ATTRIBUTES_H */
