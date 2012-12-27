@@ -11,7 +11,7 @@
 #ifndef LIBCORK_DS_MANAGED_BUFFER_H
 #define LIBCORK_DS_MANAGED_BUFFER_H
 
-
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/slice.h>
 
@@ -43,31 +43,31 @@ struct cork_managed_buffer {
 };
 
 
-struct cork_managed_buffer *
+CORK_API struct cork_managed_buffer *
 cork_managed_buffer_new_copy(const void *buf, size_t size);
 
 
 typedef void
 (*cork_managed_buffer_freer)(void *buf, size_t size);
 
-struct cork_managed_buffer *
+CORK_API struct cork_managed_buffer *
 cork_managed_buffer_new(const void *buf, size_t size,
                         cork_managed_buffer_freer free);
 
 
-struct cork_managed_buffer *
+CORK_API struct cork_managed_buffer *
 cork_managed_buffer_ref(struct cork_managed_buffer *buf);
 
-void
+CORK_API void
 cork_managed_buffer_unref(struct cork_managed_buffer *buf);
 
 
-int
+CORK_API int
 cork_managed_buffer_slice(struct cork_slice *dest,
                           struct cork_managed_buffer *buffer,
                           size_t offset, size_t length);
 
-int
+CORK_API int
 cork_managed_buffer_slice_offset(struct cork_slice *dest,
                                  struct cork_managed_buffer *buffer,
                                  size_t offset);

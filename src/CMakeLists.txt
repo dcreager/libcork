@@ -64,6 +64,7 @@ add_library(libcork SHARED ${LIBCORK_SRC})
 target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
+    COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
     VERSION 11.0.2
     SOVERSION 11)
 
@@ -73,7 +74,9 @@ set_target_properties(libcork PROPERTIES
 add_library(embedded_libcork STATIC ${LIBCORK_SRC})
 target_link_libraries(embedded_libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(embedded_libcork PROPERTIES
-    OUTPUT_NAME cork-embedded)
+    OUTPUT_NAME cork-embedded
+    COMPILE_DEFINITIONS CORK_API=CORK_LOCAL
+)
 
 #-----------------------------------------------------------------------
 # Utility commands

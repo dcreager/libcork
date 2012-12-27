@@ -11,7 +11,7 @@
 #ifndef LIBCORK_DS_HASH_TABLE_H
 #define LIBCORK_DS_HASH_TABLE_H
 
-
+#include <libcork/core/api.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/mempool.h>
 #include <libcork/core/types.h>
@@ -56,52 +56,52 @@ struct cork_hash_table {
 };
 
 
-void
+CORK_API void
 cork_hash_table_init(struct cork_hash_table *table,
                      size_t initial_size,
                      cork_hash_table_hasher hasher,
                      cork_hash_table_comparator comparator);
 
-struct cork_hash_table *
+CORK_API struct cork_hash_table *
 cork_hash_table_new(size_t initial_size,
                     cork_hash_table_hasher hasher,
                     cork_hash_table_comparator comparator);
 
-void
+CORK_API void
 cork_hash_table_done(struct cork_hash_table *table);
 
-void
+CORK_API void
 cork_hash_table_free(struct cork_hash_table *table);
 
 
-void
+CORK_API void
 cork_hash_table_clear(struct cork_hash_table *table);
 
 
-void
+CORK_API void
 cork_hash_table_ensure_size(struct cork_hash_table *table,
                             size_t desired_count);
 
 #define cork_hash_table_size(table) ((table)->entry_count)
 
 
-void *
+CORK_API void *
 cork_hash_table_get(const struct cork_hash_table *table, const void *key);
 
-struct cork_hash_table_entry *
+CORK_API struct cork_hash_table_entry *
 cork_hash_table_get_entry(const struct cork_hash_table *table,
                           const void *key);
 
-struct cork_hash_table_entry *
+CORK_API struct cork_hash_table_entry *
 cork_hash_table_get_or_create(struct cork_hash_table *table,
                               void *key, bool *is_new);
 
-void
+CORK_API void
 cork_hash_table_put(struct cork_hash_table *table,
                     void *key, void *value, bool *is_new,
                     void **old_key, void **old_value);
 
-bool
+CORK_API bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value);
 
@@ -120,7 +120,7 @@ typedef enum cork_hash_table_map_result
 (*cork_hash_table_mapper)(struct cork_hash_table_entry *entry,
                           void *user_data);
 
-void
+CORK_API void
 cork_hash_table_map(struct cork_hash_table *table,
                     cork_hash_table_mapper mapper, void *user_data);
 
@@ -133,11 +133,11 @@ struct cork_hash_table_iterator {
     struct cork_dllist_item  *curr;
 };
 
-void
+CORK_API void
 cork_hash_table_iterator_init(struct cork_hash_table *table,
                               struct cork_hash_table_iterator *iterator);
 
-struct cork_hash_table_entry *
+CORK_API struct cork_hash_table_entry *
 cork_hash_table_iterator_next(struct cork_hash_table_iterator *iterator);
 
 
@@ -145,17 +145,17 @@ cork_hash_table_iterator_next(struct cork_hash_table_iterator *iterator);
  * Built-in key types
  */
 
-void
+CORK_API void
 cork_string_hash_table_init(struct cork_hash_table *table, size_t initial_size);
 
-struct cork_hash_table *
+CORK_API struct cork_hash_table *
 cork_string_hash_table_new(size_t initial_size);
 
-void
+CORK_API void
 cork_pointer_hash_table_init(struct cork_hash_table *table,
                               size_t initial_size);
 
-struct cork_hash_table *
+CORK_API struct cork_hash_table *
 cork_pointer_hash_table_new(size_t initial_size);
 
 

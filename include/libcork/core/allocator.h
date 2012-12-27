@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
@@ -29,7 +30,7 @@
 #if CORK_HAVE_REALLOCF
 #define cork_xrealloc  reallocf
 #else
-void *
+CORK_API void *
 cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 #endif
 
@@ -38,10 +39,10 @@ cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 
 /* string-related functions */
 
-const char *
+CORK_API const char *
 cork_xstrdup(const char *str);
 
-void
+CORK_API void
 cork_strfree(const char *str);
 
 

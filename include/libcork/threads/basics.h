@@ -13,6 +13,7 @@
 
 #include <assert.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/threads/atomics.h>
 
@@ -25,7 +26,7 @@ typedef unsigned int  cork_thread_id;
 
 #define CORK_THREAD_NONE  ((cork_thread_id) 0)
 
-cork_thread_id
+CORK_API cork_thread_id
 cork_thread_get_id(void);
 
 

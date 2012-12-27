@@ -14,6 +14,7 @@
 
 #include <string.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
@@ -77,16 +78,16 @@ struct cork_ip {
 #define cork_ipv4_equal(a1, a2) \
     ((a1)->_.u32 == (a2)->_.u32)
 
-int
+CORK_API int
 cork_ipv4_init(struct cork_ipv4 *addr, const char *str);
 
-bool
+CORK_API bool
 cork_ipv4_equal_(const struct cork_ipv4 *addr1, const struct cork_ipv4 *addr2);
 
-void
+CORK_API void
 cork_ipv4_to_raw_string(const struct cork_ipv4 *addr, char *dest);
 
-bool
+CORK_API bool
 cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
                            unsigned int cidr_prefix);
 
@@ -101,16 +102,16 @@ cork_ipv4_is_valid_network(const struct cork_ipv4 *addr,
     ((a1)->_.u64[0] == (a2)->_.u64[0] && \
      (a1)->_.u64[1] == (a2)->_.u64[1])
 
-int
+CORK_API int
 cork_ipv6_init(struct cork_ipv6 *addr, const char *str);
 
-bool
+CORK_API bool
 cork_ipv6_equal_(const struct cork_ipv6 *addr1, const struct cork_ipv6 *addr2);
 
-void
+CORK_API void
 cork_ipv6_to_raw_string(const struct cork_ipv6 *addr, char *dest);
 
-bool
+CORK_API bool
 cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
                            unsigned int cidr_prefix);
 
@@ -137,23 +138,23 @@ cork_ipv6_is_valid_network(const struct cork_ipv6 *addr,
     } while (0)
 
 /* src must be well-formed: 4 bytes, big-endian */
-void
+CORK_API void
 cork_ip_from_ipv4_(struct cork_ip *addr, const void *src);
 
 /* src must be well-formed: 16 bytes, big-endian */
-void
+CORK_API void
 cork_ip_from_ipv6_(struct cork_ip *addr, const void *src);
 
-int
+CORK_API int
 cork_ip_init(struct cork_ip *addr, const char *str);
 
-bool
+CORK_API bool
 cork_ip_equal_(const struct cork_ip *addr1, const struct cork_ip *addr2);
 
-void
+CORK_API void
 cork_ip_to_raw_string(const struct cork_ip *addr, char *dest);
 
-bool
+CORK_API bool
 cork_ip_is_valid_network(const struct cork_ip *addr, unsigned int cidr_prefix);
 
 
