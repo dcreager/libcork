@@ -98,3 +98,22 @@ common compiler attributes.
      {
          CORK_ATTR_UNUSED int  unused_value;
      }
+
+
+.. macro:: CORK_INITIALIZER(func_name)
+
+   Declare a ``static`` function that will be automatically called at program
+   startup.  If there are multiple initializer functions linked into a program,
+   there is no guarantee about the order in which the functions will be called.
+
+   ::
+
+     #include <libcork/core.h>
+     #include <libcork/ds.h>
+
+     static cork_array(int)  array;
+
+     CORK_INITIALIZER(init_array)
+     {
+        cork_array_init(&array);
+     }
