@@ -82,6 +82,14 @@ set(CORK_HASH_SRC cork-hash/cork-hash.c)
 add_executable(cork-hash ${CORK_HASH_SRC})
 target_link_libraries(cork-hash embedded_libcork)
 
+set(CORK_INITIALIZER_SRC
+    cork-initializer/init1.c
+    cork-initializer/init2.c
+    cork-initializer/main.c
+)
+add_executable(cork-initializer ${CORK_INITIALIZER_SRC})
+target_link_libraries(cork-initializer embedded_libcork)
+
 set(CORK_TEST_SRC cork-test/cork-test.c)
 add_executable(cork-test ${CORK_TEST_SRC})
 target_link_libraries(cork-test embedded_libcork)
