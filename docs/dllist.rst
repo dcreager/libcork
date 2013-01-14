@@ -93,10 +93,27 @@ Editing a list
 
    .. note::
 
-      This function assumes that the list element isn't already a member
-      of a different list.  You're responsible for calling
-      :c:func:`cork_dllist_remove()` if this isn't the case.  (If you
-      don't, the other list will become malformed.)
+      This function assumes that *element* isn't already a member of a different
+      list.  You're responsible for calling :c:func:`cork_dllist_remove()` if
+      this isn't the case.  (If you don't, the other list will become
+      malformed.)
+
+   This operation runs in :math:`O(1)` time.
+
+.. function:: void cork_dllist_add_after(struct cork_dllist_item \*pred, struct cork_dllist_item \*element)
+              void cork_dllist_add_before(struct cork_dllist_item \*succ, struct cork_dllist_item \*element)
+
+   Adds *element* to the same list that *pred* or *succ* belong to.  The
+   ``_after`` variant ensures that *element* appears in the list immediately
+   after *pred*.  The ``_before`` variant ensures that *element* appears in the
+   list immediately before *succ*.
+
+   .. note::
+
+      This function assumes that *element* isn't already a member of a different
+      list.  You're responsible for calling :c:func:`cork_dllist_remove()` if
+      this isn't the case.  (If you don't, the other list will become
+      malformed.)
 
    This operation runs in :math:`O(1)` time.
 

@@ -53,6 +53,22 @@ cork_dllist_size(const struct cork_dllist *list);
         (element)->next = &(list)->head; \
     } while (0)
 
+#define cork_dllist_add_after(pred, element) \
+    do { \
+        (element)->prev = (pred); \
+        (element)->next = (pred)->next; \
+        (pred)->next->prev = (element); \
+        (pred)->next = (element); \
+    } while (0)
+
+#define cork_dllist_add_before(succ, element) \
+    do { \
+        (element)->next = (succ); \
+        (element)->prev = (succ)->prev; \
+        (succ)->prev->next = (element); \
+        (succ)->prev = (element); \
+    } while (0)
+
 
 #define cork_dllist_remove(element) \
     do { \
