@@ -61,8 +61,14 @@ user`` if you're given a pointer to a :c:type:`cork_dllist_item`.
 
 
 .. function:: void cork_dllist_init(struct cork_dllist \*list)
+              struct cork_dllist CORK_DLLIST_INIT(SYMBOL name)
 
    Initializes a doubly-linked list.  The list will initially be empty.
+
+   The second variant is a static initializer, that lets you initialize a list
+   at compile time, rather than runtime.  You must pass in the name of the list
+   for this to work, since we need to be able to extract pointers into the list
+   object.
 
 
 Querying a list
@@ -93,10 +99,27 @@ Editing a list
 
    .. note::
 
-      This function assumes that the list element isn't already a member
-      of a different list.  You're responsible for calling
-      :c:func:`cork_dllist_remove()` if this isn't the case.  (If you
-      don't, the other list will become malformed.)
+      This function assumes that *element* isn't already a member of a different
+      list.  You're responsible for calling :c:func:`cork_dllist_remove()` if
+      this isn't the case.  (If you don't, the other list will become
+      malformed.)
+
+   This operation runs in :math:`O(1)` time.
+
+.. function:: void cork_dllist_add_after(struct cork_dllist_item \*pred, struct cork_dllist_item \*element)
+              void cork_dllist_add_before(struct cork_dllist_item \*succ, struct cork_dllist_item \*element)
+
+   Adds *element* to the same list that *pred* or *succ* belong to.  The
+   ``_after`` variant ensures that *element* appears in the list immediately
+   after *pred*.  The ``_before`` variant ensures that *element* appears in the
+   list immediately before *succ*.
+
+   .. note::
+
+      This function assumes that *element* isn't already a member of a different
+      list.  You're responsible for calling :c:func:`cork_dllist_remove()` if
+      this isn't the case.  (If you don't, the other list will become
+      malformed.)
 
    This operation runs in :math:`O(1)` time.
 
