@@ -61,8 +61,14 @@ user`` if you're given a pointer to a :c:type:`cork_dllist_item`.
 
 
 .. function:: void cork_dllist_init(struct cork_dllist \*list)
+              struct cork_dllist CORK_DLLIST_INIT(SYMBOL name)
 
    Initializes a doubly-linked list.  The list will initially be empty.
+
+   The second variant is a static initializer, that lets you initialize a list
+   at compile time, rather than runtime.  You must pass in the name of the list
+   for this to work, since we need to be able to extract pointers into the list
+   object.
 
 
 Querying a list

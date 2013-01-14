@@ -28,6 +28,8 @@ struct cork_dllist {
     struct cork_dllist_item  head;
 };
 
+#define CORK_DLLIST_INIT(list)  { { &(list).head, &(list).head } }
+
 
 CORK_API void
 cork_dllist_init(struct cork_dllist *list);

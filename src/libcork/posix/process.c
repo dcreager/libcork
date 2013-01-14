@@ -53,7 +53,7 @@ cork_cleanup_entry_free(struct cork_cleanup_entry *self)
     free(self);
 }
 
-static struct cork_dllist  cleanup_entries;
+static struct cork_dllist  cleanup_entries = CORK_DLLIST_INIT(cleanup_entries);
 
 static void
 cork_cleanup_entry_add(struct cork_cleanup_entry *entry)
@@ -97,7 +97,6 @@ cork_cleanup_call_all(void)
 
 CORK_INITIALIZER(cleanup_init)
 {
-    cork_dllist_init(&cleanup_entries);
     atexit(cork_cleanup_call_all);
 }
 
