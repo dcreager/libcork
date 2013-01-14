@@ -287,13 +287,48 @@ static struct cork_command  dir =
 
 
 /*-----------------------------------------------------------------------
+ * Cleanup functions
+ */
+
+#define define_cleanup_function(id) \
+static void \
+cleanup_##id(void) \
+{ \
+    printf("Cleanup function " #id "\n"); \
+}
+
+define_cleanup_function(0);
+define_cleanup_function(1);
+define_cleanup_function(2);
+define_cleanup_function(3);
+define_cleanup_function(4);
+define_cleanup_function(5);
+
+static void
+cleanup_run(int argc, char **argv)
+{
+    cork_cleanup_at_exit(10, cleanup_1);
+    cork_cleanup_at_exit( 0, cleanup_0);
+    cork_cleanup_at_exit(50, cleanup_5);
+    cork_cleanup_at_exit(20, cleanup_2);
+    cork_cleanup_at_exit(40, cleanup_4);
+    cork_cleanup_at_exit(30, cleanup_3);
+}
+
+static struct cork_command  cleanup =
+    cork_leaf_command("cleanup", "Test process cleanup functions", "",
+                      "Test process cleanup functions.\n",
+                      NULL, cleanup_run);
+
+
+/*-----------------------------------------------------------------------
  * Root command
  */
 
 /* [root] cork-test */
 
 static struct cork_command  *root_subcommands[] = {
-    &c1, &c2, &dir, &sub, NULL
+    &c1, &c2, &dir, &sub, &cleanup, NULL
 };
 
 static struct cork_command  root_command =

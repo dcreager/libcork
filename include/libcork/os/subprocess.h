@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -8,8 +8,8 @@
  * ----------------------------------------------------------------------
  */
 
-#ifndef LIBCORK_OS_PROCESS_H
-#define LIBCORK_OS_PROCESS_H
+#ifndef LIBCORK_OS_SUBPROCESS_H
+#define LIBCORK_OS_SUBPROCESS_H
 
 #include <libcork/core/api.h>
 #include <libcork/core/types.h>
@@ -71,4 +71,4 @@ CORK_API int
 cork_subprocess_group_wait(struct cork_subprocess_group *group);
 
 
-#endif /* LIBCORK_OS_PROCESS_H */
+#endif /* LIBCORK_OS_SUBPROCESS_H */
