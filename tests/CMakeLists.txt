@@ -33,12 +33,12 @@ macro(make_test test_name)
     add_executable(shared-${test_name} ${test_name}.c)
     target_link_libraries(shared-${test_name} ${CHECK_LIBRARIES}
         libcork)
-    add_test(NAME shared-${test_name} COMMAND shared-${test_name})
+    add_test(shared-${test_name} shared-${test_name})
 
     add_executable(embedded-${test_name} ${test_name}.c)
     target_link_libraries(embedded-${test_name} ${CHECK_LIBRARIES}
         embedded_libcork)
-    add_test(NAME embedded-${test_name} COMMAND embedded-${test_name})
+    add_test(embedded-${test_name} embedded-${test_name})
 endmacro(make_test)
 
 make_test(test-array)
@@ -68,9 +68,9 @@ find_program(
 if (CRAM_EXECUTABLE)
     configure_file(ccram ${CMAKE_BINARY_DIR}/ccram COPYONLY)
     add_test(
-        NAME cram-tests
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMAND ${CMAKE_BINARY_DIR}/ccram
+        cram-tests
+        ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}
+        ${CMAKE_BINARY_DIR}/ccram
             --cram ${CRAM_EXECUTABLE}
             --tests ${CMAKE_CURRENT_SOURCE_DIR}
     )
