@@ -32,7 +32,7 @@ set(LIBCORK_SRC
     libcork/posix/directory-walker.c
     libcork/posix/process.c
     libcork/posix/subprocess.c
-    libcork/threads/descriptor.c
+    libcork/pthreads/thread.c
 )
 
 # Update the VERSION and SOVERSION properties below according to the following

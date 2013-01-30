@@ -37,11 +37,6 @@ There are several functions that you can use to create child processes.
 
    Create a new subprocess that will execute the *body* callback object.
 
-   .. type:: struct cork_thread_body
-
-      .. member:: int (\*run)(struct cork_thread_body \*body)
-                  void (\*free)(struct cork_thread_body \*body)
-
 .. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
 
    Create a new subprocess that will execute another program.  *program* should

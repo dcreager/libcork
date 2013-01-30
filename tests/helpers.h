@@ -14,12 +14,12 @@
 #include "libcork/core/error.h"
 
 #if !defined(PRINT_EXPECTED_FAILURES)
-#define PRINT_EXPECTED_FAILURES  0
+#define PRINT_EXPECTED_FAILURES  1
 #endif
 
 #if PRINT_EXPECTED_FAILURES
 #define print_expected_failure() \
-    printf("%s\n", cork_error_message());
+    printf("[expected: %s]\n", cork_error_message());
 #else
 #define print_expected_failure()  /* do nothing */
 #endif

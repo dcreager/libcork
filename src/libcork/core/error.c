@@ -101,11 +101,15 @@ cork_error_clear(void)
 }
 
 void
+cork_system_error_set_explicit(int err)
+{
+    cork_error_set(CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR, "%s", strerror(err));
+}
+
+void
 cork_system_error_set(void)
 {
-    cork_error_set
-        (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-         "%s", strerror(errno));
+    cork_system_error_set_explicit(errno);
 }
 
 void
