@@ -66,6 +66,9 @@ CORK_API void
 cork_system_error_set(void);
 
 CORK_API void
+cork_system_error_set_explicit(int err);
+
+CORK_API void
 cork_unknown_error_set_(const char *location);
 
 #define cork_unknown_error() \
