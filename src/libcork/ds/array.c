@@ -35,16 +35,19 @@ struct cork_array_private {
     void  *items;
     size_t  size;
     size_t  allocated_size;
-    char  internal;
 };
 
 void
 cork_array_ensure_size_(void *varray, size_t desired_count, size_t element_size)
 {
     struct cork_array_private  *array = varray;
+    size_t  desired_size;
+
+    DEBUG("--- Array %p: Ensure %zu %zu-byte elements",
+          array, desired_count, element_size);
 
     if ((array->allocated_size == 0) &&
-        (desired_count < CORK_INTERNAL_COUNT_FROM_SIZE(element_size))) {
+        (desired_count <= CORK_INTERNAL_COUNT_FROM_SIZE(element_size))) {
         /* There's already enough space in our internal storage, which
          * we're still using. */
         return;
@@ -52,9 +55,10 @@ cork_array_ensure_size_(void *varray, size_t desired_count, size_t element_size)
 
     /* Otherwise reallocate if there's not enough space in our
      * heap-allocated array. */
-    size_t  desired_size = desired_count * element_size;
+    desired_size = desired_count * element_size;
 
     if (array->allocated_size == 0) {
+        void  *old_items = array->items;
         size_t  old_size =
             element_size * CORK_INTERNAL_COUNT_FROM_SIZE(element_size);
         size_t  new_size = CORK_ARRAY_SIZE;
@@ -65,7 +69,9 @@ cork_array_ensure_size_(void *varray, size_t desired_count, size_t element_size)
         DEBUG("--- Array %p: Allocating %zu->%zu bytes",
               array, old_size, new_size);
         array->items = cork_malloc(new_size);
-        memcpy(array->items, &array->internal, old_size);
+        DEBUG("    Copying %zu bytes from %p to %p",
+              old_size, old_items, array->items);
+        memcpy(array->items, old_items, old_size);
         array->allocated_size = new_size;
     }
 
