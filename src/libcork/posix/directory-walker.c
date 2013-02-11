@@ -39,9 +39,9 @@ cork_walk_one_directory(struct cork_dir_walker *w, struct cork_buffer *path,
         return -1;
     }
 
-    errno = 0;
     cork_buffer_append(path, "/", 1);
     dir_path_size = path->size;
+    errno = 0;
     while ((entry = readdir(dir)) != NULL) {
         struct stat  info;
 
@@ -80,13 +80,29 @@ cork_walk_one_directory(struct cork_dir_walker *w, struct cork_buffer *path,
 
         /* Remove this entry name from the path buffer. */
         cork_buffer_truncate(path, dir_path_size);
+
+        /* We have to reset errno to 0 because of the ambiguous way
+         * readdir uses a return value of NULL.  Other functions may
+         * return normally yet set errno to a non-zero value.  dlopen
+         * on Mac OS X is an ogreish example.  Since an error readdir
+         * is indicated by returning NULL and setting errno to indicate
+         * the error, then we need to reset it to zero before each call.
+         * We shall assume, perhaps to our great misery, that functions
+         * within this loop do proper error checking and act accordingly.
+         */
+        errno = 0;
+    }
+
+    /* Check errno immediately after the while loop terminates */
+    if (CORK_UNLIKELY(errno != 0)) {
+        cork_system_error_set();
+        return -1;
     }
 
     /* Remove the trailing '/' from the path buffer. */
     cork_buffer_truncate(path, dir_path_size - 1);
-    closedir(dir);
-
-    if (CORK_UNLIKELY(errno != 0)) {
+    rc = closedir(dir);
+    if (CORK_UNLIKELY(rc == -1)) {
         cork_system_error_set();
         return -1;
     }
@@ -109,7 +125,6 @@ cork_walk_directory(const char *path, struct cork_dir_walker *w)
         buf.size--;
         p[buf.size] = '\0';
     }
-
     rc = cork_walk_one_directory(w, &buf, buf.size + 1);
     cork_buffer_done(&buf);
     return rc;
