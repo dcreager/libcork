@@ -33,11 +33,11 @@ Creating subprocesses
 
 There are several functions that you can use to create child processes.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
+.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
 
    Create a new subprocess that will execute the *body* callback object.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
+.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
 
    Create a new subprocess that will execute another program.  *program* should
    either be an absolute path to an executable on the local filesystem, or the
@@ -54,6 +54,12 @@ inherit the corresponding output stream from the current process.  (Usually,
 this means that the child's stdout or stderr will be interleaved with the
 parent's.)
 
+If you provide a non-``NULL`` pointer for the *exit_code* parameter, then we
+will fill in this pointer with the exit code of the subprocess when it finishes.
+For :c:func:`cork_subprocess_new_exec`, the exit code is the value passed to the
+builtin ``exit`` function, or the value returned from the subprocess's ``main``
+function.  For :c:func:`cork_subprocess_new`, the exit code is the value
+returned from the thread body's :c:member:`~cork_thread_body.run` method.
 
 Executing subprocesses
 ~~~~~~~~~~~~~~~~~~~~~~

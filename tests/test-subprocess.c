@@ -97,8 +97,10 @@ struct spec {
     char * const  *params;
     const char  *expected_stdout;
     const char  *expected_stderr;
+    int  expected_exit_code;
     struct cork_stream_consumer  *verify_stdout;
     struct cork_stream_consumer  *verify_stderr;
+    int  exit_code;
 };
 
 static void
@@ -116,7 +118,8 @@ test_subprocesses_(size_t spec_count, struct spec **specs)
             verify_consumer_new("stderr", spec->expected_stderr);
         fail_if_error(sub = cork_subprocess_new_exec
                       (spec->program, spec->params,
-                       spec->verify_stdout, spec->verify_stderr));
+                       spec->verify_stdout, spec->verify_stderr,
+                       &spec->exit_code));
         cork_subprocess_group_add(group, sub);
     }
 
@@ -125,6 +128,8 @@ test_subprocesses_(size_t spec_count, struct spec **specs)
 
     for (i = 0; i < spec_count; i++) {
         struct spec  *spec = specs[i];
+        fail_unless_equal("Exit codes", "%d",
+                          spec->expected_exit_code, spec->exit_code);
         cork_stream_consumer_free(spec->verify_stdout);
         cork_stream_consumer_free(spec->verify_stderr);
     }
@@ -142,12 +147,17 @@ test_subprocesses_(size_t spec_count, struct spec **specs)
 
 static char  *echo_01_params[] = { "echo", "hello", "world", NULL };
 static struct spec  echo_01 = {
-    "echo", echo_01_params, "hello world\n", ""
+    "echo", echo_01_params, "hello world\n", "", 0
 };
 
 static char  *echo_02_params[] = { "echo", "foo", "bar", "baz", NULL };
 static struct spec  echo_02 = {
-    "echo", echo_02_params, "foo bar baz\n", ""
+    "echo", echo_02_params, "foo bar baz\n", "", 0
+};
+
+static char  *false_01_params[] = { "false", NULL };
+static struct spec  false_01 = {
+    "false", false_01_params, "", "", 1
 };
 
 
@@ -178,6 +188,15 @@ START_TEST(test_subprocess_03)
 END_TEST
 
 
+START_TEST(test_subprocess_exit_code_01)
+{
+    DESCRIBE_TEST;
+    struct spec  *specs[] = { &false_01 };
+    test_subprocesses(specs);
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -191,6 +210,7 @@ test_suite()
     tcase_add_test(tc_subprocess, test_subprocess_01);
     tcase_add_test(tc_subprocess, test_subprocess_02);
     tcase_add_test(tc_subprocess, test_subprocess_03);
+    tcase_add_test(tc_subprocess, test_subprocess_exit_code_01);
     suite_add_tcase(s, tc_subprocess);
 
     return s;

@@ -168,7 +168,8 @@ sub_run(int argc, char **argv)
     struct cork_subprocess_group  *group;
     struct cork_subprocess  *sub;
     rp_check_exit(group = cork_subprocess_group_new());
-    rp_check_exit(sub = cork_subprocess_new_exec(argv[0], argv, NULL, NULL));
+    rp_check_exit(sub = cork_subprocess_new_exec
+                  (argv[0], argv, NULL, NULL, NULL));
     cork_subprocess_group_add(group, sub);
     ri_check_exit(cork_subprocess_group_start(group));
     ri_check_exit(cork_subprocess_group_wait(group));

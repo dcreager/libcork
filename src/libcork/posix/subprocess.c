@@ -265,18 +265,21 @@ struct cork_subprocess {
     struct cork_pipe  stdout_pipe;
     struct cork_pipe  stderr_pipe;
     struct cork_thread_body  *body;
+    int  *exit_code;
 };
 
 struct cork_subprocess *
 cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
-                    struct cork_stream_consumer *stderr_consumer)
+                    struct cork_stream_consumer *stderr_consumer,
+                    int *exit_code)
 {
     struct cork_subprocess  *self = cork_new(struct cork_subprocess);
     cork_pipe_init(&self->stdout_pipe, stdout_consumer);
     cork_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
     self->body = body;
+    self->exit_code = exit_code;
     return self;
 }
 
@@ -332,11 +335,12 @@ cork_exec_new(const char *program, char * const *params)
 
 struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,
-                         struct cork_stream_consumer *stdout_consumer,
-                         struct cork_stream_consumer *stderr_consumer)
+                         struct cork_stream_consumer *out,
+                         struct cork_stream_consumer *err,
+                         int *exit_code)
 {
     struct cork_thread_body  *body = cork_exec_new(program, params);
-    return cork_subprocess_new(body, stdout_consumer, stderr_consumer);
+    return cork_subprocess_new(body, out, err, exit_code);
 }
 
 
@@ -399,9 +403,13 @@ static void
 cork_subprocess_terminate(struct cork_subprocess *self)
 {
     if (self->pid > 0) {
+        int  status;
         DEBUG("Terminating child process %d\n", (int) self->pid);
         kill(self->pid, SIGTERM);
-        waitpid(self->pid, NULL, 0);
+        waitpid(self->pid, &status, 0);
+        if (self->exit_code != NULL) {
+            *self->exit_code = WEXITSTATUS(status);
+        }
     }
 }
 
@@ -465,6 +473,9 @@ cork_subprocess_chld_handler(int signum)
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         struct cork_subprocess  *sub = cork_subprocess_find(pid);
         cork_subprocess_mark_terminated(sub);
+        if (sub->exit_code != NULL) {
+            *sub->exit_code = WEXITSTATUS(status);
+        }
         current_group->still_running--;
         DEBUG("++   Processes still running: %zu\n",
               current_group->still_running);
