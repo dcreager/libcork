@@ -56,8 +56,8 @@ endif(CMAKE_COMPILER_IS_GNUCC)
 #-----------------------------------------------------------------------
 # Include our subdirectories
 
-add_subdirectory(docs)
 add_subdirectory(include)
 add_subdirectory(share)
 add_subdirectory(src)
 add_subdirectory(tests)
+add_subdirectory(docs)

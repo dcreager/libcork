@@ -27,12 +27,14 @@ struct cork_subprocess;
 CORK_API struct cork_subprocess *
 cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
-                    struct cork_stream_consumer *stderr_consumer);
+                    struct cork_stream_consumer *stderr_consumer,
+                    int *exit_code);
 
 CORK_API struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,
                          struct cork_stream_consumer *stdout_consumer,
-                         struct cork_stream_consumer *stderr_consumer);
+                         struct cork_stream_consumer *stderr_consumer,
+                         int *exit_code);
 
 CORK_API void
 cork_subprocess_free(struct cork_subprocess *sub);
