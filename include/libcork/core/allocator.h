@@ -42,6 +42,9 @@ cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 CORK_API const char *
 cork_xstrdup(const char *str);
 
+CORK_API const char *
+cork_xstrndup(const char *str, size_t size);
+
 CORK_API void
 cork_strfree(const char *str);
 
@@ -60,6 +63,9 @@ cork_strfree(const char *str);
 #define cork_strdup(str) \
     ((const char *) cork_abort_if_null \
      ((void *) cork_xstrdup((str)), "strdup failed"))
+#define cork_strndup(str, size) \
+    ((const char *) cork_abort_if_null \
+     ((void *) cork_xstrndup((str), (size)), "strndup failed"))
 
 
 #endif /* LIBCORK_CORE_ALLOCATOR_H */

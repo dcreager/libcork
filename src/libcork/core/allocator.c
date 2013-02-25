@@ -38,10 +38,9 @@ cork_xrealloc(void *ptr, size_t new_size)
  * Allocating strings
  */
 
-const char *
-cork_xstrdup(const char *str)
+static inline const char *
+strndup_internal(const char *str, size_t len)
 {
-    size_t  len = strlen(str);
     size_t  allocated_size = len + sizeof(size_t) + 1;
     size_t  *new_str = malloc(allocated_size);
     if (new_str == NULL) {
@@ -52,6 +51,18 @@ cork_xstrdup(const char *str)
     char  *dest = (char *) (void *) (new_str + 1);
     strncpy(dest, str, len + 1);
     return dest;
+}
+
+const char *
+cork_xstrndup(const char *str, size_t len)
+{
+    return strndup_internal(str, len);
+}
+
+const char *
+cork_xstrdup(const char *str)
+{
+    return strndup_internal(str, strlen(str));
 }
 
 

@@ -11,10 +11,48 @@
 #ifndef LIBCORK_OS_SUBPROCESS_H
 #define LIBCORK_OS_SUBPROCESS_H
 
+#include <stdarg.h>
+
 #include <libcork/core/api.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/stream.h>
 #include <libcork/threads/basics.h>
+
+
+/*-----------------------------------------------------------------------
+ * Environments
+ */
+
+struct cork_env;
+
+CORK_API struct cork_env *
+cork_env_new(void);
+
+CORK_API struct cork_env *
+cork_env_clone_current(void);
+
+CORK_API void
+cork_env_free(struct cork_env *env);
+
+CORK_API void
+cork_env_add(struct cork_env *env, const char *name, const char *value);
+
+CORK_API void
+cork_env_add_printf(struct cork_env *env, const char *name,
+                    const char *format, ...)
+    CORK_ATTR_PRINTF(3,4);
+
+CORK_API void
+cork_env_add_vprintf(struct cork_env *env, const char *name,
+                     const char *format, va_list args)
+    CORK_ATTR_PRINTF(3,0);
+
+CORK_API void
+cork_env_remove(struct cork_env *env, const char *name);
+
+
+CORK_API void
+cork_env_replace_current(struct cork_env *env);
 
 
 /*-----------------------------------------------------------------------
@@ -23,15 +61,19 @@
 
 struct cork_subprocess;
 
-/* Takes control of body */
+/* If env is NULL, we use the environment variables of the calling process. */
+
+/* Takes control of body and env */
 CORK_API struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body,
+cork_subprocess_new(struct cork_thread_body *body, struct cork_env *env,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code);
 
+/* Takes control of env */
 CORK_API struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,
+                         struct cork_env *env,
                          struct cork_stream_consumer *stdout_consumer,
                          struct cork_stream_consumer *stderr_consumer,
                          int *exit_code);
