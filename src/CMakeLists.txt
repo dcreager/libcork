@@ -30,6 +30,7 @@ set(LIBCORK_SRC
     libcork/ds/ring-buffer.c
     libcork/ds/slice.c
     libcork/posix/directory-walker.c
+    libcork/posix/env.c
     libcork/posix/process.c
     libcork/posix/subprocess.c
     libcork/pthreads/thread.c

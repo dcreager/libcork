@@ -265,11 +265,12 @@ struct cork_subprocess {
     struct cork_pipe  stdout_pipe;
     struct cork_pipe  stderr_pipe;
     struct cork_thread_body  *body;
+    struct cork_env  *env;
     int  *exit_code;
 };
 
 struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body,
+cork_subprocess_new(struct cork_thread_body *body, struct cork_env *env,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code)
@@ -279,6 +280,7 @@ cork_subprocess_new(struct cork_thread_body *body,
     cork_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
     self->body = body;
+    self->env = env;
     self->exit_code = exit_code;
     return self;
 }
@@ -287,6 +289,9 @@ void
 cork_subprocess_free(struct cork_subprocess *self)
 {
     cork_thread_body_free(self->body);
+    if (self->env != NULL) {
+        cork_env_free(self->env);
+    }
     cork_pipe_done(&self->stdout_pipe);
     cork_pipe_done(&self->stderr_pipe);
     free(self);
@@ -335,12 +340,13 @@ cork_exec_new(const char *program, char * const *params)
 
 struct cork_subprocess *
 cork_subprocess_new_exec(const char *program, char * const *params,
+                         struct cork_env *env,
                          struct cork_stream_consumer *out,
                          struct cork_stream_consumer *err,
                          int *exit_code)
 {
     struct cork_thread_body  *body = cork_exec_new(program, params);
-    return cork_subprocess_new(body, out, err, exit_code);
+    return cork_subprocess_new(body, env, out, err, exit_code);
 }
 
 
@@ -380,6 +386,11 @@ cork_subprocess_fork(struct cork_subprocess *self)
         }
         if (cork_pipe_dup(&self->stderr_pipe, STDERR_FILENO) == -1) {
             _exit(EXIT_FAILURE);
+        }
+
+        /* Fill in the requested environment */
+        if (self->env != NULL) {
+            cork_env_replace_current(self->env);
         }
 
         /* Run the subprocess's body */
