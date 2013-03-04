@@ -56,6 +56,56 @@ cork_env_replace_current(struct cork_env *env);
 
 
 /*-----------------------------------------------------------------------
+ * Executing another process
+ */
+
+struct cork_exec;
+
+CORK_API struct cork_exec *
+cork_exec_new(const char *program);
+
+CORK_ATTR_SENTINEL
+CORK_API struct cork_exec *
+cork_exec_new_with_params(const char *program, ...);
+
+CORK_API struct cork_exec *
+cork_exec_new_with_param_array(const char *program, char * const *params);
+
+CORK_API void
+cork_exec_free(struct cork_exec *exec);
+
+CORK_API const char *
+cork_exec_program(struct cork_exec *exec);
+
+CORK_API size_t
+cork_exec_param_count(struct cork_exec *exec);
+
+CORK_API const char *
+cork_exec_param(struct cork_exec *exec, size_t index);
+
+CORK_API void
+cork_exec_add_param(struct cork_exec *exec, const char *param);
+
+/* Can return NULL */
+CORK_API struct cork_env *
+cork_exec_env(struct cork_exec *exec);
+
+/* Takes control of env */
+CORK_API void
+cork_exec_set_env(struct cork_exec *exec, struct cork_env *env);
+
+/* Can return NULL */
+CORK_API const char *
+cork_exec_cwd(struct cork_exec *exec);
+
+CORK_API void
+cork_exec_set_cwd(struct cork_exec *exec, const char *directory);
+
+CORK_API int
+cork_exec_run(struct cork_exec *exec);
+
+
+/*-----------------------------------------------------------------------
  * Subprocesses
  */
 
@@ -63,17 +113,16 @@ struct cork_subprocess;
 
 /* If env is NULL, we use the environment variables of the calling process. */
 
-/* Takes control of body and env */
+/* Takes control of body */
 CORK_API struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body, struct cork_env *env,
+cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code);
 
-/* Takes control of env */
+/* Takes control of exec */
 CORK_API struct cork_subprocess *
-cork_subprocess_new_exec(const char *program, char * const *params,
-                         struct cork_env *env,
+cork_subprocess_new_exec(struct cork_exec *exec,
                          struct cork_stream_consumer *stdout_consumer,
                          struct cork_stream_consumer *stderr_consumer,
                          int *exit_code);
