@@ -21,6 +21,7 @@
 #include "libcork/os/subprocess.h"
 #include "libcork/threads/basics.h"
 #include "libcork/helpers/errors.h"
+#include "libcork/helpers/posix.h"
 
 
 #if !defined(CORK_DEBUG_SUBPROCESS)
@@ -33,41 +34,6 @@
 #else
 #define DEBUG(...) /* no debug messages */
 #endif
-
-
-#define ri_check_posix(call) \
-    do { \
-        while (true) { \
-            if ((call) == -1) { \
-                if (errno == EINTR) { \
-                    continue; \
-                } else { \
-                    cork_system_error_set(); \
-                    CORK_PRINT_ERROR(); \
-                    return -1; \
-                } \
-            } else { \
-                break; \
-            } \
-        } \
-    } while (0)
-
-#define e_check_posix(call) \
-    do { \
-        while (true) { \
-            if ((call) == -1) { \
-                if (errno == EINTR) { \
-                    continue; \
-                } else { \
-                    cork_system_error_set(); \
-                    CORK_PRINT_ERROR(); \
-                    goto error; \
-                } \
-            } else { \
-                break; \
-            } \
-        } \
-    } while (0)
 
 
 /*-----------------------------------------------------------------------
@@ -138,7 +104,7 @@ cork_pipe_close_read(struct cork_pipe *p)
 {
     if (p->fds[0] != -1) {
         DEBUG("Closing read pipe %d\n", p->fds[0]);
-        ri_check_posix(close(p->fds[0]));
+        rii_check_posix(close(p->fds[0]));
         p->fds[0] = -1;
     }
     return 0;
@@ -149,7 +115,7 @@ cork_pipe_close_write(struct cork_pipe *p)
 {
     if (p->fds[1] != -1) {
         DEBUG("Closing write pipe %d\n", p->fds[1]);
-        ri_check_posix(close(p->fds[1]));
+        rii_check_posix(close(p->fds[1]));
         p->fds[1] = -1;
     }
     return 0;
@@ -176,12 +142,12 @@ cork_pipe_open(struct cork_pipe *p)
 
         /* We want the read end of the pipe to be non-blocking. */
         DEBUG("Opening pipe\n");
-        ri_check_posix(pipe(p->fds));
+        rii_check_posix(pipe(p->fds));
         DEBUG("  Got read=%d write=%d\n", p->fds[0], p->fds[1]);
         DEBUG("  Setting non-blocking flag on read pipe\n");
-        e_check_posix(flags = fcntl(p->fds[0], F_GETFD));
+        ei_check_posix(flags = fcntl(p->fds[0], F_GETFD));
         flags |= O_NONBLOCK;
-        e_check_posix(fcntl(p->fds[0], F_SETFD, flags));
+        ei_check_posix(fcntl(p->fds[0], F_SETFD, flags));
     }
 
     p->first = true;
@@ -196,7 +162,7 @@ static int
 cork_pipe_dup(struct cork_pipe *p, int fd)
 {
     if (p->fds[1] != -1) {
-        ri_check_posix(dup2(p->fds[1], fd));
+        rii_check_posix(dup2(p->fds[1], fd));
     }
     return 0;
 }
@@ -243,7 +209,7 @@ cork_pipe_read(struct cork_pipe *p, struct cork_subprocess_group *group,
         } else if (bytes_read == 0) {
             DEBUG("  End of stream\n");
             rii_check(cork_stream_consumer_eof(p->consumer));
-            ri_check_posix(close(p->fds[0]));
+            rii_check_posix(close(p->fds[0]));
             p->fds[0] = -1;
             return 0;
         } else {

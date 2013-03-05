@@ -119,14 +119,17 @@ terminators.
    allocated; this storage will be reused if you add contents back to the
    buffer.
 
-.. function:: void cork_buffer_copy(struct cork_buffer \*dest, const struct cork_buffer \*src)
-
-   Copy the contents of the *src* buffer into *dest*.
-
 .. function:: void cork_buffer_truncate(struct cork_buffer \*buffer, size_t length)
 
    Truncate a buffer so that contains no more than *length* bytes.  If the
    buffer is already shorter than this, it is not modified.
+
+.. function:: void cork_buffer_copy(struct cork_buffer \*dest, const struct cork_buffer \*src)
+              void cork_buffer_append_copy(struct cork_buffer \*dest, const struct cork_buffer \*src)
+
+   Copy the contents of the *src* buffer into *dest*.  The ``_set`` variant
+   clears the buffer first, while the ``_append`` variant adds *src* to whatever
+   content is already there.
 
 .. function:: int cork_buffer_set(struct cork_buffer \*buffer, const void \*src, size_t length)
               int cork_buffer_append(struct cork_buffer \*buffer, const void \*src, size_t length)
