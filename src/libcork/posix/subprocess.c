@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -265,12 +265,11 @@ struct cork_subprocess {
     struct cork_pipe  stdout_pipe;
     struct cork_pipe  stderr_pipe;
     struct cork_thread_body  *body;
-    struct cork_env  *env;
     int  *exit_code;
 };
 
 struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body, struct cork_env *env,
+cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code)
@@ -280,7 +279,6 @@ cork_subprocess_new(struct cork_thread_body *body, struct cork_env *env,
     cork_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
     self->body = body;
-    self->env = env;
     self->exit_code = exit_code;
     return self;
 }
@@ -289,9 +287,6 @@ void
 cork_subprocess_free(struct cork_subprocess *self)
 {
     cork_thread_body_free(self->body);
-    if (self->env != NULL) {
-        cork_env_free(self->env);
-    }
     cork_pipe_done(&self->stdout_pipe);
     cork_pipe_done(&self->stderr_pipe);
     free(self);
@@ -302,51 +297,46 @@ cork_subprocess_free(struct cork_subprocess *self)
  * Executing another program
  */
 
-struct cork_exec {
+struct cork_exec_body {
     struct cork_thread_body  parent;
-    const char  *program;
-    char * const  *params;
+    struct cork_exec  *exec;
 };
 
 static int
 cork_exec__run(struct cork_thread_body *vself)
 {
-    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
-    /* Execute the program */
-    e_check_posix(execvp(self->program, self->params));
-
-error:
-    /* If we fall through, there was an error execing the subprocess. */
-    _exit(EXIT_FAILURE);
+    struct cork_exec_body  *self =
+        cork_container_of(vself, struct cork_exec_body, parent);
+    return cork_exec_run(self->exec);
 }
 
 static void
 cork_exec__free(struct cork_thread_body *vself)
 {
-    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
+    struct cork_exec_body  *self =
+        cork_container_of(vself, struct cork_exec_body, parent);
+    cork_exec_free(self->exec);
     free(self);
 }
 
 static struct cork_thread_body *
-cork_exec_new(const char *program, char * const *params)
+cork_exec_body_new(struct cork_exec *exec)
 {
-    struct cork_exec  *self = cork_new(struct cork_exec);
+    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
     self->parent.run = cork_exec__run;
     self->parent.free = cork_exec__free;
-    self->program = program;
-    self->params = params;
+    self->exec = exec;
     return &self->parent;
 }
 
 struct cork_subprocess *
-cork_subprocess_new_exec(const char *program, char * const *params,
-                         struct cork_env *env,
+cork_subprocess_new_exec(struct cork_exec *exec,
                          struct cork_stream_consumer *out,
                          struct cork_stream_consumer *err,
                          int *exit_code)
 {
-    struct cork_thread_body  *body = cork_exec_new(program, params);
-    return cork_subprocess_new(body, env, out, err, exit_code);
+    struct cork_thread_body  *body = cork_exec_body_new(exec);
+    return cork_subprocess_new(body, out, err, exit_code);
 }
 
 
@@ -373,6 +363,7 @@ cork_subprocess_fork(struct cork_subprocess *self)
     pid = fork();
     if (pid == 0) {
         /* Child process */
+        int  rc;
 
         /* Close the parent's end of the pipes */
         DEBUG("[child] ");
@@ -388,14 +379,14 @@ cork_subprocess_fork(struct cork_subprocess *self)
             _exit(EXIT_FAILURE);
         }
 
-        /* Fill in the requested environment */
-        if (self->env != NULL) {
-            cork_env_replace_current(self->env);
-        }
-
         /* Run the subprocess's body */
-        cork_thread_body_run(self->body);
-        _exit(EXIT_SUCCESS);
+        rc = cork_thread_body_run(self->body);
+        if (CORK_LIKELY(rc == 0)) {
+            _exit(EXIT_SUCCESS);
+        } else {
+            fprintf(stderr, "%s\n", cork_error_message());
+            _exit(EXIT_FAILURE);
+        }
     } else if (pid < 0) {
         /* Error forking */
         cork_system_error_set();

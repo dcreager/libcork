@@ -14,49 +14,6 @@ The functions in this section let you fork child processes, run arbitrary
 commands in them, and collect any output that they produce.
 
 
-Environment variables
-~~~~~~~~~~~~~~~~~~~~~
-
-.. type:: struct cork_env
-
-   A collection of environment variables that can be passed to subprocesses.
-
-
-.. function:: struct cork_env \*cork_env_new(void)
-
-   Create a new, empty collection of environment variables.
-
-.. function:: struct cork_env \*cork_env_clone_current(void)
-
-   Create a new :c:type:`cork_env` containing all of the environment variables
-   in the current process's environment list.
-
-.. function:: void cork_env_free(struct cork_env \*env)
-
-   Free a collection of environment variables.
-
-
-.. function:: void cork_env_add(struct cork_env \*env, const char \*name, const char \*value)
-              void cork_env_add_printf(struct cork_env \*env, const char \*name, const char \*format, ...)
-              void cork_env_add_vprintf(struct cork_env \*env, const char \*name, const char \*format, va_list args)
-
-   Add a new variable to *env* with the given *name* and *value*.  If *env*
-   already contains a variable with that name, it is overwritten.  We make a
-   copy of both *name* and *variable*, so it is safe to pass in temporary or
-   reusable strings for either.  The ``printf`` and ``vprintf`` variants
-   construct the new variable's value from a ``printf``-like format string.
-
-.. function:: void cork_env_remove(struct cork_env \*env, const char \*name)
-
-   Remove the variable with the given *name* from *env*, if it exists.  If there
-   isn't any variable with that name, do nothing.
-
-
-.. function:: void cork_env_replace_current(struct cork_env \*env)
-
-   Replace the current process's environment list with the contents of *env*.
-
-
 Subprocess objects
 ~~~~~~~~~~~~~~~~~~
 
@@ -74,47 +31,33 @@ Subprocess objects
 Creating subprocesses
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are several functions that you can use to create child processes.
+There are several functions that you can use to create and execute child
+processes.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_env \*env, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
+.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
+              struct cork_subprocess \*cork_subprocess_new_exec(struct cork_exec \*exec, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
 
-   Create a new subprocess that will execute the *body* callback object.
+   Create a new subprocess specification.  The first variant will execute the
+   given *body* callback object in the subprocess.  The second variant will
+   execute a new program in the subprocess; the details of the program to
+   execute are given by a :c:type:`cork_exec` specification object.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_env \*env, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
+   For both of these functions, you can collect the data that the subprocess
+   writes to its stdout and stderr streams by passing in :ref:`stream consumer
+   <stream-consumers>` instances for the *stdout* and/or *stderr* parameters.
+   If either (or both) of these parameters is ``NULL``, then the child process
+   will inherit the corresponding output stream from the current process.
+   (Usually, this means that the child's stdout or stderr will be interleaved
+   with the parent's.)
 
-   Create a new subprocess that will execute another program.  *program* should
-   either be an absolute path to an executable on the local filesystem, or the
-   name of an executable that should be found in the current ``PATH``.  *params*
-   should be a parameter array suitable to pass into the program's ``main``
-   function.  (It must be ``NULL``\ -terminated, and its first element must be
-   the *program*.)
+   If you provide a non-``NULL`` pointer for the *exit_code* parameter, then we
+   will fill in this pointer with the exit code of the subprocess when it
+   finishes.  For :c:func:`cork_subprocess_new_exec`, the exit code is the value
+   passed to the builtin ``exit`` function, or the value returned from the
+   subprocess's ``main`` function.  For :c:func:`cork_subprocess_new`, the exit
+   code is the value returned from the thread body's
+   :c:member:`~cork_thread_body.run` method.
 
-For all of these functions, you can collect the data that the subprocess writes
-to its stdout and stderr streams by passing in :ref:`stream consumer
-<stream-consumers>` instances for the *stdout* and/or *stderr* parameters.  If
-either (or both) of these parameters is ``NULL``, then the child process will
-inherit the corresponding output stream from the current process.  (Usually,
-this means that the child's stdout or stderr will be interleaved with the
-parent's.)
-
-If you provide a non-``NULL`` pointer for the *exit_code* parameter, then we
-will fill in this pointer with the exit code of the subprocess when it finishes.
-For :c:func:`cork_subprocess_new_exec`, the exit code is the value passed to the
-builtin ``exit`` function, or the value returned from the subprocess's ``main``
-function.  For :c:func:`cork_subprocess_new`, the exit code is the value
-returned from the thread body's :c:member:`~cork_thread_body.run` method.
-
-If you provide a non-``NULL`` pointer for the *env* parameter, then we'll change
-the environment list that's passed into the child subprocess.  The subprocess's
-environment will contain only those variables defined in *env*.  You can use the
-:c:func:`cork_env_clone_current` function to create a copy of the current
-process's environment, to use it as a base to add new variables or remove unsafe
-variables.  We will take control of *env*, so you must **not** call
-:c:func:`cork_env_free` to free the environment yourself.
-
-
-Executing subprocesses
-~~~~~~~~~~~~~~~~~~~~~~
 
 The functions for executing subprocesses actually work on a *group* of
 subprocesses.  This lets you start up several subprocesses at the same time, and

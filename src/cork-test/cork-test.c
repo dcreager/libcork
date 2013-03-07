@@ -162,26 +162,61 @@ static struct cork_command  c2 =
  * Forking subprocesses
  */
 
+static const char  *sub_cwd = NULL;
+
+static int
+sub_options(int argc, char **argv);
+
 static void
-sub_run(int argc, char **argv)
-{
-    struct cork_env  *env;
-    struct cork_subprocess_group  *group;
-    struct cork_subprocess  *sub;
-    rp_check_exit(env = cork_env_clone_current());
-    rp_check_exit(group = cork_subprocess_group_new());
-    rp_check_exit(sub = cork_subprocess_new_exec
-                  (argv[0], argv, env, NULL, NULL, NULL));
-    cork_subprocess_group_add(group, sub);
-    ri_check_exit(cork_subprocess_group_start(group));
-    ri_check_exit(cork_subprocess_group_wait(group));
-    cork_subprocess_group_free(group);
-}
+sub_run(int argc, char **argv);
 
 static struct cork_command  sub =
     cork_leaf_command("sub", "Run a subcommand", "<program> [<options>]",
                       "Runs a subcommand.\n",
-                      NULL, sub_run);
+                      sub_options, sub_run);
+
+static int
+sub_options(int argc, char **argv)
+{
+    if (argc >= 2 && (streq(argv[1], "-d") || streq(argv[1], "--cwd"))) {
+        if (argc >= 3) {
+            sub_cwd = argv[2];
+            return 3;
+        } else {
+            cork_command_show_help(&sub, "Missing directory for --cwd");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        return 1;
+    }
+}
+
+static void
+sub_run(int argc, char **argv)
+{
+    struct cork_env  *env;
+    struct cork_exec  *exec;
+    struct cork_subprocess_group  *group;
+    struct cork_subprocess  *sp;
+
+    if (argc == 0) {
+        cork_command_show_help(&sub, "Missing command");
+        exit(EXIT_FAILURE);
+    }
+
+    rp_check_exit(env = cork_env_clone_current());
+    rp_check_exit(exec = cork_exec_new_with_param_array(argv[0], argv));
+    cork_exec_set_env(exec, env);
+    if (sub_cwd != NULL) {
+        cork_exec_set_cwd(exec, sub_cwd);
+    }
+    rp_check_exit(group = cork_subprocess_group_new());
+    rp_check_exit(sp = cork_subprocess_new_exec(exec, NULL, NULL, NULL));
+    cork_subprocess_group_add(group, sp);
+    ri_check_exit(cork_subprocess_group_start(group));
+    ri_check_exit(cork_subprocess_group_wait(group));
+    cork_subprocess_group_free(group);
+}
 
 
 /*-----------------------------------------------------------------------

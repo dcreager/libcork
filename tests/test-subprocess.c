@@ -135,15 +135,18 @@ test_subprocesses_(size_t spec_count, struct spec **specs)
 
     for (i = 0; i < spec_count; i++) {
         struct spec  *spec = specs[i];
+        struct cork_exec *exec;
         struct cork_env  *env = test_env(spec->env);
         struct cork_subprocess  *sub;
         spec->verify_stdout =
             verify_consumer_new("stdout", spec->expected_stdout);
         spec->verify_stderr =
             verify_consumer_new("stderr", spec->expected_stderr);
+        fail_if_error(exec = cork_exec_new_with_param_array
+                      (spec->program, spec->params));
+        cork_exec_set_env(exec, env);
         fail_if_error(sub = cork_subprocess_new_exec
-                      (spec->program, spec->params, env,
-                       spec->verify_stdout, spec->verify_stderr,
+                      (exec, spec->verify_stdout, spec->verify_stderr,
                        &spec->exit_code));
         cork_subprocess_group_add(group, sub);
     }
