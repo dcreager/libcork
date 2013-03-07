@@ -17,7 +17,21 @@
 #include "libcork/os/subprocess.h"
 #include "libcork/helpers/errors.h"
 
-extern const char  **environ;
+#if defined(__APPLE__)
+/* Apple doesn't provide access to the "environ" variable from a shared library.
+ * There's a workaround function to grab the environ pointer described at [1].
+ *
+ * [1] http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man7/environ.7.html
+ */
+#include <crt_externs.h>
+#define environ  (*_NSGetEnviron())
+
+#else
+/* On all other POSIX platforms, we assume that environ is available in shared
+ * libraries. */
+extern char  **environ;
+
+#endif
 
 
 struct cork_env_var {
@@ -74,7 +88,7 @@ cork_env_add_internal(struct cork_env *env, const char *name, const char *value)
 struct cork_env *
 cork_env_clone_current(void)
 {
-    const char  **curr;
+    char  **curr;
     struct cork_env  *env = cork_env_new();
 
     for (curr = environ; *curr != NULL; curr++) {
@@ -157,33 +171,15 @@ cork_env_set_vars(struct cork_hash_table_entry *entry, void *user_data)
     return CORK_HASH_TABLE_MAP_CONTINUE;
 }
 
-#if defined(__APPLE__)
-/* Apple doesn't provide clearenv(), and it also doesn't let us access the
- * "environ" variable from a shared library.  There's a workaround function to
- * grab the environ pointer described at [1].
- *
- * [1] http://developer.apple.com/library/mac/#documentation/Darwin/Reference/ManPages/man7/environ.7.html
- */
-
-#include <crt_externs.h>
-
-static void
-clearenv(void)
-{
-    char  ***ns_environ = _NSGetEnviron();
-    **ns_environ = NULL;
-}
-
-#elif defined(__FreeBSD__) || defined (__NetBSD__) || defined(__OpenBSD__)
-/* A handful of other platforms [1] don't provide clearenv(), but do allow us to
- * access the environ pointer directly.
+#if defined(__APPLE__) || (defined(BSD) && (BSD >= 199103))
+/* A handful of platforms [1] don't provide clearenv(), so we must implement our
+ * own version that clears the environ array directly.
  *
  * [1] http://www.gnu.org/software/gnulib/manual/html_node/clearenv.html
  */
 static void
 clearenv(void)
 {
-    extern char  **environ;
     *environ = NULL;
 }
 

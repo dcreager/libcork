@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011-2012, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -34,6 +34,11 @@
 
 
 /**** PLATFORMS ****/
+#if (defined(__unix__) || defined(unix)) && !defined(USG)
+/* We need this to test for BSD, but it's a good idea to have for
+ * any brand of Unix.*/
+#include <sys/param.h>
+#endif
 
 #if defined(__linux)
 /* Do some Linux-specific autodetection. */
@@ -42,6 +47,10 @@
 #elif defined(__APPLE__) && defined(__MACH__)
 /* Do some Mac OS X-specific autodetection. */
 #include <libcork/config/macosx.h>
+
+#elif defined(BSD) && (BSD >= 199103)
+/* Do some BSD (4.3 code base or newer)specific autodetection. */
+#include <libcork/config/bsd.h>
 
 #endif  /* platforms */
 
