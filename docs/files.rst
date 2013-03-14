@@ -95,6 +95,149 @@ filesystem.
           cork_path_dirname("a/b/c/") == "a/b/c"
 
 
+Files
+=====
+
+.. type:: struct cork_file
+
+   Represents a file on the local filesystem.  The file in question does not
+   necessarily have to exist; you can use :c:type:`cork_file` instances to refer
+   to files that you have not yet created, for instance.
+
+.. type:: typedef unsigned int  cork_file_mode
+
+   Represents a Unix-style file permission set.
+
+
+.. function:: struct cork_file \*cork_file_new(const char \*path)
+              struct cork_file \*cork_file_new_from_path(struct cork_path \*path)
+
+   Create a new :c:type:`cork_file` instance to represent the file with the
+   given *path*.  The ``_from_path`` variant uses an existing
+   :c:type:`cork_path` instance to specify the path.  The new file instance will
+   take control of the :c:type`cork_path` instance, so you should not try to
+   free it yourself.
+
+.. function:: void cork_file_free(struct cork_file \*file)
+
+   Free a file instance.
+
+.. function:: const struct cork_path \*cork_file_path(struct cork_file \*file)
+
+   Return the path of a file.  The :c:type:`cork_path` instance belongs to the
+   file; you must not try to modify or free the path instance.
+
+.. function:: int cork_file_exists(struct cork_file \*file, bool \*exists)
+
+   Check whether a file exists in the filesystem, storing the result in
+   *exists*.  The function returns an error condition if we are unable to
+   determine whether the file exists --- for instance, because you do not have
+   permission to look into one of the containing directories.
+
+.. function:: int cork_file_type(struct cork_file \*file, enum cork_file_type \*type)
+
+   Return what kind of file the given :c:type:`cork_file` instance refers to.
+   The function returns an error condition if there is an error accessing the
+   file --- for instance, because you do not have permission to look into one of
+   the containing directories.
+
+   If the function succeeds, it will fill in *type* with one of the following
+   values:
+
+   .. type:: enum cork_file_type
+
+      .. member:: CORK_FILE_MISSING
+
+         *file* does not exist.
+
+      .. member:: CORK_FILE_REGULAR
+
+         *file* is a regular file.
+
+      .. member:: CORK_FILE_DIRECTORY
+
+         *file* is a directory.
+
+      .. member:: CORK_FILE_SYMLINK
+
+         *file* is a symbolic link.
+
+      .. member:: CORK_FILE_UNKNOWN
+
+         We can access *file*, but we do not know what type of file it is.
+
+
+.. function:: int cork_file_remove(struct cork_file \*file, unsigned int flags)
+
+   Remove *file* from the filesystem.  *flags* must be the bitwise OR (``|``) of
+   the following flags.  (Use ``0`` if you do not want any of the flags.)
+
+   .. macro:: CORK_FILE_PERMISSIVE
+
+      If this flag is given, then it is not considered an error if *file* does
+      not exist.  If the flag is not given, then the function function returns
+      an error if *file* doesn't exist.  (This mimics the standard ``rm -f``
+      command.)
+
+   .. macro:: CORK_FILE_RECURSIVE
+
+      If this flag is given, and *file* refers to a directory, then the function
+      will automatically remove the directory and all of its contents.  If the
+      flag is not given, and *file* refers to a directory, then the directory
+      must be empty for this function to succeed.  If *file* does not refer to a
+      directory, this flag has no effect.  (This mimics the standard ``rmdir
+      -r`` command.)
+
+
+Directories
+===========
+
+Certain functions can only be applied to a :c:type:`cork_file` instance that
+refers to a directory.
+
+
+.. function:: int cork_file_mkdir(struct cork_file \*directory, cork_file_mode mode, unsigned int flags)
+
+   Create a new directory in the filesystem, with permissions given by *mode*.
+   *flags* must be the bitwise OR (``|``) of the following flags.  (Use ``0`` if
+   you do not want any of the flags.)
+
+   .. macro:: CORK_FILE_PERMISSIVE
+
+      If this flag is given, then it is not considered an error if *directory*
+      already exists.  If the flag is not given, then the function function
+      returns an error if *directory* exists.  (This mimics part of the standard
+      ``mkdir -p`` command.)
+
+   .. macro:: CORK_FILE_RECURSIVE
+
+      If this flag is given, then the function will ensure that all of the
+      parent directories of *directory* exist, creating them if necessary.  Each
+      directory created will have permissions given by *mode*.  (This mimics
+      part of the standard ``mkdir -p`` command.)
+
+
+.. function:: int cork_file_iterate_directory(struct cork_file \*directory, cork_file_directory_iterator iterator, void \*user_data)
+
+   Call *iterator* for each file or subdirectory contained in *directory* (not
+   including the directory's ``.`` and ``..`` entries).  This function does not
+   recurse into any subdirectories; it only iterates through the immediate
+   children of *directory*.
+
+   If your iteration function returns a non-zero result, we will abort the
+   iteration and return that value.  Otherwise, if each call to the iteration
+   function returns ``0``, then we will return ``0`` as well.
+
+   *iterator* must be an instance of the following function type:
+
+   .. type:: typedef int (\*cork_file_directory_iterator)(struct cork_file \*child, const char \*rel_name, void \*user_data)
+
+      Called for each child entry in *directory*.  *child* will be a file
+      instance referring to the child entry.  *rel_name* gives the relative name
+      of the child entry within its parent *directory*.
+
+
+
 Directory walking
 =================
 

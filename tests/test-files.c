@@ -8,6 +8,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +19,9 @@
 #include "libcork/os/files.h"
 
 #include "helpers.h"
+
+
+static const char  *program_path;
 
 
 /*-----------------------------------------------------------------------
@@ -190,13 +194,70 @@ test_dirname(const char *p, const char *expected)
 START_TEST(test_path_dirname_01)
 {
     DESCRIBE_TEST;
-    test_dirname("", "");
     test_dirname(NULL, "");
+    test_dirname("", "");
     test_dirname("a", "a");
     test_dirname("a/", "a");
     test_dirname("a/b", "a");
     test_dirname("a/b/", "a/b");
     test_dirname("a/b/c", "a/b");
+}
+END_TEST
+
+
+void
+test_relative_child(const char *p, const char *f, const char *expected)
+{
+    struct cork_path  *actual;
+
+    fprintf(stderr, "relative_child(\"%s\", \"%s\") ?= \"%s\"\n",
+            (p == NULL)? "": p,
+            (f == NULL)? "": f,
+            expected);
+
+    actual = cork_path_new(p);
+    cork_path_set_basename(actual);
+    cork_path_append(actual, f);
+    verify_path_content(actual, expected);
+    cork_path_free(actual);
+}
+
+START_TEST(test_path_relative_child_01)
+{
+    DESCRIBE_TEST;
+    test_relative_child(NULL, "a", "a");
+    test_relative_child("", "a", "a");
+    test_relative_child("a", "b", "a/b");
+    test_relative_child("a/b", "c", "b/c");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
+ * Files
+ */
+
+void
+test_file_exists(const char *filename, bool expected)
+{
+    struct cork_path  *path;
+    struct cork_file  *file;
+    bool  actual;
+    path = cork_path_new(program_path);
+    cork_path_set_dirname(path);
+    cork_path_append(path, filename);
+    file = cork_file_new_from_path(path);
+    fail_if_error(cork_file_exists(file, &actual));
+    fail_unless(actual == expected, "File %s should%s exist",
+                cork_path_get(path), expected? "": " not");
+    cork_file_free(file);
+}
+
+START_TEST(test_file_exists_01)
+{
+    DESCRIBE_TEST;
+    test_file_exists("embedded-test-files", true);
+    test_file_exists("test-nonexistent", false);
 }
 END_TEST
 
@@ -216,7 +277,12 @@ test_suite()
     tcase_add_test(tc_path, test_path_join_02);
     tcase_add_test(tc_path, test_path_basename_01);
     tcase_add_test(tc_path, test_path_dirname_01);
+    tcase_add_test(tc_path, test_path_relative_child_01);
     suite_add_tcase(s, tc_path);
+
+    TCase  *tc_file = tcase_create("file");
+    tcase_add_test(tc_file, test_file_exists_01);
+    suite_add_tcase(s, tc_file);
 
     return s;
 }
@@ -229,6 +295,8 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    assert(argc > 0);
+    program_path = argv[0];
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

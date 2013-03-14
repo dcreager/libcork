@@ -71,6 +71,69 @@ cork_path_dirname(const struct cork_path *other);
 
 
 /*-----------------------------------------------------------------------
+ * Files
+ */
+
+#define CORK_FILE_RECURSIVE   0x0001
+#define CORK_FILE_PERMISSIVE  0x0002
+
+typedef unsigned int  cork_file_mode;
+
+enum cork_file_type {
+    CORK_FILE_MISSING = 0,
+    CORK_FILE_REGULAR = 1,
+    CORK_FILE_DIRECTORY = 2,
+    CORK_FILE_SYMLINK = 3,
+    CORK_FILE_UNKNOWN = 4
+};
+
+struct cork_file;
+
+CORK_API struct cork_file *
+cork_file_new(const char *path);
+
+/* Takes control of path */
+CORK_API struct cork_file *
+cork_file_new_from_path(struct cork_path *path);
+
+CORK_API void
+cork_file_free(struct cork_file *file);
+
+/* File owns the result; you should not free it */
+CORK_API const struct cork_path *
+cork_file_path(struct cork_file *file);
+
+CORK_API int
+cork_file_exists(struct cork_file *file, bool *exists);
+
+CORK_API int
+cork_file_type(struct cork_file *file, enum cork_file_type *type);
+
+
+typedef int
+(*cork_file_directory_iterator)(struct cork_file *child, const char *rel_name,
+                                void *user_data);
+
+CORK_API int
+cork_file_iterate_directory(struct cork_file *file,
+                            cork_file_directory_iterator iterator,
+                            void *user_data);
+
+/* If flags includes CORK_FILE_RECURSIVE, this creates parent directories,
+ * if needed.  If flags doesn't include CORK_FILE_PERMISSIVE, then it's an error
+ * if the directory already exists. */
+CORK_API int
+cork_file_mkdir(struct cork_file *file, cork_file_mode mode,
+                unsigned int flags);
+
+/* Removes a file or directory.  If file is a directory, and flags contains
+ * CORK_FILE_RECURSIVE, then all of the directory's contents are removed, too.
+ * Otherwise, the directory must already be empty. */
+CORK_API int
+cork_file_remove(struct cork_file *file, unsigned int flags);
+
+
+/*-----------------------------------------------------------------------
  * Walking a directory tree
  */
 
