@@ -71,6 +71,37 @@ cork_path_dirname(const struct cork_path *other);
 
 
 /*-----------------------------------------------------------------------
+ * Lists of paths
+ */
+
+struct cork_path_list;
+
+CORK_API struct cork_path_list *
+cork_path_list_new_empty(void);
+
+/* list must be a colon-separated list of paths */
+CORK_API struct cork_path_list *
+cork_path_list_new(const char *list);
+
+CORK_API void
+cork_path_list_free(struct cork_path_list *list);
+
+CORK_API const char *
+cork_path_list_to_string(const struct cork_path_list *list);
+
+/* Takes control of path.  path must not already be in the list. */
+CORK_API void
+cork_path_list_add(struct cork_path_list *list, struct cork_path *path);
+
+CORK_API size_t
+cork_path_list_size(const struct cork_path_list *list);
+
+/* The list still owns path; you must not free it or modify it. */
+CORK_API const struct cork_path *
+cork_path_list_get(const struct cork_path_list *list, size_t index);
+
+
+/*-----------------------------------------------------------------------
  * Files
  */
 

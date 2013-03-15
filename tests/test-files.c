@@ -16,6 +16,7 @@
 #include <check.h>
 
 #include "libcork/core/types.h"
+#include "libcork/ds/buffer.h"
 #include "libcork/os/files.h"
 
 #include "helpers.h"
@@ -234,6 +235,51 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Lists of paths
+ */
+
+void
+verify_path_list_content(struct cork_path_list *list, const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    size_t  count = cork_path_list_size(list);
+    size_t  i;
+
+    for (i = 0; i < count; i++) {
+        const struct cork_path  *path = cork_path_list_get(list, i);
+        cork_buffer_append_string(&buf, cork_path_get(path));
+        cork_buffer_append(&buf, "\n", 1);
+    }
+
+    fail_unless_streq("path lists", expected, buf.buf);
+    cork_buffer_done(&buf);
+}
+
+void
+test_path_list(const char *p, const char *expected)
+{
+    struct cork_path_list  *list;
+
+    fprintf(stderr, "path_list(\"%s\")\n", p);
+
+    list = cork_path_list_new(p);
+    verify_path_list_content(list, expected);
+    fail_unless_streq("path lists", p, cork_path_list_to_string(list));
+    cork_path_list_free(list);
+}
+
+START_TEST(test_path_list_01)
+{
+    DESCRIBE_TEST;
+    test_path_list("a", "a\n");
+    test_path_list("a/b", "a/b\n");
+    test_path_list(":a/b", "\na/b\n");
+    test_path_list("a:a/b:", "a\na/b\n\n");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Files
  */
 
@@ -279,6 +325,10 @@ test_suite()
     tcase_add_test(tc_path, test_path_dirname_01);
     tcase_add_test(tc_path, test_path_relative_child_01);
     suite_add_tcase(s, tc_path);
+
+    TCase  *tc_path_list = tcase_create("path-list");
+    tcase_add_test(tc_path_list, test_path_list_01);
+    suite_add_tcase(s, tc_path_list);
 
     TCase  *tc_file = tcase_create("file");
     tcase_add_test(tc_file, test_file_exists_01);

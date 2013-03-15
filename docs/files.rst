@@ -95,6 +95,44 @@ filesystem.
           cork_path_dirname("a/b/c/") == "a/b/c"
 
 
+Lists of paths
+==============
+
+.. type:: struct cork_path_list
+
+   A list of paths in the local filesystem.
+
+.. function:: struct cork_path_list \*cork_path_list_new_empty(void)
+              struct cork_path_list \*cork_path_list_new(const char \*list)
+
+   Create a new list of paths.  The first variant creates a list that is
+   initially empty.  The second variant takes in a should contain a
+   colon-separated list of paths as a single string, and adds each of those
+   paths to the new list.
+
+.. function:: void cork_path_list_free(struct cork_path_list \*list)
+
+   Free a path list.
+
+.. function:: void cork_path_list_add(struct cork_path_list \*list, struct cork_path \*path)
+
+   Add *path* to *list*.  The list takes control of the path instance; you must
+   not try to free *path* yourself.
+
+.. function:: size_t cork_path_list_size(const struct cork_path_list \*list)
+
+   Return the number of paths in *list*.
+
+.. function:: const struct cork_path \*cork_path_list_get(const struct cork_path_list \*list, size_t index)
+
+   Return the path in *list* at the given *index*.  The list still owns the path
+   instance that's returned; you must not try to free it or modify its contents.
+
+.. function:: const char \*cork_path_list_to_string(const struct cork_path_list \*list)
+
+   Return a string containing all of the paths in *list* separated by colons.
+
+
 Files
 =====
 

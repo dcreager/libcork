@@ -19,6 +19,7 @@
 #include "libcork/core/attributes.h"
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
+#include "libcork/ds/array.h"
 #include "libcork/ds/buffer.h"
 #include "libcork/helpers/errors.h"
 #include "libcork/helpers/posix.h"
@@ -46,32 +47,29 @@ struct cork_path {
 };
 
 static struct cork_path *
-cork_path_new_internal(void)
+cork_path_new_internal(const char *str, size_t length)
 {
     struct cork_path  *path = cork_new(struct cork_path);
     cork_buffer_init(&path->given);
+    if (length == 0) {
+        cork_buffer_ensure_size(&path->given, 16);
+        cork_buffer_set(&path->given, "", 0);
+    } else {
+        cork_buffer_set(&path->given, str, length);
+    }
     return path;
 }
 
 struct cork_path *
 cork_path_new(const char *source)
 {
-    struct cork_path  *path = cork_path_new_internal();
-    if (source == NULL) {
-        cork_buffer_ensure_size(&path->given, 16);
-        cork_buffer_set(&path->given, "", 0);
-    } else {
-        cork_buffer_set_string(&path->given, source);
-    }
-    return path;
+    return cork_path_new_internal(source, source == NULL? 0: strlen(source));
 }
 
 struct cork_path *
 cork_path_clone(const struct cork_path *other)
 {
-    struct cork_path  *path = cork_path_new_internal();
-    cork_buffer_copy(&path->given, &other->given);
-    return path;
+    return cork_path_new_internal(other->given.buf, other->given.size);
 }
 
 void
@@ -218,6 +216,86 @@ cork_path_dirname(const struct cork_path *other)
     struct cork_path  *path = cork_path_clone(other);
     cork_path_set_dirname(path);
     return path;
+}
+
+
+/*-----------------------------------------------------------------------
+ * Lists of paths
+ */
+
+struct cork_path_list {
+    cork_array(struct cork_path *)  array;
+    struct cork_buffer  string;
+};
+
+struct cork_path_list *
+cork_path_list_new_empty(void)
+{
+    struct cork_path_list  *list = cork_new(struct cork_path_list);
+    cork_array_init(&list->array);
+    cork_buffer_init(&list->string);
+    return list;
+}
+
+void
+cork_path_list_free(struct cork_path_list *list)
+{
+    size_t  i;
+    for (i = 0; i < cork_array_size(&list->array); i++) {
+        struct cork_path  *path = cork_array_at(&list->array, i);
+        cork_path_free(path);
+    }
+    cork_array_done(&list->array);
+    cork_buffer_done(&list->string);
+    free(list);
+}
+
+const char *
+cork_path_list_to_string(const struct cork_path_list *list)
+{
+    return list->string.buf;
+}
+
+void
+cork_path_list_add(struct cork_path_list *list, struct cork_path *path)
+{
+    cork_array_append(&list->array, path);
+    if (cork_array_size(&list->array) > 1) {
+        cork_buffer_append(&list->string, ":", 1);
+    }
+    cork_buffer_append_string(&list->string, cork_path_get(path));
+}
+
+size_t
+cork_path_list_size(const struct cork_path_list *list)
+{
+    return cork_array_size(&list->array);
+}
+
+const struct cork_path *
+cork_path_list_get(const struct cork_path_list *list, size_t index)
+{
+    return cork_array_at(&list->array, index);
+}
+
+struct cork_path_list *
+cork_path_list_new(const char *str)
+{
+    struct cork_path_list  *list = cork_path_list_new_empty();
+    struct cork_path  *path;
+    const char  *curr = str;
+    const char  *next;
+
+    while ((next = strchr(curr, ':')) != NULL) {
+        size_t  size = next - curr;
+        path = cork_path_new_internal(curr, size);
+        cork_path_list_add(list, path);
+        curr = next + 1;
+    }
+
+    path = cork_path_new(curr);
+    cork_path_list_add(list, path);
+    return list;
 }
 
 
