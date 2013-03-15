@@ -164,6 +164,44 @@ CORK_API int
 cork_file_remove(struct cork_file *file, unsigned int flags);
 
 
+CORK_API struct cork_file *
+cork_path_list_find_file(const struct cork_path_list *list,
+                         const char *rel_path);
+
+
+/*-----------------------------------------------------------------------
+ * Lists of files
+ */
+
+struct cork_file_list;
+
+CORK_API struct cork_file_list *
+cork_file_list_new_empty(void);
+
+CORK_API struct cork_file_list *
+cork_file_list_new(struct cork_path_list *path_list);
+
+CORK_API void
+cork_file_list_free(struct cork_file_list *list);
+
+/* Takes control of file.  file must not already be in the list. */
+CORK_API void
+cork_file_list_add(struct cork_file_list *list, struct cork_file *file);
+
+CORK_API size_t
+cork_file_list_size(struct cork_file_list *list);
+
+/* The list still owns file; you must not free it.  Editing the file updates the
+ * entry in the list. */
+CORK_API struct cork_file *
+cork_file_list_get(struct cork_file_list *list, size_t index);
+
+
+CORK_API struct cork_file_list *
+cork_path_list_find_files(const struct cork_path_list *list,
+                          const char *rel_path);
+
+
 /*-----------------------------------------------------------------------
  * Walking a directory tree
  */

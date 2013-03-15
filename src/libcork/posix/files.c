@@ -408,6 +408,38 @@ cork_file_type(struct cork_file *file, enum cork_file_type *type)
 }
 
 
+struct cork_file *
+cork_path_list_find_file(const struct cork_path_list *list,
+                         const char *rel_path)
+{
+    size_t  i;
+    size_t  count = cork_path_list_size(list);
+    struct cork_file  *file;
+
+    for (i = 0; i < count; i++) {
+        const struct cork_path  *path = cork_path_list_get(list, i);
+        struct cork_path  *joined = cork_path_join(path, rel_path);
+        bool  exists;
+        file = cork_file_new_from_path(joined);
+        ei_check(cork_file_exists(file, &exists));
+        if (exists) {
+            return file;
+        } else {
+            cork_file_free(file);
+        }
+    }
+
+    cork_error_set
+        (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
+         "%s not found in %s", rel_path, cork_path_list_to_string(list));
+    return NULL;
+
+error:
+    cork_file_free(file);
+    return NULL;
+}
+
+
 /*-----------------------------------------------------------------------
  * Directories
  */
@@ -563,4 +595,98 @@ cork_file_remove(struct cork_file *file, unsigned int flags)
         rii_check(unlink(cork_path_get(file->path)));
         return 0;
     }
+}
+
+
+/*-----------------------------------------------------------------------
+ * Lists of files
+ */
+
+struct cork_file_list {
+    cork_array(struct cork_file *)  array;
+};
+
+struct cork_file_list *
+cork_file_list_new_empty(void)
+{
+    struct cork_file_list  *list = cork_new(struct cork_file_list);
+    cork_array_init(&list->array);
+    return list;
+}
+
+void
+cork_file_list_free(struct cork_file_list *list)
+{
+    size_t  i;
+    for (i = 0; i < cork_array_size(&list->array); i++) {
+        struct cork_file  *file = cork_array_at(&list->array, i);
+        cork_file_free(file);
+    }
+    cork_array_done(&list->array);
+    free(list);
+}
+
+void
+cork_file_list_add(struct cork_file_list *list, struct cork_file *file)
+{
+    cork_array_append(&list->array, file);
+}
+
+size_t
+cork_file_list_size(struct cork_file_list *list)
+{
+    return cork_array_size(&list->array);
+}
+
+struct cork_file *
+cork_file_list_get(struct cork_file_list *list, size_t index)
+{
+    return cork_array_at(&list->array, index);
+}
+
+struct cork_file_list *
+cork_file_list_new(struct cork_path_list *path_list)
+{
+    struct cork_file_list  *list = cork_file_list_new_empty();
+    size_t  count = cork_path_list_size(path_list);
+    size_t  i;
+
+    for (i = 0; i < count; i++) {
+        const struct cork_path  *path = cork_path_list_get(path_list, i);
+        struct cork_file  *file = cork_file_new(cork_path_get(path));
+        cork_array_append(&list->array, file);
+    }
+
+    return list;
+}
+
+
+struct cork_file_list *
+cork_path_list_find_files(const struct cork_path_list *path_list,
+                          const char *rel_path)
+{
+    size_t  i;
+    size_t  count = cork_path_list_size(path_list);
+    struct cork_file_list  *list = cork_file_list_new_empty();
+    struct cork_file  *file;
+
+    for (i = 0; i < count; i++) {
+        const struct cork_path  *path = cork_path_list_get(path_list, i);
+        struct cork_path  *joined = cork_path_join(path, rel_path);
+        bool  exists;
+        file = cork_file_new_from_path(joined);
+        ei_check(cork_file_exists(file, &exists));
+        if (exists) {
+            cork_file_list_add(list, file);
+        } else {
+            cork_file_free(file);
+        }
+    }
+
+    return list;
+
+error:
+    cork_file_list_free(list);
+    cork_file_free(file);
+    return NULL;
 }

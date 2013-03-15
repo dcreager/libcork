@@ -340,6 +340,77 @@ rm_run(int argc, char **argv)
 
 
 /*-----------------------------------------------------------------------
+ * find
+ */
+
+static bool  find_all = false;
+
+/* cork-test find */
+
+static int
+find_options(int argc, char **argv);
+
+static void
+find_run(int argc, char **argv);
+
+static struct cork_command  find =
+    cork_leaf_command("find", "Search for a file in a list of directories",
+                      "<file> <path list>",
+                      "Search for a file in a list of directories.\n",
+                      find_options, find_run);
+
+static int
+find_options(int argc, char **argv)
+{
+    if (argc >= 2 && streq(argv[1], "--all")) {
+        find_all = true;
+        return 2;
+    }
+    return 1;
+}
+
+static void
+find_run(int argc, char **argv)
+{
+    struct cork_path_list  *list;
+
+    if (argc < 1) {
+        cork_command_show_help(&find, "Missing file");
+        exit(EXIT_FAILURE);
+    } else if (argc < 2) {
+        cork_command_show_help(&find, "Missing path");
+        exit(EXIT_FAILURE);
+    } else if (argc < 2) {
+        cork_command_show_help(&find, "Too many parameters");
+        exit(EXIT_FAILURE);
+    }
+
+    list = cork_path_list_new(argv[1]);
+
+    if (find_all) {
+        struct cork_file_list  *file_list;
+        size_t  i;
+        size_t  count;
+        rp_check_exit(file_list = cork_path_list_find_files(list, argv[0]));
+        count = cork_file_list_size(file_list);
+        for (i = 0; i < count; i++) {
+            struct cork_file  *file = cork_file_list_get(file_list, i);
+            printf("%s\n", cork_path_get(cork_file_path(file)));
+        }
+        cork_file_list_free(file_list);
+    } else {
+        struct cork_file  *file;
+        rp_check_exit(file = cork_path_list_find_file(list, argv[0]));
+        printf("%s\n", cork_path_get(cork_file_path(file)));
+        cork_file_free(file);
+    }
+
+    cork_path_list_free(list);
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
  * Directory walker
  */
 
@@ -489,6 +560,7 @@ static struct cork_command  *root_subcommands[] = {
     &c1, &c2,
     &mkdir_cmd,
     &rm_cmd,
+    &find,
     &dir,
     &sub,
     &cleanup,

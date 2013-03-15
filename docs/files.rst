@@ -106,9 +106,8 @@ Lists of paths
               struct cork_path_list \*cork_path_list_new(const char \*list)
 
    Create a new list of paths.  The first variant creates a list that is
-   initially empty.  The second variant takes in a should contain a
-   colon-separated list of paths as a single string, and adds each of those
-   paths to the new list.
+   initially empty.  The second variant takes in a colon-separated list of paths
+   as a single string, and adds each of those paths to the new list.
 
 .. function:: void cork_path_list_free(struct cork_path_list \*list)
 
@@ -131,6 +130,20 @@ Lists of paths
 .. function:: const char \*cork_path_list_to_string(const struct cork_path_list \*list)
 
    Return a string containing all of the paths in *list* separated by colons.
+
+
+.. function:: struct cork_file \*cork_path_list_find_file(const struct cork_path_list \*list, const char \*rel_path)
+              struct cork_file_list \*cork_path_list_find_files(const struct cork_path_list \*list, const char \*rel_file)
+
+   Search for a file in a list of paths.  *rel_path* gives the path of the
+   sought-after file, relative to each of the directories in *list*.
+
+   The first variant returns a :c:type:`cork_file` instance for the first match.
+   In no file can be found, it returns ``NULL`` and sets an error condition.
+
+   The second variant returns a :c:type:`cork_file_list` instance containing all
+   of the matches.  In no file can be found, we return an empty list.  (Unlike
+   the first variant, this is not considered an error.)
 
 
 Files
@@ -273,6 +286,39 @@ refers to a directory.
       Called for each child entry in *directory*.  *child* will be a file
       instance referring to the child entry.  *rel_name* gives the relative name
       of the child entry within its parent *directory*.
+
+
+Lists of files
+==============
+
+.. type:: struct cork_file_list
+
+   A list of files in the local filesystem.
+
+.. function:: struct cork_file_list \*cork_file_list_new_empty(void)
+              struct cork_file_list \*cork_file_list_new(struct cork_path_list \*path_list)
+
+   Create a new list of files.  The first variant creates a list that is
+   initially empty.  The second variant adds a new file instance for each of the
+   paths in *path_list*.
+
+.. function:: void cork_file_list_free(struct cork_file_list \*list)
+
+   Free a file list.
+
+.. function:: void cork_file_list_add(struct cork_file_list \*list, struct cork_file \*file)
+
+   Add *file* to *list*.  The list takes control of the file instance; you must
+   not try to free *file* yourself.
+
+.. function:: size_t cork_file_list_size(const struct cork_file_list \*list)
+
+   Return the number of files in *list*.
+
+.. function:: struct cork_file \*cork_file_list_get(const struct cork_file_list \*list, size_t index)
+
+   Return the file in *list* at the given *index*.  The list still owns the file
+   instance that's returned; you must not try to free it.
 
 
 
