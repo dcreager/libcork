@@ -411,6 +411,49 @@ find_run(int argc, char **argv)
 
 
 /*-----------------------------------------------------------------------
+ * paths
+ */
+
+/* cork-test paths */
+
+static void
+paths_run(int argc, char **argv);
+
+static struct cork_command  paths =
+    cork_leaf_command("paths", "Print out standard paths for the current user",
+                      "",
+                      "Print out standard paths for the current user.\n",
+                      NULL, paths_run);
+
+static void
+print_path(const char *prefix, struct cork_path *path)
+{
+    rp_check_exit(path);
+    printf("%s %s\n", prefix, cork_path_get(path));
+    cork_path_free(path);
+}
+
+static void
+print_path_list(const char *prefix, struct cork_path_list *list)
+{
+    rp_check_exit(list);
+    printf("%s %s\n", prefix, cork_path_list_to_string(list));
+    cork_path_list_free(list);
+}
+
+static void
+paths_run(int argc, char **argv)
+{
+    print_path     ("Home:   ", cork_path_home());
+    print_path_list("Config: ", cork_path_config_paths());
+    print_path_list("Data:   ", cork_path_data_paths());
+    print_path     ("Cache:  ", cork_path_user_cache_path());
+    print_path     ("Runtime:", cork_path_user_runtime_path());
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
  * Directory walker
  */
 
@@ -561,6 +604,7 @@ static struct cork_command  *root_subcommands[] = {
     &mkdir_cmd,
     &rm_cmd,
     &find,
+    &paths,
     &dir,
     &sub,
     &cleanup,

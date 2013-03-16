@@ -34,6 +34,18 @@ cork_env_clone_current(void);
 CORK_API void
 cork_env_free(struct cork_env *env);
 
+
+CORK_API void
+cork_env_replace_current(struct cork_env *env);
+
+
+/* For all of the following, if env is NULL, these functions access or update
+ * the actual environment of the current process.  Otherwise, they act on the
+ * given environment instance. */
+
+CORK_API const char *
+cork_env_get(struct cork_env *env, const char *name);
+
 CORK_API void
 cork_env_add(struct cork_env *env, const char *name, const char *value);
 
@@ -49,10 +61,6 @@ cork_env_add_vprintf(struct cork_env *env, const char *name,
 
 CORK_API void
 cork_env_remove(struct cork_env *env, const char *name);
-
-
-CORK_API void
-cork_env_replace_current(struct cork_env *env);
 
 
 /*-----------------------------------------------------------------------

@@ -74,14 +74,18 @@ cork_env_new(void)
 static void
 cork_env_add_internal(struct cork_env *env, const char *name, const char *value)
 {
-    struct cork_env_var  *var = cork_env_var_new(name, value);
-    void  *old_var;
+    if (env == NULL) {
+        setenv(name, value, true);
+    } else {
+        struct cork_env_var  *var = cork_env_var_new(name, value);
+        void  *old_var;
 
-    cork_hash_table_put
-        (&env->variables, (void *) var->name, var, NULL, NULL, &old_var);
+        cork_hash_table_put
+            (&env->variables, (void *) var->name, var, NULL, NULL, &old_var);
 
-    if (old_var != NULL) {
-        cork_env_var_free(old_var);
+        if (old_var != NULL) {
+            cork_env_var_free(old_var);
+        }
     }
 }
 
@@ -128,6 +132,18 @@ cork_env_free(struct cork_env *env)
     free(env);
 }
 
+const char *
+cork_env_get(struct cork_env *env, const char *name)
+{
+    if (env == NULL) {
+        return getenv(name);
+    } else {
+        struct cork_env_var  *var =
+            cork_hash_table_get(&env->variables, (void *) name);
+        return (var == NULL)? NULL: var->value;
+    }
+}
+
 void
 cork_env_add(struct cork_env *env, const char *name, const char *value)
 {
@@ -155,10 +171,14 @@ cork_env_add_printf(struct cork_env *env, const char *name,
 void
 cork_env_remove(struct cork_env *env, const char *name)
 {
-    void  *old_var;
-    cork_hash_table_delete(&env->variables, (void *) name, NULL, &old_var);
-    if (old_var != NULL) {
-        cork_env_var_free(old_var);
+    if (env == NULL) {
+        unsetenv(name);
+    } else {
+        void  *old_var;
+        cork_hash_table_delete(&env->variables, (void *) name, NULL, &old_var);
+        if (old_var != NULL) {
+            cork_env_var_free(old_var);
+        }
     }
 }
 

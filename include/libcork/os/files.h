@@ -236,4 +236,25 @@ CORK_API int
 cork_walk_directory(const char *path, struct cork_dir_walker *walker);
 
 
+/*-----------------------------------------------------------------------
+ * Standard paths and path lists
+ */
+
+CORK_API struct cork_path *
+cork_path_home(void);
+
+
+CORK_API struct cork_path_list *
+cork_path_config_paths(void);
+
+CORK_API struct cork_path_list *
+cork_path_data_paths(void);
+
+CORK_API struct cork_path *
+cork_path_user_cache_path(void);
+
+CORK_API struct cork_path *
+cork_path_user_runtime_path(void);
+
+
 #endif /* LIBCORK_CORE_FILES_H */

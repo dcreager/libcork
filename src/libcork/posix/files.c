@@ -24,6 +24,7 @@
 #include "libcork/helpers/errors.h"
 #include "libcork/helpers/posix.h"
 #include "libcork/os/files.h"
+#include "libcork/os/subprocess.h"
 
 
 #if !defined(CORK_DEBUG_FILES)
@@ -278,10 +279,9 @@ cork_path_list_get(const struct cork_path_list *list, size_t index)
     return cork_array_at(&list->array, index);
 }
 
-struct cork_path_list *
-cork_path_list_new(const char *str)
+static void
+cork_path_list_append_string(struct cork_path_list *list, const char *str)
 {
-    struct cork_path_list  *list = cork_path_list_new_empty();
     struct cork_path  *path;
     const char  *curr = str;
     const char  *next;
@@ -295,6 +295,13 @@ cork_path_list_new(const char *str)
 
     path = cork_path_new(curr);
     cork_path_list_add(list, path);
+}
+
+struct cork_path_list *
+cork_path_list_new(const char *str)
+{
+    struct cork_path_list  *list = cork_path_list_new_empty();
+    cork_path_list_append_string(list, str);
     return list;
 }
 
@@ -555,7 +562,8 @@ cork_file_mkdir_one(struct cork_file *file, cork_file_mode mode,
 }
 
 int
-cork_file_mkdir(struct cork_file *file, mode_t mode, unsigned int flags)
+cork_file_mkdir(struct cork_file *file, cork_file_mode mode,
+                unsigned int flags)
 {
     return cork_file_mkdir_one(file, mode, flags);
 }
@@ -689,4 +697,138 @@ error:
     cork_file_list_free(list);
     cork_file_free(file);
     return NULL;
+}
+
+
+/*-----------------------------------------------------------------------
+ * Standard paths and path lists
+ */
+
+#define empty_string(str)  ((str) == NULL || (str)[0] == '\0')
+
+struct cork_path *
+cork_path_home(void)
+{
+    const char  *path = cork_env_get(NULL, "HOME");
+    if (empty_string(path)) {
+        cork_error_set
+            (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
+             "Cannot determine home directory");
+        return NULL;
+    } else {
+        return cork_path_new(path);
+    }
+}
+
+
+struct cork_path_list *
+cork_path_config_paths(void)
+{
+    struct cork_path_list  *list = cork_path_list_new_empty();
+    const char  *var;
+    struct cork_path  *path;
+
+    /* The first entry should be the user's configuration directory.  This is
+     * specified by $XDG_CONFIG_HOME, with $HOME/.config as the default. */
+    var = cork_env_get(NULL, "XDG_CONFIG_HOME");
+    if (empty_string(var)) {
+        ep_check(path = cork_path_home());
+        cork_path_append(path, ".config");
+        cork_path_list_add(list, path);
+    } else {
+        path = cork_path_new(var);
+        cork_path_list_add(list, path);
+    }
+
+    /* The remaining entries should be the system-wide configuration
+     * directories.  These are specified by $XDG_CONFIG_DIRS, with /etc/xdg as
+     * the default. */
+    var = cork_env_get(NULL, "XDG_CONFIG_DIRS");
+    if (empty_string(var)) {
+        path = cork_path_new("/etc/xdg");
+        cork_path_list_add(list, path);
+    } else {
+        cork_path_list_append_string(list, var);
+    }
+
+    return list;
+
+error:
+    cork_path_list_free(list);
+    return NULL;
+}
+
+struct cork_path_list *
+cork_path_data_paths(void)
+{
+    struct cork_path_list  *list = cork_path_list_new_empty();
+    const char  *var;
+    struct cork_path  *path;
+
+    /* The first entry should be the user's data directory.  This is specified
+     * by $XDG_DATA_HOME, with $HOME/.local/share as the default. */
+    var = cork_env_get(NULL, "XDG_DATA_HOME");
+    if (empty_string(var)) {
+        ep_check(path = cork_path_home());
+        cork_path_append(path, ".local/share");
+        cork_path_list_add(list, path);
+    } else {
+        path = cork_path_new(var);
+        cork_path_list_add(list, path);
+    }
+
+    /* The remaining entries should be the system-wide configuration
+     * directories.  These are specified by $XDG_DATA_DIRS, with
+     * /usr/local/share:/usr/share as the the default. */
+    var = cork_env_get(NULL, "XDG_DATA_DIRS");
+    if (empty_string(var)) {
+        path = cork_path_new("/usr/local/share");
+        cork_path_list_add(list, path);
+        path = cork_path_new("/usr/share");
+        cork_path_list_add(list, path);
+    } else {
+        cork_path_list_append_string(list, var);
+    }
+
+    return list;
+
+error:
+    cork_path_list_free(list);
+    return NULL;
+}
+
+struct cork_path *
+cork_path_user_cache_path(void)
+{
+    const char  *var;
+    struct cork_path  *path;
+
+    /* The user's cache directory is specified by $XDG_CACHE_HOME, with
+     * $HOME/.cache as the default. */
+    var = cork_env_get(NULL, "XDG_CACHE_HOME");
+    if (empty_string(var)) {
+        rpp_check(path = cork_path_home());
+        cork_path_append(path, ".cache");
+        return path;
+    } else {
+        return cork_path_new(var);
+    }
+}
+
+struct cork_path *
+cork_path_user_runtime_path(void)
+{
+    const char  *var;
+
+    /* The user's cache directory is specified by $XDG_RUNTIME_DIR, with
+     * no default given by the spec. */
+    var = cork_env_get(NULL, "XDG_RUNTIME_DIR");
+    if (empty_string(var)) {
+        cork_error_set
+            (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
+             "Cannot determine user-specific runtime directory");
+        return NULL;
+    } else {
+        return cork_path_new(var);
+    }
 }

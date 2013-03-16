@@ -146,6 +146,56 @@ Lists of paths
    the first variant, this is not considered an error.)
 
 
+Standard paths
+==============
+
+.. function:: struct cork_path \*cork_path_home(void)
+
+   Return a :c:type:`cork_path` that refers to the current user's home
+   directory.  If we can't determine the current user's home directory, we set
+   an error condition and return ``NULL``.
+
+   On POSIX systems, this directory is determined by the ``HOME`` environment
+   variable.
+
+.. function:: struct cork_path_list \*cork_path_config_paths(void)
+
+   Return a :c:type:`cork_path_list` that includes all of the standard
+   directories that can be used to store configuration files.  This includes a
+   user-specific directory that allows the user to override any global
+   configuration files.
+
+   On POSIX systems, these directories are defined XDG Base Directory
+   Specification.
+
+.. function:: struct cork_path_list \*cork_path_data_paths(void)
+
+   Return a :c:type:`cork_path_list` that includes all of the standard
+   directories that can be used to store application data files.  This includes
+   a user-specific directory that allows the user to override any global data
+   files.
+
+   On POSIX systems, these directories are defined XDG Base Directory
+   Specification.
+
+.. function:: struct cork_path \*cork_path_user_cache_path(void)
+
+   Return a :c:type:`cork_path` that refers to a directory that can be used to
+   store cache files created on behalf of the current user.  This directory
+   should only be used to store data that you can reproduce if needed.
+
+   On POSIX systems, these directories are defined XDG Base Directory
+   Specification.
+
+.. function:: struct cork_path \*cork_path_user_runtime_path(void)
+
+   Return a :c:type:`cork_path` that refers to a directory that can be used to
+   store small runtime management files on behalf of the current user.
+
+   On POSIX systems, these directories are defined XDG Base Directory
+   Specification.
+
+
 Files
 =====
 
