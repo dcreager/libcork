@@ -8,8 +8,8 @@
  * ----------------------------------------------------------------------
  */
 
-#ifndef LIBCORK_CORE_CHECKERS_H
-#define LIBCORK_CORE_CHECKERS_H
+#ifndef LIBCORK_HELPERS_ERRORS_H
+#define LIBCORK_HELPERS_ERRORS_H
 
 
 /* This header is *not* automatically included when you include
@@ -20,12 +20,14 @@
 
 #include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
+#include <libcork/core/error.h>
 
 
 #if !defined(CORK_PRINT_ERRORS)
 #define CORK_PRINT_ERRORS 0
 #endif
 
+#if !defined(CORK_PRINT_ERROR)
 #if CORK_PRINT_ERRORS
 #include <stdio.h>
 #define CORK_PRINT_ERROR_(func, file, line) \
@@ -35,6 +37,7 @@
 #define CORK_PRINT_ERROR()  CORK_PRINT_ERROR_(__func__, __FILE__, __LINE__)
 #else
 #define CORK_PRINT_ERROR()  /* do nothing */
+#endif
 #endif
 
 
@@ -115,4 +118,4 @@
 #define rpp_check(call)  xp_check(NULL, call)
 
 
-#endif /* LIBCORK_CORE_CHECKERS_H */
+#endif /* LIBCORK_HELPERS_ERRORS_H */

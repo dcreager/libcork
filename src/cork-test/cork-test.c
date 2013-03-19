@@ -220,6 +220,240 @@ sub_run(int argc, char **argv)
 
 
 /*-----------------------------------------------------------------------
+ * mkdir
+ */
+
+static unsigned int  mkdir_flags = CORK_FILE_PERMISSIVE;
+
+/* cork-test mkdir */
+
+static int
+mkdir_options(int argc, char **argv);
+
+static void
+mkdir_run(int argc, char **argv);
+
+static struct cork_command  mkdir_cmd =
+    cork_leaf_command("mkdir", "Create a directory",
+                      "[<options>] <path>",
+                      "Create a new directory.\n",
+                      mkdir_options, mkdir_run);
+
+static int
+mkdir_options(int argc, char **argv)
+{
+    int  count = 1;
+
+    while (count < argc) {
+        if (streq(argv[count], "--recursive")) {
+            mkdir_flags |= CORK_FILE_RECURSIVE;
+            count++;
+        } else if (streq(argv[count], "--require")) {
+            mkdir_flags &= ~CORK_FILE_PERMISSIVE;
+            count++;
+        } else {
+            return count;
+        }
+    }
+
+    return count;
+}
+
+static void
+mkdir_run(int argc, char **argv)
+{
+    struct cork_file  *file;
+
+    if (argc < 1) {
+        cork_command_show_help(&mkdir_cmd, "Missing file");
+        exit(EXIT_FAILURE);
+    } else if (argc > 1) {
+        cork_command_show_help(&mkdir_cmd, "Too many directories");
+        exit(EXIT_FAILURE);
+    }
+
+    file = cork_file_new(argv[0]);
+    ri_check_exit(cork_file_mkdir(file, 0755, mkdir_flags));
+    cork_file_free(file);
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
+ * rm
+ */
+
+static unsigned int  rm_flags = CORK_FILE_PERMISSIVE;
+
+/* cork-test rm */
+
+static int
+rm_options(int argc, char **argv);
+
+static void
+rm_run(int argc, char **argv);
+
+static struct cork_command  rm_cmd =
+    cork_leaf_command("rm", "Remove a file or directory",
+                      "[<options>] <path>",
+                      "Remove a file or directory.\n",
+                      rm_options, rm_run);
+
+static int
+rm_options(int argc, char **argv)
+{
+    int  count = 1;
+
+    while (count < argc) {
+        if (streq(argv[count], "--recursive")) {
+            rm_flags |= CORK_FILE_RECURSIVE;
+            count++;
+        } else if (streq(argv[count], "--require")) {
+            rm_flags &= ~CORK_FILE_PERMISSIVE;
+            count++;
+        } else {
+            return count;
+        }
+    }
+
+    return count;
+}
+
+static void
+rm_run(int argc, char **argv)
+{
+    struct cork_file  *file;
+
+    if (argc < 1) {
+        cork_command_show_help(&rm_cmd, "Missing file");
+        exit(EXIT_FAILURE);
+    } else if (argc > 1) {
+        cork_command_show_help(&rm_cmd, "Too many directories");
+        exit(EXIT_FAILURE);
+    }
+
+    file = cork_file_new(argv[0]);
+    ri_check_exit(cork_file_remove(file, rm_flags));
+    cork_file_free(file);
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
+ * find
+ */
+
+static bool  find_all = false;
+
+/* cork-test find */
+
+static int
+find_options(int argc, char **argv);
+
+static void
+find_run(int argc, char **argv);
+
+static struct cork_command  find =
+    cork_leaf_command("find", "Search for a file in a list of directories",
+                      "<file> <path list>",
+                      "Search for a file in a list of directories.\n",
+                      find_options, find_run);
+
+static int
+find_options(int argc, char **argv)
+{
+    if (argc >= 2 && streq(argv[1], "--all")) {
+        find_all = true;
+        return 2;
+    }
+    return 1;
+}
+
+static void
+find_run(int argc, char **argv)
+{
+    struct cork_path_list  *list;
+
+    if (argc < 1) {
+        cork_command_show_help(&find, "Missing file");
+        exit(EXIT_FAILURE);
+    } else if (argc < 2) {
+        cork_command_show_help(&find, "Missing path");
+        exit(EXIT_FAILURE);
+    } else if (argc < 2) {
+        cork_command_show_help(&find, "Too many parameters");
+        exit(EXIT_FAILURE);
+    }
+
+    list = cork_path_list_new(argv[1]);
+
+    if (find_all) {
+        struct cork_file_list  *file_list;
+        size_t  i;
+        size_t  count;
+        rp_check_exit(file_list = cork_path_list_find_files(list, argv[0]));
+        count = cork_file_list_size(file_list);
+        for (i = 0; i < count; i++) {
+            struct cork_file  *file = cork_file_list_get(file_list, i);
+            printf("%s\n", cork_path_get(cork_file_path(file)));
+        }
+        cork_file_list_free(file_list);
+    } else {
+        struct cork_file  *file;
+        rp_check_exit(file = cork_path_list_find_file(list, argv[0]));
+        printf("%s\n", cork_path_get(cork_file_path(file)));
+        cork_file_free(file);
+    }
+
+    cork_path_list_free(list);
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
+ * paths
+ */
+
+/* cork-test paths */
+
+static void
+paths_run(int argc, char **argv);
+
+static struct cork_command  paths =
+    cork_leaf_command("paths", "Print out standard paths for the current user",
+                      "",
+                      "Print out standard paths for the current user.\n",
+                      NULL, paths_run);
+
+static void
+print_path(const char *prefix, struct cork_path *path)
+{
+    rp_check_exit(path);
+    printf("%s %s\n", prefix, cork_path_get(path));
+    cork_path_free(path);
+}
+
+static void
+print_path_list(const char *prefix, struct cork_path_list *list)
+{
+    rp_check_exit(list);
+    printf("%s %s\n", prefix, cork_path_list_to_string(list));
+    cork_path_list_free(list);
+}
+
+static void
+paths_run(int argc, char **argv)
+{
+    print_path     ("Home:   ", cork_path_home());
+    print_path_list("Config: ", cork_path_config_paths());
+    print_path_list("Data:   ", cork_path_data_paths());
+    print_path     ("Cache:  ", cork_path_user_cache_path());
+    print_path     ("Runtime:", cork_path_user_runtime_path());
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
  * Directory walker
  */
 
@@ -366,7 +600,15 @@ static struct cork_command  cleanup =
 /* [root] cork-test */
 
 static struct cork_command  *root_subcommands[] = {
-    &c1, &c2, &dir, &sub, &cleanup, NULL
+    &c1, &c2,
+    &mkdir_cmd,
+    &rm_cmd,
+    &find,
+    &paths,
+    &dir,
+    &sub,
+    &cleanup,
+    NULL
 };
 
 static struct cork_command  root_command =

@@ -73,6 +73,9 @@ cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
 CORK_API void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
 
+#define cork_buffer_append_copy(dest, src) \
+    (cork_buffer_append((dest), (src)->buf, (src)->size))
+
 CORK_API void
 cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length);
 

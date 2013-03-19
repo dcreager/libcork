@@ -16,13 +16,9 @@
 
 #include "libcork/ds/stream.h"
 #include "libcork/helpers/errors.h"
+#include "libcork/helpers/posix.h"
 
 #define BUFFER_SIZE  4096
-
-#define retry_eintr(call) \
-    do { \
-        while ((call) == -1 && errno == EINTR) { /* repeat */ } \
-    } while (0)
 
 
 /*-----------------------------------------------------------------------
@@ -79,28 +75,15 @@ int
 cork_consume_file_from_path(struct cork_stream_consumer *consumer,
                             const char *path, int flags)
 {
-    int  rc;
     int  fd;
-
-    retry_eintr(fd = open(path, flags));
-    if (fd == -1) {
-        cork_system_error_set();
-        return -1;
-    }
-
-    rc = cork_consume_fd(consumer, fd);
-    if (CORK_UNLIKELY(rc != 0)) {
-        retry_eintr(close(fd));
-        return rc;
-    }
-
-    retry_eintr(rc = close(fd));
-    if (CORK_UNLIKELY(rc == -1)) {
-        cork_system_error_set();
-        return -1;
-    }
-
+    rii_check_posix(fd = open(path, flags));
+    ei_check(cork_consume_fd(consumer, fd));
+    rii_check_posix(close(fd));
     return 0;
+
+error:
+    rii_check_posix(close(fd));
+    return -1;
 }
 
 
@@ -191,13 +174,8 @@ cork_fd_consumer__eof_close(struct cork_stream_consumer *vself)
     int  rc;
     struct cork_fd_consumer  *self =
         cork_container_of(vself, struct cork_fd_consumer, parent);
-    retry_eintr(rc = close(self->fd));
-    if (rc == -1) {
-        cork_system_error_set();
-        return -1;
-    } else {
-        return 0;
-    }
+    rii_check_posix(rc = close(self->fd));
+    return 0;
 }
 
 static void
@@ -227,12 +205,7 @@ cork_file_from_path_consumer_new(const char *path, int flags)
     int  fd;
     struct cork_fd_consumer  *self;
 
-    retry_eintr(fd = open(path, flags));
-    if (fd == -1) {
-        cork_system_error_set();
-        return NULL;
-    }
-
+    rpi_check_posix(fd = open(path, flags));
     self = cork_new(struct cork_fd_consumer);
     self->parent.data = cork_fd_consumer__data;
     self->parent.eof = cork_fd_consumer__eof_close;

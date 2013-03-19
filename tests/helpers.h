@@ -54,5 +54,10 @@
                  ", got " format ")", \
                  (what), (expected), (actual)))
 
+#define fail_unless_streq(what, expected, actual) \
+    (fail_unless(strcmp((expected), (actual)) == 0, \
+                 "%s not equal (expected \"%s\", got \"%s\")", \
+                 (char *) (what), (char *) (expected), (char *) (actual)))
+
 
 #endif /* TESTS_HELPERS_H */

@@ -32,6 +32,7 @@ set(LIBCORK_SRC
     libcork/posix/directory-walker.c
     libcork/posix/env.c
     libcork/posix/exec.c
+    libcork/posix/files.c
     libcork/posix/process.c
     libcork/posix/subprocess.c
     libcork/pthreads/thread.c

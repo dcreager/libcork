@@ -62,20 +62,34 @@ Environment variables
    Free a collection of environment variables.
 
 
+.. function:: const char \*cork_env_get(struct cork_env \*env, const char \*name)
+
+   Return the value of the environment variable with the given *name*.  If there
+   is no variable with that name, return ``NULL``.
+
+   If *env* is ``NULL``, then the variable is retrieved from the current process
+   environment; otherwise, it is retrieved from *env*.
+
 .. function:: void cork_env_add(struct cork_env \*env, const char \*name, const char \*value)
               void cork_env_add_printf(struct cork_env \*env, const char \*name, const char \*format, ...)
               void cork_env_add_vprintf(struct cork_env \*env, const char \*name, const char \*format, va_list args)
 
-   Add a new variable to *env* with the given *name* and *value*.  If *env*
-   already contains a variable with that name, it is overwritten.  We make a
-   copy of both *name* and *variable*, so it is safe to pass in temporary or
-   reusable strings for either.  The ``printf`` and ``vprintf`` variants
-   construct the new variable's value from a ``printf``-like format string.
+   Add a new environment variable with the given *name* and *value*.  If there
+   is already a variable with that name, it is overwritten.  We make a copy of
+   both *name* and *variable*, so it is safe to pass in temporary or reusable
+   strings for either.  The ``printf`` and ``vprintf`` variants construct the
+   new variable's value from a ``printf``-like format string.
+
+   If *env* is ``NULL``, then the new variable is added to the current process
+   environment; otherwise, it is added to *env*.
 
 .. function:: void cork_env_remove(struct cork_env \*env, const char \*name)
 
-   Remove the variable with the given *name* from *env*, if it exists.  If there
-   isn't any variable with that name, do nothing.
+   Remove the environment variable with the given *name*, if it exists.  If
+   there isn't any variable with that name, do nothing.
+
+   If *env* is ``NULL``, then the variable is removed from the current process
+   environment; otherwise, it is removed from *env*.
 
 
 .. function:: void cork_env_replace_current(struct cork_env \*env)
