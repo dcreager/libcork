@@ -41,6 +41,7 @@ test_path(const char *p, const char *expected)
 {
     struct cork_path  *path;
     struct cork_path  *cloned;
+    struct cork_path  *set;
 
     fprintf(stderr, "path(\"%s\") ?= \"%s\"\n",
             (p == NULL)? "": p,
@@ -48,10 +49,16 @@ test_path(const char *p, const char *expected)
 
     path = cork_path_new(p);
     verify_path_content(path, expected);
+
     cloned = cork_path_clone(path);
     verify_path_content(cloned, expected);
-    cork_path_free(path);
     cork_path_free(cloned);
+    cork_path_free(path);
+
+    set = cork_path_new(NULL);
+    cork_path_set(set, p);
+    verify_path_content(set, expected);
+    cork_path_free(set);
 }
 
 START_TEST(test_path_01)

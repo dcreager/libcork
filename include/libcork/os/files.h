@@ -31,6 +31,10 @@ cork_path_clone(const struct cork_path *other);
 CORK_API void
 cork_path_free(struct cork_path *path);
 
+
+CORK_API void
+cork_path_set(struct cork_path *path, const char *content);
+
 CORK_API const char *
 cork_path_get(const struct cork_path *path);
 

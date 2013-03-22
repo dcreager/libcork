@@ -80,6 +80,17 @@ cork_path_free(struct cork_path *path)
     free(path);
 }
 
+
+void
+cork_path_set(struct cork_path *path, const char *content)
+{
+    if (content == NULL) {
+        cork_buffer_clear(&path->given);
+    } else {
+        cork_buffer_set_string(&path->given, content);
+    }
+}
+
 const char *
 cork_path_get(const struct cork_path *path)
 {
