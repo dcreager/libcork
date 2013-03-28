@@ -49,7 +49,8 @@ strndup_internal(const char *str, size_t len)
 
     *new_str = allocated_size;
     char  *dest = (char *) (void *) (new_str + 1);
-    strncpy(dest, str, len + 1);
+    strncpy(dest, str, len);
+    dest[len] = '\0';
     return dest;
 }
 
