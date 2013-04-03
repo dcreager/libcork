@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2012, RedJack, LLC.
+# Copyright © 2011-2013, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
@@ -21,7 +21,8 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version.sh
     OUTPUT_VARIABLE VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 if(VERSION_RESULT)
-    message(FATAL_ERROR "Cannot determine version number")
+    message(FATAL_ERROR
+            "Cannot determine version number: " ${VERSION_RESULT})
 endif(VERSION_RESULT)
 # This causes an annoying extra prompt in ccmake.
 # message("Current version: " ${VERSION})

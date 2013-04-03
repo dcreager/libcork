@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Usage: run.sh [debug|release] program arguments
 #
 # Runs a program from one of the build directories, with
