@@ -17,6 +17,11 @@ find_program(
 
 set(GENERATE_DOC TRUE)
 
+if (TILERA)
+    message(STATUS "Note: We don't build documentation on the Tilera platform")
+    set(GENERATE_DOC FALSE)
+endif (TILERA)
+
 if (NOT SPHINX_EXECUTABLE)
   message(WARNING "Unable to find Sphinx documentation generator")
   set(GENERATE_DOC FALSE)
