@@ -220,6 +220,32 @@ sub_run(int argc, char **argv)
 
 
 /*-----------------------------------------------------------------------
+ * pwd
+ */
+
+/* cork-test pwd */
+
+static void
+pwd_run(int argc, char **argv);
+
+static struct cork_command  pwd =
+    cork_leaf_command("pwd", "Print working directory",
+                      "",
+                      "Prints out the current working directory.\n",
+                      NULL, pwd_run);
+
+static void
+pwd_run(int argc, char **argv)
+{
+    struct cork_path  *path;
+    rp_check_exit(path = cork_path_cwd());
+    printf("%s\n", cork_path_get(path));
+    cork_path_free(path);
+    exit(EXIT_SUCCESS);
+}
+
+
+/*-----------------------------------------------------------------------
  * mkdir
  */
 
@@ -601,6 +627,7 @@ static struct cork_command  cleanup =
 
 static struct cork_command  *root_subcommands[] = {
     &c1, &c2,
+    &pwd,
     &mkdir_cmd,
     &rm_cmd,
     &find,
