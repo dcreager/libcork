@@ -171,6 +171,11 @@ START_TEST(test_path_basename_01)
     test_basename("a/b", "b");
     test_basename("a/b/", "");
     test_basename("a/b/c", "c");
+    test_basename("/a", "a");
+    test_basename("/a/", "");
+    test_basename("/a/b", "b");
+    test_basename("/a/b/", "");
+    test_basename("/a/b/c", "c");
 }
 END_TEST
 
@@ -204,11 +209,17 @@ START_TEST(test_path_dirname_01)
     DESCRIBE_TEST;
     test_dirname(NULL, "");
     test_dirname("", "");
-    test_dirname("a", "a");
+    test_dirname("a", "");
     test_dirname("a/", "a");
     test_dirname("a/b", "a");
     test_dirname("a/b/", "a/b");
     test_dirname("a/b/c", "a/b");
+    test_dirname("/", "/");
+    test_dirname("/a", "/");
+    test_dirname("/a/", "/a");
+    test_dirname("/a/b", "/a");
+    test_dirname("/a/b/", "/a/b");
+    test_dirname("/a/b/c", "/a/b");
 }
 END_TEST
 
