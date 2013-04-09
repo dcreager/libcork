@@ -104,6 +104,28 @@ cork_path_get(const struct cork_path *path)
 
 
 int
+cork_path_set_cwd(struct cork_path *path)
+{
+    cork_buffer_ensure_size(&path->given, PATH_MAX);
+    rip_check_posix(getcwd(path->given.buf, PATH_MAX));
+    path->given.size = strlen(path->given.buf);
+    return 0;
+}
+
+struct cork_path *
+cork_path_cwd(void)
+{
+    struct cork_path  *path = cork_path_new(NULL);
+    ei_check(cork_path_set_cwd(path));
+    return path;
+
+error:
+    cork_path_free(path);
+    return NULL;
+}
+
+
+int
 cork_path_set_absolute(struct cork_path *path)
 {
     struct cork_buffer  buf;
@@ -133,8 +155,12 @@ struct cork_path *
 cork_path_absolute(const struct cork_path *other)
 {
     struct cork_path  *path = cork_path_clone(other);
-    cork_path_set_absolute(path);
+    ei_check(cork_path_set_absolute(path));
     return path;
+
+error:
+    cork_path_free(path);
+    return NULL;
 }
 
 
