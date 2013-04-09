@@ -218,7 +218,12 @@ cork_path_set_dirname(struct cork_path *path)
         cork_buffer_clear(&path->given);
     } else {
         size_t  offset = last_slash - given;
-        cork_buffer_truncate(&path->given, offset);
+        if (offset == 0) {
+            /* A special case for the immediate subdirectories of "/" */
+            cork_buffer_truncate(&path->given, 1);
+        } else {
+            cork_buffer_truncate(&path->given, offset);
+        }
     }
 }
 
