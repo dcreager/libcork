@@ -40,6 +40,13 @@ cork_path_get(const struct cork_path *path);
 
 
 CORK_API int
+cork_path_set_cwd(struct cork_path *path);
+
+CORK_API struct cork_path *
+cork_path_cwd(void);
+
+
+CORK_API int
 cork_path_set_absolute(struct cork_path *path);
 
 CORK_API struct cork_path *
