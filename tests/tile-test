@@ -19,9 +19,9 @@ export TILERA_COMMON_ARGS=" \
     --env LD_LIBRARY_PATH="$TEST_DIR/build/src:/usr/local/lib:/usr/lib:/lib" \
     --env PATH="/usr/local/bin:$PATH" \
     --cd $TEST_DIR/build \
-    --run -+- ctest  -+- --quit"
+    --run -+- ctest -+- --quit"
 
-export TILERA_DEV_ARGS="--resume $TILERA_COMMON_ARGS"
+export TILERA_DEV_ARGS="$TILERA_COMMON_ARGS --net tilera --resume"
 $TILERA_ROOT/bin/tile-monitor $TILERA_DEV_ARGS
 
 ## Uncomment the following four lines and comment the previous two if
