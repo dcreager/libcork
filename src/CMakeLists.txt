@@ -22,6 +22,7 @@ set(LIBCORK_SRC
     libcork/core/mempool.c
     libcork/core/timestamp.c
     libcork/ds/array.c
+    libcork/ds/bitset.c
     libcork/ds/buffer.c
     libcork/ds/dllist.c
     libcork/ds/file-stream.c
