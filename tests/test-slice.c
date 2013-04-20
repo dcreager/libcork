@@ -41,6 +41,41 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Copy-once slices
+ */
+
+START_TEST(test_copy_once_slice)
+{
+    static char  SRC[] = "Here is some text.";
+    size_t  SRC_LEN = sizeof(SRC) - 1;
+
+    struct cork_slice  slice1;
+    struct cork_slice  slice2;
+    struct cork_slice  slice3;
+
+    cork_slice_init_copy_once(&slice1, SRC, SRC_LEN);
+    fail_unless(slice1.buf == SRC, "Unexpected slice buffer");
+
+    fail_if_error(cork_slice_copy(&slice2, &slice1, 8, 4));
+    fail_if_error(cork_slice_slice(&slice1, 8, 4));
+    fail_unless(slice1.buf != SRC, "Unexpected slice buffer");
+    fail_unless(slice1.buf == slice2.buf, "Unexpected slice buffer");
+    fail_unless(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
+
+    fail_if_error(cork_slice_copy(&slice3, &slice1, 0, 4));
+    fail_unless(slice1.buf == slice3.buf, "Unexpected slice buffer");
+    fail_unless(slice2.buf == slice3.buf, "Unexpected slice buffer");
+    fail_unless(cork_slice_equal(&slice1, &slice3), "Slices should be equal");
+    fail_unless(cork_slice_equal(&slice2, &slice3), "Slices should be equal");
+
+    cork_slice_finish(&slice1);
+    cork_slice_finish(&slice2);
+    cork_slice_finish(&slice3);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -51,6 +86,7 @@ test_suite()
 
     TCase  *tc_slice = tcase_create("slice");
     tcase_add_test(tc_slice, test_static_slice);
+    tcase_add_test(tc_slice, test_copy_once_slice);
     suite_add_tcase(s, tc_slice);
 
     return s;

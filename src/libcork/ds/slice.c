@@ -12,6 +12,7 @@
 
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
+#include "libcork/ds/managed-buffer.h"
 #include "libcork/ds/slice.h"
 #include "libcork/helpers/errors.h"
 
@@ -167,6 +168,10 @@ cork_slice_equal(const struct cork_slice *slice1,
 }
 
 
+/*-----------------------------------------------------------------------
+ * Slices of static content
+ */
+
 static struct cork_slice_iface  cork_static_slice;
 
 static int
@@ -190,5 +195,37 @@ cork_slice_init_static(struct cork_slice *dest, const void *buf, size_t size)
     dest->buf = buf;
     dest->size = size;
     dest->iface = &cork_static_slice;
+    dest->user_data = NULL;
+}
+
+
+/*-----------------------------------------------------------------------
+ * Copy-once slices
+ */
+
+static struct cork_slice_iface  cork_copy_once_slice;
+
+static int
+cork_copy_once_slice__copy(struct cork_slice *self, struct cork_slice *dest,
+                           size_t offset, size_t length)
+{
+    struct cork_managed_buffer  *mbuf =
+        cork_managed_buffer_new_copy(self->buf, self->size);
+    rii_check(cork_managed_buffer_slice(dest, mbuf, offset, length));
+    rii_check(cork_managed_buffer_slice(self, mbuf, 0, self->size));
+    cork_managed_buffer_unref(mbuf);
+    return 0;
+}
+
+static struct cork_slice_iface  cork_copy_once_slice = {
+    NULL, cork_copy_once_slice__copy, NULL
+};
+
+void
+cork_slice_init_copy_once(struct cork_slice *dest, const void *buf, size_t size)
+{
+    dest->buf = buf;
+    dest->size = size;
+    dest->iface = &cork_copy_once_slice;
     dest->user_data = NULL;
 }

@@ -119,5 +119,9 @@ cork_slice_equal(const struct cork_slice *slice1,
 CORK_API void
 cork_slice_init_static(struct cork_slice *dest, const void *buf, size_t size);
 
+CORK_API void
+cork_slice_init_copy_once(struct cork_slice *dest, const void *buf,
+                          size_t size);
+
 
 #endif /* LIBCORK_DS_SLICE_H */

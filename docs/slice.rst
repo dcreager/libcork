@@ -189,8 +189,8 @@ Several libcork classes can be used to initialize a slice:
 * :ref:`Resizable buffers <buffer>` via the
   :c:func:`cork_buffer_to_slice` function
 
-In addition, you can initialize a slice to point at a static string
-using the following function:
+You can also initialize a slice to point at an existing buffer:
+
 
 .. function:: void cork_slice_init_static(struct cork_slice \*dest, const void \*buf, size_t size)
 
@@ -205,6 +205,17 @@ using the following function:
       but then you take responsibility for ensuring that the underlying
       buffer exists for at least as long as the slice, and any copies
       made of the slice.
+
+   As with all slices, you **must** ensure that you call
+   :c:func:`cork_slice_finish` when you're done with the slice.
+
+
+.. function:: void cork_slice_init_copy_once(struct cork_slice \*dest, const void \*buf, size_t size)
+
+   Initializes *dest* to point at the given buffer.  If any copies are made of
+   the slice, then we create a :ref:`managed copy <managed-buffer>` of the
+   underlying buffer.  This means that you only have to ensure that *buf* exists
+   for as long as the original *dest* slice is used.
 
    As with all slices, you **must** ensure that you call
    :c:func:`cork_slice_finish` when you're done with the slice.
