@@ -42,6 +42,7 @@ macro(make_test test_name)
 endmacro(make_test)
 
 make_test(test-array)
+make_test(test-bitset)
 make_test(test-buffer)
 make_test(test-core)
 make_test(test-dllist)

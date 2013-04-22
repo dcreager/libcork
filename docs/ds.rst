@@ -16,6 +16,7 @@ libcork includes implementations of a number of useful data structures.
    :maxdepth: 1
 
    array
+   bitset
    slice
    managed-buffer
    buffer
