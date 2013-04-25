@@ -57,18 +57,15 @@ cork_subprocess_group_new(void)
 {
     struct cork_subprocess_group  *group =
         cork_new(struct cork_subprocess_group);
-    cork_array_init(&group->subprocesses);
+    cork_pointer_array_init
+        (&group->subprocesses, (cork_free_f) cork_subprocess_free);
     return group;
 }
 
 void
 cork_subprocess_group_free(struct cork_subprocess_group *group)
 {
-    size_t  i;
     assert(group->still_running == 0);
-    for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
-        cork_subprocess_free(cork_array_at(&group->subprocesses, i));
-    }
     cork_array_done(&group->subprocesses);
     free(group);
 }
