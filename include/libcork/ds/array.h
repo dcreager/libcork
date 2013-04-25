@@ -74,6 +74,11 @@ cork_raw_array_ensure_size(struct cork_raw_array *array, size_t count);
 CORK_API void *
 cork_raw_array_append(struct cork_raw_array *array);
 
+CORK_API int
+cork_raw_array_copy(struct cork_raw_array *dest,
+                    const struct cork_raw_array *src,
+                    cork_copy_f copy, void *user_data);
+
 
 /*-----------------------------------------------------------------------
  * Type-checked resizable arrays
@@ -111,6 +116,8 @@ cork_raw_array_append(struct cork_raw_array *array);
 
 #define cork_array_clear(arr) \
     (cork_raw_array_clear(cork_array_to_raw(arr)))
+#define cork_array_copy(d, s, c, ud) \
+    (cork_raw_array_copy(cork_array_to_raw(d), cork_array_to_raw(s), (c), (ud)))
 
 #define cork_array_ensure_size(arr, count) \
     (cork_raw_array_ensure_size(cork_array_to_raw(arr), (count)))
@@ -145,6 +152,10 @@ cork_string_array_init(struct cork_string_array *array);
 
 CORK_API void
 cork_string_array_append(struct cork_string_array *array, const char *str);
+
+CORK_API void
+cork_string_array_copy(struct cork_string_array *dest,
+                       const struct cork_string_array *src);
 
 
 #endif /* LIBCORK_DS_ARRAY_H */

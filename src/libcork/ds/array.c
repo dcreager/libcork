@@ -219,6 +219,68 @@ cork_raw_array_append(struct cork_raw_array *array)
     return element;
 }
 
+int
+cork_raw_array_copy(struct cork_raw_array *dest,
+                    const struct cork_raw_array *src,
+                    cork_copy_f copy, void *user_data)
+{
+    size_t  i;
+    size_t  reuse_count;
+    char  *dest_element;
+
+    DEBUG("--- Copying %zu elements (%zu bytes) from %p to %p",
+          src->size, src->size * dest->priv->element_size, src, dest);
+    assert(dest->priv->element_size == src->priv->element_size);
+    cork_array_clear(dest);
+    cork_array_ensure_size(dest, src->size);
+
+    /* Initialize enough elements to hold the contents of src */
+    reuse_count = dest->priv->initialized_count;
+    if (src->size < reuse_count) {
+        reuse_count = src->size;
+    }
+
+    dest_element = dest->items;
+    if (dest->priv->reuse != NULL) {
+        DEBUG("    Calling reuse on elements 0-%zu", reuse_count);
+        for (i = 0; i < reuse_count; i++) {
+            dest->priv->reuse(dest->priv->user_data, dest_element);
+            dest_element += dest->priv->element_size;
+        }
+    } else {
+        dest_element += reuse_count * dest->priv->element_size;
+    }
+
+    if (dest->priv->init != NULL) {
+        DEBUG("    Calling init on elements %zu-%zu", reuse_count, src->size);
+        for (i = reuse_count; i < src->size; i++) {
+            dest->priv->init(dest->priv->user_data, dest_element);
+            dest_element += dest->priv->element_size;
+        }
+    }
+
+    if (src->size > dest->priv->initialized_count) {
+        dest->priv->initialized_count = src->size;
+    }
+
+    /* If the caller provided a copy function, let it copy each element in turn.
+     * Otherwise, bulk copy everything using memcpy. */
+    if (copy == NULL) {
+        memcpy(dest->items, src->items, src->size * dest->priv->element_size);
+    } else {
+        const char  *src_element = src->items;
+        dest_element = dest->items;
+        for (i = 0; i < src->size; i++) {
+            rii_check(copy(user_data, dest_element, src_element));
+            dest_element += dest->priv->element_size;
+            src_element += dest->priv->element_size;
+        }
+    }
+
+    dest->size = src->size;
+    return 0;
+}
+
 
 /*-----------------------------------------------------------------------
  * Pointer arrays
@@ -285,4 +347,24 @@ cork_string_array_append(struct cork_string_array *array, const char *str)
 {
     const char  *copy = cork_strdup(str);
     cork_array_append(array, copy);
+}
+
+static int
+string__copy(void *user_data, void *vdest, const void *vsrc)
+{
+    const char  **dest = vdest;
+    const char  **src = (const char **) vsrc;
+    *dest = cork_strdup(*src);
+    return 0;
+}
+
+void
+cork_string_array_copy(struct cork_string_array *dest,
+                       const struct cork_string_array *src)
+{
+    CORK_ATTR_UNUSED int  rc;
+    rc = cork_array_copy(dest, src, string__copy, NULL);
+    /* cork_array_copy can only fail if the copy callback fails, and ours
+     * doesn't! */
+    assert(rc == 0);
 }

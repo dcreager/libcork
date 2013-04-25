@@ -82,12 +82,27 @@ necessary to store the elements that you add.
    elements, reallocating the array's storage if needed.  The actual size and
    existing contents of the array aren't changed.
 
+.. function:: int cork_array_copy(cork_array(T) \*dest, cork_array(T) \*src, cork_copy_f \*copy, void \*user_data)
+
+   Copy elements from *src* to *dest*.  If you provide a *copy* function, it
+   will be called on each element to perform the copy.  If not, we'll use
+   ``memcpy`` to bulk-copy the elements.
+
+   If you've provided :ref:`callbacks <array-callbacks>` for *dest*, then those
+   callbacks will be called appropriately.  We'll call the ``remove`` callback
+   for any existing entries (will be overwritten by the copy).  We'll call
+   ``init`` or ``reuse`` on each element entry before it's copied.
+
+   .. type:: typedef int (\*cork_copy_f)(void \*user_data, void \*dest, const void \*src)
+
 .. function:: size_t cork_array_element_size(cork_array(T) \*array)
 
    Returns the size of the elements that are stored in *array*.  You
    won't normally need to call this, since you can just use
    ``sizeof(T)``.
 
+
+.. _array-callbacks:
 
 Initializing and finalizing elements
 ------------------------------------
