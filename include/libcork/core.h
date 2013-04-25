@@ -16,6 +16,7 @@
 #include <libcork/core/allocator.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
+#include <libcork/core/callbacks.h>
 #include <libcork/core/error.h>
 #include <libcork/core/gc.h>
 #include <libcork/core/hash.h>
