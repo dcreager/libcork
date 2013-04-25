@@ -36,7 +36,7 @@
 
 struct cork_exec {
     const char  *program;
-    cork_array(const char *)  params;
+    struct cork_string_array  params;
     struct cork_env  *env;
     const char  *cwd;
 };
@@ -46,7 +46,7 @@ cork_exec_new(const char *program)
 {
     struct cork_exec  *exec = cork_new(struct cork_exec);
     exec->program = cork_strdup(program);
-    cork_array_init(&exec->params);
+    cork_string_array_init(&exec->params);
     exec->env = NULL;
     exec->cwd = NULL;
     return exec;
@@ -82,11 +82,7 @@ cork_exec_new_with_param_array(const char *program, char * const *params)
 void
 cork_exec_free(struct cork_exec *exec)
 {
-    size_t  i;
     cork_strfree(exec->program);
-    for (i = 0; i < cork_array_size(&exec->params); i++) {
-        cork_strfree(cork_array_at(&exec->params, i));
-    }
     cork_array_done(&exec->params);
     if (exec->env != NULL) {
         cork_env_free(exec->env);
@@ -158,7 +154,7 @@ cork_exec_run(struct cork_exec *exec)
 
     /* Make sure the parameter array is NULL-terminated. */
     cork_array_append(&exec->params, NULL);
-    params = &cork_array_at(&exec->params, 0);
+    params = cork_array_elements(&exec->params);
 
     /* Fill in the requested environment */
     if (exec->env != NULL) {
