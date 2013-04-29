@@ -195,7 +195,7 @@ cork_managed_buffer_slice(struct cork_slice *dest,
                           size_t offset, size_t length)
 {
     if ((buffer != NULL) &&
-        (offset < buffer->size) &&
+        (offset <= buffer->size) &&
         ((offset + length) <= buffer->size)) {
         /*
         DEBUG("Slicing [%p:%zu] at %zu:%zu, gives <%p:%zu>",
