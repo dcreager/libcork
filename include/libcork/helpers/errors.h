@@ -60,6 +60,7 @@
  *       "p" = some pointer type
  *
  *   Z = the return type of the function you're calling
+ *       "e" = use cork_error_occurred() to check
  *       "i" = int
  *       "p" = some pointer type
  *
@@ -69,6 +70,15 @@
 
 
 /* jump to "error" label */
+
+#define ee_check(call) \
+    do { \
+        (call); \
+        if (CORK_UNLIKELY(cork_error_occurred())) { \
+            CORK_PRINT_ERROR(); \
+            goto error; \
+        } \
+    } while (0)
 
 #define ei_check(call) \
     do { \
@@ -91,6 +101,15 @@
 
 /* return specific error code */
 
+#define xe_check(result, call) \
+    do { \
+        (call); \
+        if (CORK_UNLIKELY(cork_error_occurred())) { \
+            CORK_PRINT_ERROR(); \
+            return result; \
+        } \
+    } while (0)
+
 #define xi_check(result, call) \
     do { \
         int  __rc = (call); \
@@ -112,8 +131,10 @@
 
 /* return default error code */
 
+#define rie_check(call)  xe_check(-1, call)
 #define rii_check(call)  xi_check(__rc, call)
 #define rip_check(call)  xp_check(-1, call)
+#define rpe_check(call)  xe_check(NULL, call)
 #define rpi_check(call)  xi_check(NULL, call)
 #define rpp_check(call)  xp_check(NULL, call)
 
