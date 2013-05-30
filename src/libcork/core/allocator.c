@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "libcork/core/allocator.h"
+#include "libcork/core/attributes.h"
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
 
@@ -72,4 +73,59 @@ cork_strfree(const char *str)
 {
     size_t  *base = ((size_t *) str) - 1;
     free(base);
+}
+
+
+/*-----------------------------------------------------------------------
+ * Abort on failure
+ */
+
+void *
+cork_malloc(size_t size)
+{
+    void  *result = cork_xmalloc(size);
+    if (CORK_UNLIKELY(result == NULL)) {
+        abort();
+    }
+    return result;
+}
+
+void *
+cork_calloc(size_t count, size_t size)
+{
+    void  *result = cork_xcalloc(count, size);
+    if (CORK_UNLIKELY(result == NULL)) {
+        abort();
+    }
+    return result;
+}
+
+void *
+cork_realloc(void *ptr, size_t new_size)
+{
+    void  *result = cork_xrealloc(ptr, new_size);
+    if (CORK_UNLIKELY(result == NULL)) {
+        abort();
+    }
+    return result;
+}
+
+const char *
+cork_strdup(const char *src)
+{
+    const char  *result = cork_xstrdup(src);
+    if (CORK_UNLIKELY(result == NULL)) {
+        abort();
+    }
+    return result;
+}
+
+const char *
+cork_strndup(const char *src, size_t size)
+{
+    const char  *result = cork_xstrndup(src, size);
+    if (CORK_UNLIKELY(result == NULL)) {
+        abort();
+    }
+    return result;
 }
