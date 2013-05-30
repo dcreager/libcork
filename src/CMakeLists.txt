@@ -51,7 +51,7 @@ target_link_libraries(libappname
     ${CORK_LIBRARIES}
 )
 
-install(TARGETS libappname DESTINATION lib)
+install(TARGETS libappname DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 #-----------------------------------------------------------------------
 # Generate the pkg-config file
@@ -59,4 +59,4 @@ install(TARGETS libappname DESTINATION lib)
 set(prefix ${CMAKE_INSTALL_PREFIX})
 configure_file(appname.pc.in ${CMAKE_CURRENT_BINARY_DIR}/appname.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/appname.pc
-        DESTINATION lib/pkgconfig)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
