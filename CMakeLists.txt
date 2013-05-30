@@ -75,6 +75,9 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
+    "The base name of the installation directory for libraries")
+
 if(CMAKE_COMPILER_IS_GNUCC)
     add_definitions(-Wall -Werror)
 endif(CMAKE_COMPILER_IS_GNUCC)

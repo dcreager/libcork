@@ -21,6 +21,9 @@ export TILERA_COMMON_ARGS=" \
     --cd $TEST_DIR/build \
     --run -+- ctest -+- --quit"
 
+# Note: we assume the Tilera processor is connected to the MDE by an IP
+# connection and has a hostname of 'tilera'.  Trust us - you don't want
+# to run tests over the serial connection.
 export TILERA_DEV_ARGS="$TILERA_COMMON_ARGS --net tilera --resume"
 $TILERA_ROOT/bin/tile-monitor $TILERA_DEV_ARGS
 
