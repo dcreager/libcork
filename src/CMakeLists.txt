@@ -108,7 +108,7 @@ target_link_libraries(cork-test embedded_libcork)
 # Note that we don't install cork-test; that's just for our test cases!
 install(TARGETS libcork cork-hash
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib)
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 #-----------------------------------------------------------------------
 # Generate the pkg-config file
@@ -116,4 +116,4 @@ install(TARGETS libcork cork-hash
 set(prefix ${CMAKE_INSTALL_PREFIX})
 configure_file(libcork.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc
-        DESTINATION lib/pkgconfig)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
