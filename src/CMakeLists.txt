@@ -70,8 +70,8 @@ target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
     COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 11.0.2
-    SOVERSION 11)
+    VERSION 12.0.0
+    SOVERSION 12)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
