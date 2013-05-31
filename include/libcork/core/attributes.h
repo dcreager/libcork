@@ -132,5 +132,41 @@
 #define CORK_UNLIKELY(expr)  (expr)
 #endif
 
+/*
+ * Declare that a function is part of the current library's public API, or that
+ * it's internal to the current library.
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_EXPORT  __attribute__((visibility("default")))
+#define CORK_IMPORT  __attribute__((visibility("default")))
+#define CORK_LOCAL   __attribute__((visibility("hidden")))
+#else
+#define CORK_EXPORT
+#define CORK_IMPORT
+#define CORK_LOCAL
+#endif
+
+
+/*
+ * Declare a static function that should automatically be called at program
+ * startup.
+ */
+
+/* TODO: When we implement a full Windows port, [1] describes how best to
+ * implement an initialization function under Visual Studio.
+ *
+ * [1] http://stackoverflow.com/questions/1113409/attribute-constructor-equivalent-in-vc
+ */
+
+#if CORK_CONFIG_HAVE_GCC_ATTRIBUTES
+#define CORK_INITIALIZER(name) \
+__attribute__((constructor)) \
+static void \
+name(void)
+#else
+#error "Don't know how to implement initialization functions of this platform"
+#endif
+
 
 #endif /* LIBCORK_CORE_ATTRIBUTES_H */

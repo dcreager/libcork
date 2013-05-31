@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
@@ -29,7 +30,7 @@
 #if CORK_HAVE_REALLOCF
 #define cork_xrealloc  reallocf
 #else
-void *
+CORK_API void *
 cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 #endif
 
@@ -38,10 +39,13 @@ cork_xrealloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
 
 /* string-related functions */
 
-const char *
+CORK_API const char *
 cork_xstrdup(const char *str);
 
-void
+CORK_API const char *
+cork_xstrndup(const char *str, size_t size);
+
+CORK_API void
 cork_strfree(const char *str);
 
 
@@ -49,16 +53,23 @@ cork_strfree(const char *str);
  * Abort on failure
  */
 
-#define cork_alloc_or_abort(op, ...) \
-    (cork_abort_if_null(cork_x##op(__VA_ARGS__), #op " failed"))
+CORK_API void *
+cork_malloc(size_t size) CORK_ATTR_MALLOC;
 
-#define cork_malloc(size)         cork_alloc_or_abort(malloc, size)
-#define cork_calloc(count, size)  cork_alloc_or_abort(calloc, count, size)
-#define cork_realloc(ptr, size)   cork_alloc_or_abort(realloc, ptr, size)
-#define cork_new(type)            cork_alloc_or_abort(new, type)
-#define cork_strdup(str) \
-    ((const char *) cork_abort_if_null \
-     ((void *) cork_xstrdup((str)), "strdup failed"))
+CORK_API void *
+cork_calloc(size_t count, size_t size) CORK_ATTR_MALLOC;
+
+CORK_API void *
+cork_realloc(void *ptr, size_t new_size) CORK_ATTR_MALLOC;
+
+CORK_API const char *
+cork_strdup(const char *src) CORK_ATTR_MALLOC;
+
+CORK_API const char *
+cork_strndup(const char *src, size_t size) CORK_ATTR_MALLOC;
+
+#define cork_new(type) \
+    cork_malloc(sizeof(type))
 
 
 #endif /* LIBCORK_CORE_ALLOCATOR_H */

@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -21,6 +21,7 @@
 #include "libcork/os/subprocess.h"
 #include "libcork/threads/basics.h"
 #include "libcork/helpers/errors.h"
+#include "libcork/helpers/posix.h"
 
 
 #if !defined(CORK_DEBUG_SUBPROCESS)
@@ -33,41 +34,6 @@
 #else
 #define DEBUG(...) /* no debug messages */
 #endif
-
-
-#define ri_check_posix(call) \
-    do { \
-        while (true) { \
-            if ((call) == -1) { \
-                if (errno == EINTR) { \
-                    continue; \
-                } else { \
-                    cork_system_error_set(); \
-                    CORK_PRINT_ERROR(); \
-                    return -1; \
-                } \
-            } else { \
-                break; \
-            } \
-        } \
-    } while (0)
-
-#define e_check_posix(call) \
-    do { \
-        while (true) { \
-            if ((call) == -1) { \
-                if (errno == EINTR) { \
-                    continue; \
-                } else { \
-                    cork_system_error_set(); \
-                    CORK_PRINT_ERROR(); \
-                    goto error; \
-                } \
-            } else { \
-                break; \
-            } \
-        } \
-    } while (0)
 
 
 /*-----------------------------------------------------------------------
@@ -91,18 +57,15 @@ cork_subprocess_group_new(void)
 {
     struct cork_subprocess_group  *group =
         cork_new(struct cork_subprocess_group);
-    cork_array_init(&group->subprocesses);
+    cork_pointer_array_init
+        (&group->subprocesses, (cork_free_f) cork_subprocess_free);
     return group;
 }
 
 void
 cork_subprocess_group_free(struct cork_subprocess_group *group)
 {
-    size_t  i;
     assert(group->still_running == 0);
-    for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
-        cork_subprocess_free(cork_array_at(&group->subprocesses, i));
-    }
     cork_array_done(&group->subprocesses);
     free(group);
 }
@@ -138,7 +101,7 @@ cork_pipe_close_read(struct cork_pipe *p)
 {
     if (p->fds[0] != -1) {
         DEBUG("Closing read pipe %d\n", p->fds[0]);
-        ri_check_posix(close(p->fds[0]));
+        rii_check_posix(close(p->fds[0]));
         p->fds[0] = -1;
     }
     return 0;
@@ -149,7 +112,7 @@ cork_pipe_close_write(struct cork_pipe *p)
 {
     if (p->fds[1] != -1) {
         DEBUG("Closing write pipe %d\n", p->fds[1]);
-        ri_check_posix(close(p->fds[1]));
+        rii_check_posix(close(p->fds[1]));
         p->fds[1] = -1;
     }
     return 0;
@@ -176,12 +139,12 @@ cork_pipe_open(struct cork_pipe *p)
 
         /* We want the read end of the pipe to be non-blocking. */
         DEBUG("Opening pipe\n");
-        ri_check_posix(pipe(p->fds));
+        rii_check_posix(pipe(p->fds));
         DEBUG("  Got read=%d write=%d\n", p->fds[0], p->fds[1]);
         DEBUG("  Setting non-blocking flag on read pipe\n");
-        e_check_posix(flags = fcntl(p->fds[0], F_GETFD));
+        ei_check_posix(flags = fcntl(p->fds[0], F_GETFD));
         flags |= O_NONBLOCK;
-        e_check_posix(fcntl(p->fds[0], F_SETFD, flags));
+        ei_check_posix(fcntl(p->fds[0], F_SETFD, flags));
     }
 
     p->first = true;
@@ -196,7 +159,7 @@ static int
 cork_pipe_dup(struct cork_pipe *p, int fd)
 {
     if (p->fds[1] != -1) {
-        ri_check_posix(dup2(p->fds[1], fd));
+        rii_check_posix(dup2(p->fds[1], fd));
     }
     return 0;
 }
@@ -243,7 +206,7 @@ cork_pipe_read(struct cork_pipe *p, struct cork_subprocess_group *group,
         } else if (bytes_read == 0) {
             DEBUG("  End of stream\n");
             rii_check(cork_stream_consumer_eof(p->consumer));
-            ri_check_posix(close(p->fds[0]));
+            rii_check_posix(close(p->fds[0]));
             p->fds[0] = -1;
             return 0;
         } else {
@@ -265,18 +228,21 @@ struct cork_subprocess {
     struct cork_pipe  stdout_pipe;
     struct cork_pipe  stderr_pipe;
     struct cork_thread_body  *body;
+    int  *exit_code;
 };
 
 struct cork_subprocess *
 cork_subprocess_new(struct cork_thread_body *body,
                     struct cork_stream_consumer *stdout_consumer,
-                    struct cork_stream_consumer *stderr_consumer)
+                    struct cork_stream_consumer *stderr_consumer,
+                    int *exit_code)
 {
     struct cork_subprocess  *self = cork_new(struct cork_subprocess);
     cork_pipe_init(&self->stdout_pipe, stdout_consumer);
     cork_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
     self->body = body;
+    self->exit_code = exit_code;
     return self;
 }
 
@@ -294,49 +260,46 @@ cork_subprocess_free(struct cork_subprocess *self)
  * Executing another program
  */
 
-struct cork_exec {
+struct cork_exec_body {
     struct cork_thread_body  parent;
-    const char  *program;
-    char * const  *params;
+    struct cork_exec  *exec;
 };
 
 static int
 cork_exec__run(struct cork_thread_body *vself)
 {
-    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
-    /* Execute the program */
-    e_check_posix(execvp(self->program, self->params));
-
-error:
-    /* If we fall through, there was an error execing the subprocess. */
-    _exit(EXIT_FAILURE);
+    struct cork_exec_body  *self =
+        cork_container_of(vself, struct cork_exec_body, parent);
+    return cork_exec_run(self->exec);
 }
 
 static void
 cork_exec__free(struct cork_thread_body *vself)
 {
-    struct cork_exec  *self = cork_container_of(vself, struct cork_exec, parent);
+    struct cork_exec_body  *self =
+        cork_container_of(vself, struct cork_exec_body, parent);
+    cork_exec_free(self->exec);
     free(self);
 }
 
 static struct cork_thread_body *
-cork_exec_new(const char *program, char * const *params)
+cork_exec_body_new(struct cork_exec *exec)
 {
-    struct cork_exec  *self = cork_new(struct cork_exec);
+    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
     self->parent.run = cork_exec__run;
     self->parent.free = cork_exec__free;
-    self->program = program;
-    self->params = params;
+    self->exec = exec;
     return &self->parent;
 }
 
 struct cork_subprocess *
-cork_subprocess_new_exec(const char *program, char * const *params,
-                         struct cork_stream_consumer *stdout_consumer,
-                         struct cork_stream_consumer *stderr_consumer)
+cork_subprocess_new_exec(struct cork_exec *exec,
+                         struct cork_stream_consumer *out,
+                         struct cork_stream_consumer *err,
+                         int *exit_code)
 {
-    struct cork_thread_body  *body = cork_exec_new(program, params);
-    return cork_subprocess_new(body, stdout_consumer, stderr_consumer);
+    struct cork_thread_body  *body = cork_exec_body_new(exec);
+    return cork_subprocess_new(body, out, err, exit_code);
 }
 
 
@@ -363,6 +326,7 @@ cork_subprocess_fork(struct cork_subprocess *self)
     pid = fork();
     if (pid == 0) {
         /* Child process */
+        int  rc;
 
         /* Close the parent's end of the pipes */
         DEBUG("[child] ");
@@ -379,8 +343,13 @@ cork_subprocess_fork(struct cork_subprocess *self)
         }
 
         /* Run the subprocess's body */
-        cork_thread_body_run(self->body);
-        _exit(EXIT_SUCCESS);
+        rc = cork_thread_body_run(self->body);
+        if (CORK_LIKELY(rc == 0)) {
+            _exit(EXIT_SUCCESS);
+        } else {
+            fprintf(stderr, "%s\n", cork_error_message());
+            _exit(EXIT_FAILURE);
+        }
     } else if (pid < 0) {
         /* Error forking */
         cork_system_error_set();
@@ -399,9 +368,13 @@ static void
 cork_subprocess_terminate(struct cork_subprocess *self)
 {
     if (self->pid > 0) {
+        int  status;
         DEBUG("Terminating child process %d\n", (int) self->pid);
         kill(self->pid, SIGTERM);
-        waitpid(self->pid, NULL, 0);
+        waitpid(self->pid, &status, 0);
+        if (self->exit_code != NULL) {
+            *self->exit_code = WEXITSTATUS(status);
+        }
     }
 }
 
@@ -465,6 +438,9 @@ cork_subprocess_chld_handler(int signum)
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         struct cork_subprocess  *sub = cork_subprocess_find(pid);
         cork_subprocess_mark_terminated(sub);
+        if (sub->exit_code != NULL) {
+            *sub->exit_code = WEXITSTATUS(status);
+        }
         current_group->still_running--;
         DEBUG("++   Processes still running: %zu\n",
               current_group->still_running);

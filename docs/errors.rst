@@ -213,6 +213,13 @@ The second character indicates whether *your* function returns an
 ``int`` or a pointer.  The third character indicates whether the
 function you're *calling* returns an ``int`` or a pointer.)
 
+.. function:: void rie_check(call)
+
+   Call a function whose return value isn't enough to check for an error, when
+   your function returns an ``int``.  We'll use :c:func:`cork_error_occurred` to
+   check for an error.  If the nested function call returns an error, we
+   propagate that error on.
+
 .. function:: void rii_check(call)
 
    Call a function that returns an ``int`` error indicator, when your
@@ -224,6 +231,13 @@ function you're *calling* returns an ``int`` or a pointer.)
    Call a function that returns a pointer, when your function returns an
    ``int``.  If the nested function call returns an error, we propagate
    that error on.
+
+.. function:: void rpe_check(call)
+
+   Call a function whose return value isn't enough to check for an error, when
+   your function returns a pointer.  We'll use :c:func:`cork_error_occurred` to
+   check for an error.  If the nested function call returns an error, we
+   propagate that error on.
 
 .. function:: void rpi_check(call)
 
@@ -256,6 +270,12 @@ returns an ``int`` or a pointer.  We don't need separate macros for
 *your* function's return type, since you provide a return value
 explicitly.)
 
+.. function:: void xe_check(retval, call)
+
+   Call a function whose return value isn't enough to check for an error.  If
+   the nested function call raises an error, we propagate that error on, and
+   return *retval* from the current function.
+
 .. function:: void xi_check(retval, call)
 
    Call a function that returns an ``int`` error indicator.  If the
@@ -283,17 +303,80 @@ label.  The second character indicates whether the function you're
 macros for *your* function's return type, since the macros won't
 automatically return anything.)
 
-.. function:: void ei_check(retval, call)
+.. function:: void ei_check(call)
+
+   Call a function whose return value isn't enough to check for an error.  If
+   the nested function call raises an error, we automatically jump to the
+   current scope's ``error`` label.
+
+.. function:: void ei_check(call)
 
    Call a function that returns an ``int`` error indicator.  If the
    nested function call raises an error, we automatically jump to the
    current scope's ``error`` label.
 
-.. function:: void ep_check(retval, call)
+.. function:: void ep_check(call)
 
    Call a function that returns a pointer.  If the nested function call
    raises an error, we automatically jump to the current scope's
    ``error`` label.
+
+
+Calling POSIX functions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :c:func:`cork_system_error_set` function automatically translates a POSIX
+error (specified in the standard ``errno`` variable) into a libcork error
+condition.  We also define several helper macros for calling a POSIX function
+and automatically checking its result.
+
+::
+
+   #include <libcork/helpers/posix.h>
+
+.. note::
+
+   For all of these macros, the ``EINTR`` POSIX error is handled specially.
+   This error indicates that a system call was interrupted by a signal, and that
+   the call should be retried.  The macros do not translate ``EINTR`` errors
+   into libcork errors; instead, they will retry the ``call`` until the
+   statement succeeds or returns a non-``EINTR`` error.
+
+.. function:: void rii_check_posix(call)
+
+   Call a function that returns an ``int`` error indicator, when your function
+   also returns an ``int``.  If the nested function call returns a POSIX error,
+   we translate it into a libcork error and return a libcork error code.
+
+.. function:: void rip_check_posix(call)
+
+   Call a function that returns a pointer, when your function returns an
+   ``int``.  If the nested function call returns a POSIX error, we translate it
+   into a libcork error and return a libcork error code.
+
+.. function:: void rpi_check_posix(call)
+
+   Call a function that returns an ``int`` error indicator, when your function
+   returns a pointer.  If the nested function call returns a POSIX error, we
+   translate it into a libcork error and return a libcork error code.
+
+.. function:: void rpp_check_posix(call)
+
+   Call a function that returns a pointer, when your function also returns a
+   pointer.  If the nested function call returns a POSIX error, we translate it
+   into a libcork error and return a libcork error code.
+
+.. function:: void ei_check_posix(call)
+
+   Call a function that returns an ``int`` error indicator.  If the nested
+   function call raises a POSIX error, we translate it into a libcork error and
+   automatically jump to the current scope's ``error`` label.
+
+.. function:: void ep_check_posix(call)
+
+   Call a function that returns a pointer.  If the nested function call raises a
+   POSIX error, we translate it into a libcork error and automatically jump to
+   the current scope's ``error`` label.
 
 
 Defining a new error class

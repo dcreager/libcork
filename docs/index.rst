@@ -35,6 +35,7 @@ Contents
    :maxdepth: 2
 
    config
+   visibility
    basic-types
    byte-order
    attributes
@@ -45,6 +46,7 @@ Contents
    ds
    cli
    files
+   process
    subprocess
    threads
 

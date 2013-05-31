@@ -12,6 +12,7 @@
 #define LIBCORK_CORE_TIMESTAMP_H
 
 
+#include <libcork/core/api.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
 
@@ -49,7 +50,7 @@ typedef uint64_t  cork_timestamp;
     } while (0)
 
 
-void
+CORK_API void
 cork_timestamp_init_now(cork_timestamp *ts);
 
 
@@ -62,11 +63,11 @@ cork_timestamp_init_now(cork_timestamp *ts);
 #define cork_timestamp_nsec(ts)  cork_timestamp_gsec_to_units(ts, 1000000000)
 
 
-bool
+CORK_API bool
 cork_timestamp_format_utc(const cork_timestamp ts, const char *format,
                           char *buf, size_t size);
 
-bool
+CORK_API bool
 cork_timestamp_format_local(const cork_timestamp ts, const char *format,
                             char *buf, size_t size);
 

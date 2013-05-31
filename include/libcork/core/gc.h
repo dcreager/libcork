@@ -12,6 +12,7 @@
 #define LIBCORK_GC_REFCOUNT_H
 
 
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 
 
@@ -38,14 +39,14 @@ struct cork_gc_obj_iface {
 };
 
 
-void
+CORK_API void
 cork_gc_init(void);
 
-void
+CORK_API void
 cork_gc_done(void);
 
 
-void *
+CORK_API void *
 cork_gc_alloc(size_t instance_size, struct cork_gc_obj_iface *iface);
 
 #define cork_gc_new_iface(obj_type, iface) \
@@ -56,10 +57,10 @@ cork_gc_alloc(size_t instance_size, struct cork_gc_obj_iface *iface);
     (cork_gc_new_iface(struct struct_name, &struct_name##__gc))
 
 
-void *
+CORK_API void *
 cork_gc_incref(void *obj);
 
-void
+CORK_API void
 cork_gc_decref(void *obj);
 
 

@@ -11,7 +11,7 @@
 #ifndef LIBCORK_DS_RING_BUFFER_H
 #define LIBCORK_DS_RING_BUFFER_H
 
-
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 
 
@@ -30,10 +30,10 @@ struct cork_ring_buffer {
 };
 
 
-int
+CORK_API int
 cork_ring_buffer_init(struct cork_ring_buffer *buf, size_t size);
 
-void
+CORK_API void
 cork_ring_buffer_done(struct cork_ring_buffer *buf);
 
 
@@ -41,13 +41,13 @@ cork_ring_buffer_done(struct cork_ring_buffer *buf);
 #define cork_ring_buffer_is_full(buf) ((buf)->size == (buf)->allocated_size)
 
 
-int
+CORK_API int
 cork_ring_buffer_add(struct cork_ring_buffer *buf, void *element);
 
-void *
+CORK_API void *
 cork_ring_buffer_pop(struct cork_ring_buffer *buf);
 
-void *
+CORK_API void *
 cork_ring_buffer_peek(struct cork_ring_buffer *buf);
 
 

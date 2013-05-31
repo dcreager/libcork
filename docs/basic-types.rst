@@ -72,6 +72,9 @@ Size macros
    The size (in bytes) of the ``short``, ``int``, ``long``, and ``void
    *`` types, respectively.
 
+
+.. _embedded-struct:
+
 Embedded ``struct``\ s
 ======================
 

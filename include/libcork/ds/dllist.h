@@ -11,7 +11,7 @@
 #ifndef LIBCORK_DS_DLLIST_H
 #define LIBCORK_DS_DLLIST_H
 
-
+#include <libcork/core/api.h>
 #include <libcork/core/types.h>
 
 
@@ -28,20 +28,22 @@ struct cork_dllist {
     struct cork_dllist_item  head;
 };
 
+#define CORK_DLLIST_INIT(list)  { { &(list).head, &(list).head } }
 
-void
+
+CORK_API void
 cork_dllist_init(struct cork_dllist *list);
 
 
 typedef void
 (*cork_dllist_map_func)(struct cork_dllist_item *element, void *user_data);
 
-void
+CORK_API void
 cork_dllist_map(struct cork_dllist *list,
                 cork_dllist_map_func func, void *user_data);
 
 
-size_t
+CORK_API size_t
 cork_dllist_size(const struct cork_dllist *list);
 
 
@@ -51,6 +53,22 @@ cork_dllist_size(const struct cork_dllist *list);
         (element)->prev = (list)->head.prev; \
         (list)->head.prev = (element); \
         (element)->next = &(list)->head; \
+    } while (0)
+
+#define cork_dllist_add_after(pred, element) \
+    do { \
+        (element)->prev = (pred); \
+        (element)->next = (pred)->next; \
+        (pred)->next->prev = (element); \
+        (pred)->next = (element); \
+    } while (0)
+
+#define cork_dllist_add_before(succ, element) \
+    do { \
+        (element)->next = (succ); \
+        (element)->prev = (succ)->prev; \
+        (succ)->prev->next = (element); \
+        (succ)->prev = (element); \
     } while (0)
 
 

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
@@ -26,24 +27,24 @@ typedef uint32_t  cork_error_class;
 
 typedef unsigned int  cork_error_code;
 
-bool
+CORK_API bool
 cork_error_occurred(void);
 
-cork_error_class
+CORK_API cork_error_class
 cork_error_get_class(void);
 
-cork_error_code
+CORK_API cork_error_code
 cork_error_get_code(void);
 
-const char *
+CORK_API const char *
 cork_error_message(void);
 
-void
+CORK_API void
 cork_error_set(cork_error_class error_class, cork_error_code error_code,
                const char *format, ...)
     CORK_ATTR_PRINTF(3,4);
 
-void
+CORK_API void
 cork_error_clear(void);
 
 
@@ -61,10 +62,13 @@ enum cork_builtin_error {
     CORK_UNKNOWN_ERROR
 };
 
-void
+CORK_API void
 cork_system_error_set(void);
 
-void
+CORK_API void
+cork_system_error_set_explicit(int err);
+
+CORK_API void
 cork_unknown_error_set_(const char *location);
 
 #define cork_unknown_error() \

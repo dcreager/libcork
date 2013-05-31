@@ -31,37 +31,33 @@ Subprocess objects
 Creating subprocesses
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are several functions that you can use to create child processes.
+There are several functions that you can use to create and execute child
+processes.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
+.. function:: struct cork_subprocess \*cork_subprocess_new(struct cork_thread_body \*body, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
+              struct cork_subprocess \*cork_subprocess_new_exec(struct cork_exec \*exec, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr, int \*exit_code)
 
-   Create a new subprocess that will execute the *body* callback object.
+   Create a new subprocess specification.  The first variant will execute the
+   given *body* callback object in the subprocess.  The second variant will
+   execute a new program in the subprocess; the details of the program to
+   execute are given by a :c:type:`cork_exec` specification object.
 
-   .. type:: struct cork_thread_body
+   For both of these functions, you can collect the data that the subprocess
+   writes to its stdout and stderr streams by passing in :ref:`stream consumer
+   <stream-consumers>` instances for the *stdout* and/or *stderr* parameters.
+   If either (or both) of these parameters is ``NULL``, then the child process
+   will inherit the corresponding output stream from the current process.
+   (Usually, this means that the child's stdout or stderr will be interleaved
+   with the parent's.)
 
-      .. member:: int (\*run)(struct cork_thread_body \*body)
-                  void (\*free)(struct cork_thread_body \*body)
+   If you provide a non-``NULL`` pointer for the *exit_code* parameter, then we
+   will fill in this pointer with the exit code of the subprocess when it
+   finishes.  For :c:func:`cork_subprocess_new_exec`, the exit code is the value
+   passed to the builtin ``exit`` function, or the value returned from the
+   subprocess's ``main`` function.  For :c:func:`cork_subprocess_new`, the exit
+   code is the value returned from the thread body's
+   :c:member:`~cork_thread_body.run` method.
 
-.. function:: struct cork_subprocess \*cork_subprocess_new_exec(const char \*program, char \* const \*params, struct cork_stream_consumer \*stdout, struct cork_stream_consumer \*stderr)
-
-   Create a new subprocess that will execute another program.  *program* should
-   either be an absolute path to an executable on the local filesystem, or the
-   name of an executable that should be found in the current ``PATH``.  *params*
-   should be a parameter array suitable to pass into the program's ``main``
-   function.  (It must be ``NULL``\ -terminated, and its first element must be
-   the *program*.)
-
-For all of these functions, you can collect the data that the subprocess writes
-to its stdout and stderr streams by passing in :ref:`stream consumer
-<stream-consumers>` instances for the *stdout* and/or *stderr* parameters.  If
-either (or both) of these parameters is ``NULL``, then the child process will
-inherit the corresponding output stream from the current process.  (Usually,
-this means that the child's stdout or stderr will be interleaved with the
-parent's.)
-
-
-Executing subprocesses
-~~~~~~~~~~~~~~~~~~~~~~
 
 The functions for executing subprocesses actually work on a *group* of
 subprocesses.  This lets you start up several subprocesses at the same time, and

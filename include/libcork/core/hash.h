@@ -12,6 +12,7 @@
 #define LIBCORK_CORE_HASH_H
 
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
 #include <libcork/core/types.h>
@@ -73,12 +74,14 @@ CORK_HASH_ATTRIBUTES
 cork_hash
 cork_stable_hash_buffer(cork_hash seed, const void *src, size_t len)
 {
+    typedef uint32_t __attribute__((__may_alias__))  cork_aliased_uint32_t;
+
     /* This is exactly the same as cork_murmur_hash_x86_32, but with a byte swap
      * to make sure that we always process the uint32s little-endian. */
     const unsigned int  nblocks = len / 4;
-    const uint32_t  *blocks = (const uint32_t *) src;
-    const uint32_t  *end = blocks + nblocks;
-    const uint32_t  *curr;
+    const cork_aliased_uint32_t  *blocks = (const cork_aliased_uint32_t *) src;
+    const cork_aliased_uint32_t  *end = blocks + nblocks;
+    const cork_aliased_uint32_t  *curr;
     const uint8_t  *tail = (const uint8_t *) end;
 
     uint32_t  h1 = seed;
@@ -115,10 +118,12 @@ cork_stable_hash_buffer(cork_hash seed, const void *src, size_t len)
 
 #define cork_murmur_hash_x86_32(seed, src, len, dest) \
 do { \
+    typedef uint32_t __attribute__((__may_alias__))  cork_aliased_uint32_t; \
+    \
     const unsigned int  nblocks = len / 4; \
-    const uint32_t  *blocks = (const uint32_t *) src; \
-    const uint32_t  *end = blocks + nblocks; \
-    const uint32_t  *curr; \
+    const cork_aliased_uint32_t  *blocks = (const cork_aliased_uint32_t *) src; \
+    const cork_aliased_uint32_t  *end = blocks + nblocks; \
+    const cork_aliased_uint32_t  *curr; \
     const uint8_t  *tail = (const uint8_t *) end; \
     \
     uint32_t  h1 = seed; \
@@ -155,10 +160,12 @@ do { \
 
 #define cork_murmur_hash_x86_128(seed, src, len, dest) \
 do { \
-    const int  nblocks = len / 16; \
-    const uint32_t  *blocks = (const uint32_t *) src; \
-    const uint32_t  *end = blocks + (nblocks * 4); \
-    const uint32_t  *curr; \
+    typedef uint32_t __attribute__((__may_alias__))  cork_aliased_uint32_t; \
+    \
+    const unsigned int  nblocks = len / 16; \
+    const cork_aliased_uint32_t  *blocks = (const cork_aliased_uint32_t *) src; \
+    const cork_aliased_uint32_t  *end = blocks + (nblocks * 4); \
+    const cork_aliased_uint32_t  *curr; \
     const uint8_t  *tail = (const uint8_t *) end; \
     \
     uint32_t  h1 = seed; \
@@ -245,10 +252,12 @@ do { \
 
 #define cork_murmur_hash_x64_128(seed, src, len, dest) \
 do { \
-    const int  nblocks = len / 16; \
-    const uint64_t  *blocks = (const uint64_t *) src; \
-    const uint64_t  *end = blocks + (nblocks * 2); \
-    const uint64_t  *curr; \
+    typedef uint64_t __attribute__((__may_alias__))  cork_aliased_uint64_t; \
+    \
+    const unsigned int  nblocks = len / 16; \
+    const cork_aliased_uint64_t  *blocks = (const cork_aliased_uint64_t *) src; \
+    const cork_aliased_uint64_t  *end = blocks + (nblocks * 2); \
+    const cork_aliased_uint64_t  *curr; \
     const uint8_t  *tail = (const uint8_t *) end; \
     \
     uint64_t  h1 = (((uint64_t) seed) << 32) | seed; \

@@ -13,6 +13,7 @@
 
 #include <assert.h>
 
+#include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
 #include <libcork/threads/atomics.h>
 
@@ -25,8 +26,10 @@ typedef unsigned int  cork_thread_id;
 
 #define CORK_THREAD_NONE  ((cork_thread_id) 0)
 
-cork_thread_id
-cork_thread_get_id(void);
+/* Returns a valid ID for any thread — even the main thread and threads that
+ * aren't created by libcork. */
+CORK_API cork_thread_id
+cork_current_thread_get_id(void);
 
 
 /*-----------------------------------------------------------------------
@@ -43,6 +46,40 @@ struct cork_thread_body {
 
 #define cork_thread_body_run(tb)  ((tb)->run((tb)))
 #define cork_thread_body_free(tb)  ((tb)->free((tb)))
+
+
+/*-----------------------------------------------------------------------
+ * Threads
+ */
+
+struct cork_thread;
+
+/* Returns NULL for the main thread, and for any thread not created via
+ * cork_thread_new/cork_thread_start. */
+CORK_API struct cork_thread *
+cork_current_thread_get(void);
+
+CORK_API struct cork_thread *
+cork_thread_new(const char *name, struct cork_thread_body *body);
+
+/* Thread must not have been started yet. */
+CORK_API void
+cork_thread_free(struct cork_thread *thread);
+
+CORK_API const char *
+cork_thread_get_name(struct cork_thread *thread);
+
+CORK_API cork_thread_id
+cork_thread_get_id(struct cork_thread *thread);
+
+/* Can only be called once per thread.  Thread will automatically be freed when
+ * its done. */
+CORK_API int
+cork_thread_start(struct cork_thread *thread);
+
+/* Can only be called once per thread; must be called after cork_thread_start. */
+CORK_API int
+cork_thread_join(struct cork_thread *thread);
 
 
 /*-----------------------------------------------------------------------
@@ -95,14 +132,15 @@ struct cork_thread_body {
             if (CORK_LIKELY(prior_state == 0)) { \
                 CORK_ATTR_UNUSED int  result; \
                 /* we get to initialize */ \
-                name##__once.initializing_thread = cork_thread_get_id(); \
+                name##__once.initializing_thread = \
+                    cork_current_thread_get_id(); \
                 call; \
                 result = cork_int_cas(&name##__once.barrier, 1, 2); \
                 assert(result == 1); \
             } else { \
                 /* someone else is initializing, is it us? */ \
                 if (name##__once.initializing_thread == \
-                    cork_thread_get_id()) { \
+                    cork_current_thread_get_id()) { \
                     /* yep, fall through to let our recursion continue */ \
                 } else { \
                     /* nope; wait for the initialization to finish */ \

@@ -14,12 +14,12 @@
 #include "libcork/core/error.h"
 
 #if !defined(PRINT_EXPECTED_FAILURES)
-#define PRINT_EXPECTED_FAILURES  0
+#define PRINT_EXPECTED_FAILURES  1
 #endif
 
 #if PRINT_EXPECTED_FAILURES
 #define print_expected_failure() \
-    printf("%s\n", cork_error_message());
+    printf("[expected: %s]\n", cork_error_message());
 #else
 #define print_expected_failure()  /* do nothing */
 #endif
@@ -53,6 +53,11 @@
                  "%s not equal (expected " format \
                  ", got " format ")", \
                  (what), (expected), (actual)))
+
+#define fail_unless_streq(what, expected, actual) \
+    (fail_unless(strcmp((expected), (actual)) == 0, \
+                 "%s not equal (expected \"%s\", got \"%s\")", \
+                 (char *) (what), (char *) (expected), (char *) (actual)))
 
 
 #endif /* TESTS_HELPERS_H */

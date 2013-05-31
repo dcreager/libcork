@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------
  */
 
-#define CORK_HASH_ATTRIBUTES  /* not static in here! */
+#define CORK_HASH_ATTRIBUTES  CORK_API
 
 #include "libcork/core/hash.h"
 #include "libcork/core/types.h"

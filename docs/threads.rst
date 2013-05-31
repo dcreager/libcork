@@ -14,10 +14,10 @@ libcork provides several functions for handling threads and writing
 thread-aware code in a portable way.
 
 
-.. _threads:
+.. _thread-ids:
 
-Thread information
-==================
+Thread IDs
+==========
 
 .. type:: unsigned int cork_thread_id
 
@@ -36,9 +36,132 @@ Thread information
    containing a :c:type:`cork_thread_id`, and have its initial state
    automatically represent "no thread".
 
-.. function:: cork_thread_id cork_thread_get_id(void)
+.. function:: cork_thread_id cork_current_thread_get_id(void)
 
-   Returns the identifier of the currently executing thread.
+   Returns the identifier of the currently executing thread.  This function
+   works correctly for any thread in the current proces --- including the main
+   thread, and threads that weren't created by :c:func:`cork_thread_new`.
+
+
+.. _threads:
+
+Creating threads
+================
+
+The functions in this section let you create and start new threads in the
+current process.  Each libcork thread is named and has a unique :ref:`thread ID
+<thread-ids>`.  Each thread also contains a *body*, which defines the code that
+should be executed within the new thread.
+
+Every thread goes through the same lifecycle:
+
+1) You create a new thread via :c:func:`cork_thread_new`.  At this point, the
+   thread is ready to execute, but isn't automatically started.  If you
+   encounter an error before you start the thread, you must use
+   :c:func:`cork_thread_free` to free the thread object.
+
+   When you create the thread, you give it a :c:type:`cork_thread_body`
+   instance.  This body serves two purposes: it defines the code that will be
+   executed in the new thread, and by embedding the :c:type:`cork_thread_body`
+   instance inside of a larger ``struct``, it gives you a place to pass data
+   into and out of the thread.
+
+   .. note::
+
+      Any data passed into and out of the thread via the body instance is not
+      automatically synchronized or thread-safe.  You can pass in input data
+      before calling :c:type:`cork_thread_new`, and retrieve output data after
+      calling :c:type:`cork_thread_join`.  While the thread is executing, you
+      must implement your own synchronization or locking to access the contents
+      of the body from some other thread.
+
+2) You start the thread via :c:func:`cork_thread_start`.  You must ensure that
+   you don't try to start a thread more than once.  Once you've started a
+   thread, you no longer have responsibility for freeing it; you must ensure
+   that you don't call :c:func:`cork_thread_free` on a thread that you've
+   started.
+
+3) Once you've started a thread, you wait for it to finish via
+   :c:func:`cork_thread_join`.  Any thread can wait for any other thread to
+   finish, although you are responsible for ensuring that your threads don't
+   deadlock.  However, you can only join a particular thread once.  The thread
+   does not automatically free its :c:type:`cork_thread_body` instance, so you
+   can extract any output data from the thread at this point.
+
+
+.. type:: struct cork_thread_body
+
+   The code that should be executed within a new thread.  If you need to pass
+   any information into the thread before it starts, or to retrieve information
+   from the thread when it finishes, you should create a :ref:`subclass
+   <embedded-struct>` of this type.
+
+   .. member:: int (\*run)(struct cork_thread_body \*body)
+
+      The function that gets executed within the new thread.
+
+   .. member:: void (\*free)(struct cork_thread_body \*body)
+
+      Free any additional resources used by this thread body.
+
+.. function:: int cork_thread_body_run(struct cork_thread_body \*body)
+
+   Execute the *body*'s :c:member:`~cork_thread_body.run` method.  You will
+   normally not have to call this function directly; the
+   :c:member:`~cork_thread_body.run` method will be called automatically when
+   the corresponding thread is started.
+
+.. function:: void cork_thread_body_free(struct cork_thread_body \*body)
+
+   Free *body*.  You must make sure not to call this function if there's a
+   thread currently executing this body.
+
+
+.. type:: struct cork_thread
+
+   A thread within the current process.  This type is opaque; you must use the
+   functions defined below to interact with the thread.
+
+
+.. function:: struct cork_thread \*cork_thread_new(const char \*name, struct cork_thread_body \*body)
+
+   Create a new thread with the given *name* that will execute *body*.  The
+   thread does not start running immediately.
+
+.. function:: void cork_thread_free(struct cork_thread \*thread)
+
+   Free *thread*.  You can only call this function if you haven't started the
+   thread yet.  Once you start a thread, the thread is responsible for freeing
+   itself when it finishes.
+
+.. function:: struct cork_thread \*cork_current_thread_get(void)
+
+   Return the :c:type:`cork_thread` instance for the current thread.  This
+   function returns ``NULL`` when called from the main thread (i.e., the one
+   created automatically when the process starts), or from a thread that wasn't
+   created via :c:func:`cork_thread_new`.
+
+.. function:: const char \* cork_thread_get_name(struct cork_thread \*thread)
+              cork_thread_id cork_thread_get_id(struct cork_thread \*thread)
+
+   Retrieve information about the given thread.
+
+.. function:: int cork_thread_start(struct cork_thread \*thread)
+
+   Start *thread*.  After calling this function, you must not try to free
+   *thread* yourself; the thread will automatically free itself once it has
+   finished executing and has been joined.
+
+.. function:: int cork_thread_join(struct cork_thread \*thread)
+
+   Wait for *thread* to finish executing.  If the thread's body's
+   :c:member:`~cork_thread_body.run` method returns an :ref:`error condition
+   <errors>`, we will catch that error and return it ourselves.  The thread is
+   automatically freed once it finishes executing.
+
+   You cannot join a thread that has not been started, and once you've started a
+   thread, you **must** join it exactly once.  (If you don't join it, there's no
+   guarantee that it will be freed.)
 
 
 .. _atomics:

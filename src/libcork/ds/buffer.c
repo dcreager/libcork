@@ -96,6 +96,9 @@ void
 cork_buffer_clear(struct cork_buffer *buffer)
 {
     buffer->size = 0;
+    if (buffer->buf != NULL) {
+        ((char *) buffer->buf)[0] = '\0';
+    }
 }
 
 void
@@ -103,7 +106,11 @@ cork_buffer_truncate(struct cork_buffer *buffer, size_t length)
 {
     if (buffer->size > length) {
         buffer->size = length;
-        if (length > 0) {
+        if (length == 0) {
+            if (buffer->buf != NULL) {
+                ((char *) buffer->buf)[0] = '\0';
+            }
+        } else {
             ((char *) buffer->buf)[length] = '\0';
         }
     }

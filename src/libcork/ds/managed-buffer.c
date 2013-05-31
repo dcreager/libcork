@@ -169,12 +169,12 @@ cork_managed_buffer__slice_free(struct cork_slice *self)
 }
 
 static int
-cork_managed_buffer__slice_copy(struct cork_slice *self,
-                                struct cork_slice *dest,
+cork_managed_buffer__slice_copy(struct cork_slice *dest,
+                                const struct cork_slice *src,
                                 size_t offset, size_t length)
 {
-    struct cork_managed_buffer  *mbuf = self->user_data;
-    dest->buf = self->buf + offset;
+    struct cork_managed_buffer  *mbuf = src->user_data;
+    dest->buf = src->buf + offset;
     dest->size = length;
     dest->iface = &CORK_MANAGED_BUFFER__SLICE;
     dest->user_data = cork_managed_buffer_ref(mbuf);
@@ -183,6 +183,7 @@ cork_managed_buffer__slice_copy(struct cork_slice *self,
 
 static struct cork_slice_iface  CORK_MANAGED_BUFFER__SLICE = {
     cork_managed_buffer__slice_free,
+    cork_managed_buffer__slice_copy,
     cork_managed_buffer__slice_copy,
     NULL
 };
@@ -194,7 +195,7 @@ cork_managed_buffer_slice(struct cork_slice *dest,
                           size_t offset, size_t length)
 {
     if ((buffer != NULL) &&
-        (offset < buffer->size) &&
+        (offset <= buffer->size) &&
         ((offset + length) <= buffer->size)) {
         /*
         DEBUG("Slicing [%p:%zu] at %zu:%zu, gives <%p:%zu>",

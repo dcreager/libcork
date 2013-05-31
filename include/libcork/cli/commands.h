@@ -11,6 +11,8 @@
 #ifndef LIBCORK_COMMANDS_H
 #define LIBCORK_COMMANDS_H
 
+#include <libcork/core/api.h>
+
 
 typedef void
 (*cork_leaf_command_run)(int argc, char **argv);
@@ -49,10 +51,10 @@ struct cork_command {
     parse_options, NULL, run \
 }
 
-void
+CORK_API void
 cork_command_show_help(struct cork_command *command, const char *message);
 
-int
+CORK_API int
 cork_command_main(struct cork_command *root, int argc, char **argv);
 
 
