@@ -89,6 +89,15 @@ macros to choose among the possible implementations.
    .. _atomic intrinsics: http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html
 
 
+.. macro:: CORK_CONFIG_HAVE_GCC_INT128
+
+   Whether the GCC-style `128-bit integer`_ types (``__int128`` and ``unsigned
+   __int128``) are available.  (This doesn't imply that the compiler is
+   specifically GCC.)  Should be defined to ``0`` or ``1``.
+
+   .. _128-bit integer: http://gcc.gnu.org/onlinedocs/gcc/_005f_005fint128.html
+
+
 .. macro:: CORK_CONFIG_HAVE_GCC_STATEMENT_EXPRS
 
    Whether GCC-style `statement expressions`_ are available.
