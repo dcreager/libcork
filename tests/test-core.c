@@ -236,14 +236,16 @@ END_TEST
 
 #define test_big_hash_func(buf, len, e1, e2) \
     do { \
-        struct cork_big_hash  expected = {{{e1,e2}}}; \
-        struct cork_big_hash  actual = CORK_BIG_HASH_INIT(); \
-        cork_big_hash_buffer(0, buf, len, &actual); \
-        fail_unless(cork_big_hash_equal(&actual, &expected), \
+        cork_big_hash  seed = CORK_BIG_HASH_INIT(); \
+        cork_big_hash  expected = {cork_u128_from_64(e1, e2)}; \
+        cork_big_hash  actual = cork_big_hash_buffer(seed, buf, len); \
+        fail_unless(cork_big_hash_equal(actual, expected), \
                     "\nUnexpected hash value 0x%016" PRIx64 ".%016" PRIx64 \
                     "\n            (expected 0x%016" PRIx64 ".%016" PRIx64 ")", \
-                    actual._.u64[0], actual._.u64[1], \
-                    expected._.u64[0], expected._.u64[1]); \
+                    cork_u128_be64(actual.u128, 0), \
+                    cork_u128_be64(actual.u128, 1), \
+                    cork_u128_be64(expected.u128, 0), \
+                    cork_u128_be64(expected.u128, 1)); \
     } while (0)
 
 #if CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
@@ -286,7 +288,7 @@ START_TEST(test_hash)
     test_hash_buf(BUF, LEN-1,
       /* little 32 */ 0xba6bd213,
       /*    big 32 */ 0x29d175e5,
-      /* little 64 */ 0x74bde19d,
+      /* little 64 */ 0xac7d28cc,
       /*    big 64 */ 0x74bde19d);
     test_big_hash_buf(BUF, LEN-1,
       /* little 32 */ 0x550c7d686f02ef30, 0x550c7d68550c7d68,
@@ -299,7 +301,7 @@ START_TEST(test_hash)
     test_hash_buf(BUF, LEN,
       /* little 32 */ 0x586fce33,
       /*    big 32 */ 0xe31d1ce0,
-      /* little 64 */ 0x4d18f852,
+      /* little 64 */ 0xc3812fdf,
       /*    big 64 */ 0x4d18f852);
     test_big_hash_buf(BUF, LEN,
       /* little 32 */ 0x29ab177c98c2b52b, 0x29ab177c29ab177c,
@@ -312,7 +314,7 @@ START_TEST(test_hash)
     test_hash_buf(LONG_BUF, LONG_LEN-1,
       /* little 32 */ 0x5caacc30,
       /*    big 32 */ 0x88f94165,
-      /* little 64 */ 0x8fa72e9c,
+      /* little 64 */ 0xcbdc2092,
       /*    big 64 */ 0x03578c96);
     test_big_hash_buf(LONG_BUF, LONG_LEN-1,
       /* little 32 */ 0x4fb7793c4240d513, 0x799f335aee7e281c,
@@ -325,7 +327,7 @@ START_TEST(test_hash)
     test_hash_buf(LONG_BUF, LONG_LEN,
       /* little 32 */ 0x5e37d33d,
       /*    big 32 */ 0x4977421a,
-      /* little 64 */ 0x4becb434,
+      /* little 64 */ 0xe89ec005,
       /*    big 64 */ 0x8c919559);
     test_big_hash_buf(LONG_BUF, LONG_LEN,
       /* little 32 */ 0xc261514663bcdcd0, 0xece3cab68e7fd7aa,
@@ -337,14 +339,14 @@ START_TEST(test_hash)
     test_hash_var(val32,
       /* little 32 */ 0x6bb65380,
       /*    big 32 */ 0x6bb65380,
-      /* little 64 */ 0x7e1b3998,
+      /* little 64 */ 0x061fecc8,
       /*    big 64 */ 0x7e1b3998);
 
     test_stable_hash_var(stable_val64, 0x4d5c4063);
     test_hash_var(val64,
       /* little 32 */ 0x4d5c4063,
       /*    big 32 */ 0xbaeee6e9,
-      /* little 64 */ 0x267305fb,
+      /* little 64 */ 0xb119ee69,
       /*    big 64 */ 0x267305fb);
 }
 END_TEST
