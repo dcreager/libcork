@@ -18,6 +18,7 @@ addition, libcork defines some useful low-level types:
 .. toctree::
    :maxdepth: 1
 
+   int128
    net-addresses
    timestamps
    hash-values

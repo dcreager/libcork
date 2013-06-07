@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -24,5 +23,6 @@
 #include <libcork/core/net-addresses.h>
 #include <libcork/core/timestamp.h>
 #include <libcork/core/types.h>
+#include <libcork/core/u128.h>
 
 #endif /* LIBCORK_CORE_H */
