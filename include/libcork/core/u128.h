@@ -28,7 +28,13 @@ typedef struct {
         struct { uint64_t lo; uint64_t hi; } be64;
 #endif
 #if CORK_CONFIG_HAVE_GCC_INT128
+#define CORK_U128_HAVE_U128  1
         unsigned __int128  u128;
+#elif CORK_CONFIG_HAVE_GCC_MODE_ATTRIBUTE
+#define CORK_U128_HAVE_U128  1
+        unsigned int  u128 __attribute__((mode(TI)));
+#else
+#define CORK_U128_HAVE_U128  0
 #endif
     } _;
 } cork_u128;
@@ -89,7 +95,7 @@ static cork_u128
 cork_u128_add(cork_u128 a, cork_u128 b)
 {
     cork_u128  result;
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     result._.u128 = a._.u128 + b._.u128;
 #else
     result._.be64.lo = a._.be64.lo + b._.be64.lo;
@@ -104,7 +110,7 @@ static cork_u128
 cork_u128_sub(cork_u128 a, cork_u128 b)
 {
     cork_u128  result;
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     result._.u128 = a._.u128 - b._.u128;
 #else
     result._.be64.lo = a._.be64.lo - b._.be64.lo;
@@ -119,7 +125,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_eq(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 == b._.u128);
 #else
     return (a._.be64.hi == b._.be64.hi) && (a._.be64.lo == b._.be64.lo);
@@ -130,7 +136,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_ne(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 != b._.u128);
 #else
     return (a._.be64.hi != b._.be64.hi) || (a._.be64.lo != b._.be64.lo);
@@ -141,7 +147,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_lt(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 < b._.u128);
 #else
     if (a._.be64.hi == b._.be64.hi) {
@@ -156,7 +162,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_le(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 <= b._.u128);
 #else
     if (a._.be64.hi == b._.be64.hi) {
@@ -171,7 +177,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_gt(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 > b._.u128);
 #else
     if (a._.be64.hi == b._.be64.hi) {
@@ -186,7 +192,7 @@ CORK_ATTR_UNUSED
 static bool
 cork_u128_ge(cork_u128 a, cork_u128 b)
 {
-#if CORK_CONFIG_HAVE_GCC_INT128
+#if CORK_U128_HAVE_U128
     return (a._.u128 >= b._.u128);
 #else
     if (a._.be64.hi == b._.be64.hi) {
