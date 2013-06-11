@@ -7,6 +7,8 @@
  * ----------------------------------------------------------------------
  */
 
+#include <string.h>
+
 #include "libcork/core/allocator.h"
 #include "libcork/core/api.h"
 #include "libcork/core/types.h"
@@ -27,8 +29,10 @@ struct cork_bitset *
 cork_bitset_new(size_t bit_count)
 {
     struct cork_bitset  *set = cork_new(struct cork_bitset);
-    set->bits = cork_malloc(bytes_needed(bit_count));
     set->bit_count = bit_count;
+    set->byte_count = bytes_needed(bit_count);
+    set->bits = cork_malloc(set->byte_count);
+    memset(set->bits, 0, set->byte_count);
     return set;
 }
 
@@ -37,4 +41,10 @@ cork_bitset_free(struct cork_bitset *set)
 {
     free(set->bits);
     free(set);
+}
+
+void
+cork_bitset_clear(struct cork_bitset *set)
+{
+    memset(set->bits, 0, set->byte_count);
 }
