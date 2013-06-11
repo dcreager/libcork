@@ -76,13 +76,18 @@ this using the :ref:`cork-hash <cork-hash>` script described below::
    different versions of the libcork library.
 
 
-.. type:: struct cork_big_hash
+.. type:: cork_big_hash
 
-.. function:: void cork_big_hash_buffer(cork_hash seed, const void \*src, size_t len, struct cork_big_hash \*dest)
+.. function:: cork_big_hash cork_big_hash_buffer(cork_big_hash seed, const void \*src, size_t len)
 
    Incorporate the contents of the given binary buffer into a "big" hash value.
    A big hash value has a much larger space of possible hash values (128 bits vs
    32).
+
+
+.. function:: bool cork_big_hash_equal(cork_big_hash hash1, cork_big_hash hash2)
+
+   Compare two big hash values for equality.
 
 
 .. _cork-hash:

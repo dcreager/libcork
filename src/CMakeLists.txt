@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2012, RedJack, LLC.
+# Copyright © 2011-2013, RedJack, LLC.
 # All rights reserved.
 #
-# Please see the COPYING file in this distribution for license
-# details.
+# Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
 include_directories(../include)
@@ -21,6 +20,7 @@ set(LIBCORK_SRC
     libcork/core/ip-address.c
     libcork/core/mempool.c
     libcork/core/timestamp.c
+    libcork/core/u128.c
     libcork/ds/array.c
     libcork/ds/bitset.c
     libcork/ds/buffer.c
