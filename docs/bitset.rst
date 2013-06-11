@@ -30,7 +30,8 @@ bitset to exhaust the available memory.
 
 .. function:: struct cork_bitset \*cork_bitset_new(size_t bit_count)
 
-   Create a new bitset with enough space to store the given number of bits.
+   Create a new bitset with enough space to store the given number of bits.  All
+   bits will be initialized to ``0``.
 
 .. function:: void cork_bitset_free(struct cork_bitset \*set)
 
@@ -45,3 +46,7 @@ bitset to exhaust the available memory.
 
    Turn the given bit on or off in *set*.  It is your responsibility to ensure
    that *index* is within the valid range for *set*.
+
+.. function:: void cork_bitset_clear(struct cork_bitset \*set)
+
+   Turn off of the bits in *set*.

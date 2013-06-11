@@ -22,6 +22,7 @@
 struct cork_bitset {
     uint8_t  *bits;
     size_t  bit_count;
+    size_t  byte_count;
 };
 
 CORK_API struct cork_bitset *
@@ -29,6 +30,9 @@ cork_bitset_new(size_t bit_count);
 
 CORK_API void
 cork_bitset_free(struct cork_bitset *set);
+
+CORK_API void
+cork_bitset_clear(struct cork_bitset *set);
 
 /* Extract the byte that contains a particular bit in an array. */
 #define cork_bitset_byte_for_bit(set, i) \
