@@ -70,7 +70,7 @@ target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
     COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 13.0.1
+    VERSION 13.1.1
     SOVERSION 12)
 
 #-----------------------------------------------------------------------
