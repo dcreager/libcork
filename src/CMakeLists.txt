@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2012, RedJack, LLC.
+# Copyright © 2011-2013, RedJack, LLC.
 # All rights reserved.
 #
-# Please see the COPYING file in this distribution for license
-# details.
+# Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
 include_directories(../include)
@@ -21,6 +20,7 @@ set(LIBCORK_SRC
     libcork/core/ip-address.c
     libcork/core/mempool.c
     libcork/core/timestamp.c
+    libcork/core/u128.c
     libcork/ds/array.c
     libcork/ds/bitset.c
     libcork/ds/buffer.c
@@ -57,7 +57,7 @@ set(LIBCORK_SRC
 #   6. If any interfaces have been removed or changed since the last public
 #      release, then set `age` to 0.
 #
-# SOVERSION should always equal `current`.
+# SOVERSION should always equal `current-age`.
 #
 # Note that changing `current` means that you are releasing a new
 # backwards-incompatible version of the library.  This has implications on
@@ -70,7 +70,7 @@ target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
     COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 12.0.0
+    VERSION 13.0.1
     SOVERSION 12)
 
 #-----------------------------------------------------------------------

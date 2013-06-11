@@ -51,6 +51,13 @@
 #define CORK_CONFIG_HAVE_GCC_ATTRIBUTES  0
 #endif
 
+/* __int128 seems to be available on 64-bit platforms as of GCC 4.1 */
+#if CORK_CONFIG_ARCH_X64 && CORK_CONFIG_GCC_VERSION >= 40100
+#define CORK_CONFIG_HAVE_GCC_INT128  1
+#else
+#define CORK_CONFIG_HAVE_GCC_INT128  0
+#endif
+
 /* Statement expressions have been available since GCC 3.1. */
 
 #if CORK_CONFIG_GCC_VERSION >= 30100

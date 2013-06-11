@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -16,6 +15,7 @@
 #include <libcork/core/attributes.h>
 #include <libcork/core/byte-order.h>
 #include <libcork/core/types.h>
+#include <libcork/core/u128.h>
 
 
 #ifndef CORK_HASH_ATTRIBUTES
@@ -25,17 +25,13 @@
 
 typedef uint32_t  cork_hash;
 
-struct cork_big_hash {
-    union {
-        uint64_t  u64[2];
-        uint32_t  u32[4];
-    } _;
-};
+typedef struct {
+    cork_u128  u128;
+} cork_big_hash;
 
-#define cork_big_hash_equal(h1, h2) \
-    ((h1)->_.u64[0] == (h2)->_.u64[0] && (h1)->_.u64[1] == (h2)->_.u64[1])
+#define cork_big_hash_equal(h1, h2)  (cork_u128_eq((h1).u128, (h2).u128))
 
-#define CORK_BIG_HASH_INIT()  {{{0,0}}}
+#define CORK_BIG_HASH_INIT()  {{{{0}}}}
 
 /* We currently use MurmurHash3 [1], which is public domain, as our hash
  * implementation.
@@ -244,10 +240,7 @@ do { \
     h1 += h2; h1 += h3; h1 += h4; \
     h2 += h1; h3 += h1; h4 += h1; \
     \
-    (dest)->_.u32[0] = h1; \
-    (dest)->_.u32[1] = h2; \
-    (dest)->_.u32[2] = h3; \
-    (dest)->_.u32[3] = h4; \
+    (dest)->u128 = cork_u128_from_32(h1, h2, h3, h4); \
 } while (0)
 
 #define cork_murmur_hash_x64_128(seed, src, len, dest) \
@@ -260,8 +253,8 @@ do { \
     const cork_aliased_uint64_t  *curr; \
     const uint8_t  *tail = (const uint8_t *) end; \
     \
-    uint64_t  h1 = (((uint64_t) seed) << 32) | seed; \
-    uint64_t  h2 = (((uint64_t) seed) << 32) | seed; \
+    uint64_t  h1 = cork_u128_be64(seed.u128, 0); \
+    uint64_t  h2 = cork_u128_be64(seed.u128, 1); \
     \
     uint64_t  c1 = UINT64_C(0x87c37b91114253d5); \
     uint64_t  c2 = UINT64_C(0x4cf5ad432745937f); \
@@ -316,19 +309,20 @@ do { \
     h1 += h2; \
     h2 += h1; \
     \
-    (dest)->_.u64[0] = h1; \
-    (dest)->_.u64[1] = h2; \
+    (dest)->u128 = cork_u128_from_64(h1, h2); \
 } while (0)
 
 
+#include <stdio.h>
 CORK_HASH_ATTRIBUTES
 cork_hash
 cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 {
 #if CORK_SIZEOF_POINTER == 8
-    struct cork_big_hash  hash = CORK_BIG_HASH_INIT();
-    cork_murmur_hash_x64_128(seed, src, len, &hash);
-    return hash._.u32[0];
+    cork_big_hash  big_seed = {cork_u128_from_32(seed, seed, seed, seed)};
+    cork_big_hash  hash;
+    cork_murmur_hash_x64_128(big_seed, src, len, &hash);
+    return cork_u128_be32(hash.u128, 0);
 #else
     cork_hash  hash = 0;
     cork_murmur_hash_x86_32(seed, src, len, &hash);
@@ -338,15 +332,16 @@ cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 
 
 CORK_HASH_ATTRIBUTES
-void
-cork_big_hash_buffer(cork_hash seed, const void *src, size_t len,
-                     struct cork_big_hash *dest)
+cork_big_hash
+cork_big_hash_buffer(cork_big_hash seed, const void *src, size_t len)
 {
+    cork_big_hash  result;
 #if CORK_SIZEOF_POINTER == 8
-    cork_murmur_hash_x64_128(seed, src, len, dest);
+    cork_murmur_hash_x64_128(seed, src, len, &result);
 #else
-    cork_murmur_hash_x86_128(seed, src, len, dest);
+    cork_murmur_hash_x86_128(seed, src, len, &result);
 #endif
+    return result;
 }
 
 
@@ -354,6 +349,8 @@ cork_big_hash_buffer(cork_hash seed, const void *src, size_t len,
     (cork_hash_buffer((seed), &(val), sizeof((val))))
 #define cork_stable_hash_variable(seed, val) \
     (cork_stable_hash_buffer((seed), &(val), sizeof((val))))
+#define cork_big_hash_variable(seed, val) \
+    (cork_big_hash_buffer((seed), &(val), sizeof((val))))
 
 
 #endif /* LIBCORK_CORE_HASH_H */
