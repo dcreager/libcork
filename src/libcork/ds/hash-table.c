@@ -92,7 +92,7 @@ cork_hash_table_init(struct cork_hash_table *table,
     table->entry_count = 0;
     table->hasher = hasher;
     table->comparator = comparator;
-    cork_mempool_init(&table->entry_mempool, struct cork_hash_table_entry);
+    table->entry_mempool = cork_mempool_new(struct cork_hash_table_entry);
 }
 
 
@@ -123,7 +123,7 @@ cork_hash_table_clear(struct cork_hash_table *table)
             struct cork_dllist_item  *next = curr->next;
 
             DEBUG("    Freeing entry %p", entry);
-            cork_mempool_free(&table->entry_mempool, entry);
+            cork_mempool_free_object(table->entry_mempool, entry);
 
             curr = next;
         }
@@ -138,7 +138,7 @@ void
 cork_hash_table_done(struct cork_hash_table *table)
 {
     cork_hash_table_clear(table);
-    cork_mempool_done(&table->entry_mempool);
+    cork_mempool_free(table->entry_mempool);
     free(table->bins);
 }
 
@@ -291,7 +291,7 @@ cork_hash_table_get_or_create(struct cork_hash_table *table,
 
     DEBUG("    Allocating new entry");
     struct cork_hash_table_entry  *entry =
-        cork_mempool_new(&table->entry_mempool);
+        cork_mempool_new_object(table->entry_mempool);
 
     DEBUG("    Created new entry %p", entry);
     entry->hash = hash_value;
@@ -369,7 +369,7 @@ cork_hash_table_put(struct cork_hash_table *table,
 
     DEBUG("    Allocating new entry");
     struct cork_hash_table_entry  *entry =
-        cork_mempool_new(&table->entry_mempool);
+        cork_mempool_new_object(table->entry_mempool);
 
     DEBUG("    Created new entry %p", entry);
     entry->hash = hash_value;
@@ -429,7 +429,7 @@ cork_hash_table_delete(struct cork_hash_table *table, const void *key,
             table->entry_count--;
 
             DEBUG("    Freeing entry %p", entry);
-            cork_mempool_free(&table->entry_mempool, entry);
+            cork_mempool_free_object(table->entry_mempool, entry);
             return true;
         }
 
@@ -469,7 +469,7 @@ cork_hash_table_map(struct cork_hash_table *table,
                     (curr, struct cork_hash_table_entry, siblings);
                 DEBUG("      Delete requested");
                 cork_dllist_remove(curr);
-                cork_mempool_free(&table->entry_mempool, entry);
+                cork_mempool_free_object(table->entry_mempool, entry);
                 table->entry_count--;
             }
 
