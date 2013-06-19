@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -15,91 +14,46 @@
 #include <libcork/config.h>
 #include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
+#include <libcork/core/callbacks.h>
 #include <libcork/core/types.h>
 
 
 #define CORK_MEMPOOL_DEFAULT_BLOCK_SIZE  4096
 
 
-struct cork_mempool_block;
-struct cork_mempool_object;
+struct cork_mempool;
 
-struct cork_mempool {
-    size_t  element_size;
-    size_t  block_size;
-    struct cork_mempool_object  *free_list;
-    /* The number of objects that have been given out by
-     * cork_mempool_new but not returned via cork_mempool_free. */
-    size_t  allocated_count;
-    struct cork_mempool_block  *blocks;
 
-    void
-    (*init_object)(void *obj);
+CORK_API struct cork_mempool *
+cork_mempool_new_size_ex(size_t element_size, size_t block_size);
 
-    void
-    (*done_object)(void *obj);
-};
+#define cork_mempool_new_size(element_size) \
+    (cork_mempool_new_size_ex \
+     ((element_size), CORK_MEMPOOL_DEFAULT_BLOCK_SIZE))
 
-struct cork_mempool_object {
-    /* When this object is unclaimed, it will be in the cork_mempool
-     * object's free_list using this pointer. */
-    struct cork_mempool_object  *next_free;
-};
+#define cork_mempool_new_ex(type, block_size) \
+    (cork_mempool_new_size_ex(sizeof(type), (block_size)))
 
-#define cork_mempool_object_size(mp) \
-    (sizeof(struct cork_mempool_object) + (mp)->element_size)
+#define cork_mempool_new(type) \
+    (cork_mempool_new_size(sizeof(type)))
 
-#define cork_mempool_get_header(obj) \
-    (((struct cork_mempool_object *) (obj)) - 1)
-
-#define cork_mempool_get_object(hdr) \
-    ((void *) (((struct cork_mempool_object *) (hdr)) + 1))
+CORK_API void
+cork_mempool_free(struct cork_mempool *mp);
 
 
 CORK_API void
-cork_mempool_init_size_ex(struct cork_mempool *mp, size_t element_size,
-                          size_t block_size);
+cork_mempool_set_callbacks(struct cork_mempool *mp,
+                           void *user_data, cork_free_f free_user_data,
+                           cork_init_f init_object,
+                           cork_done_f done_object);
 
-#define cork_mempool_init_size(mp, element_size) \
-    (cork_mempool_init_size_ex \
-     ((mp), (element_size), CORK_MEMPOOL_DEFAULT_BLOCK_SIZE))
 
-#define cork_mempool_init_ex(mp, type, block_size) \
-    (cork_mempool_init_size_ex((mp), sizeof(type), (block_size)))
-
-#define cork_mempool_init(mp, type) \
-    (cork_mempool_init_size((mp), sizeof(type)))
-
-CORK_API void
-cork_mempool_done(struct cork_mempool *mp);
+CORK_API void *
+cork_mempool_new_object(struct cork_mempool *mp);
 
 
 CORK_API void
-cork_mempool_new_block(struct cork_mempool *mp);
-
-
-CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
-cork_mempool_new(struct cork_mempool *mp)
-{
-    struct cork_mempool_object  *obj;
-    void  *ptr;
-
-    if (CORK_UNLIKELY(mp->free_list == NULL)) {
-        cork_mempool_new_block(mp);
-    }
-
-    obj = mp->free_list;
-    mp->free_list = obj->next_free;
-    mp->allocated_count++;
-    ptr = cork_mempool_get_object(obj);
-    return ptr;
-}
-
-
-CORK_API void
-cork_mempool_free(struct cork_mempool *mp, void *ptr);
+cork_mempool_free_object(struct cork_mempool *mp, void *ptr);
 
 
 #endif /* LIBCORK_CORK_MEMPOOL_H */

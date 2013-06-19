@@ -52,7 +52,7 @@ struct cork_hash_table {
     /* A comparator function. */
     cork_hash_table_comparator  comparator;
     /* A memory pool for the hash table entries */
-    struct cork_mempool  entry_mempool;
+    struct cork_mempool  *entry_mempool;
 };
 
 
