@@ -138,6 +138,21 @@ cork_subprocess_new_exec(struct cork_exec *exec,
 CORK_API void
 cork_subprocess_free(struct cork_subprocess *sub);
 
+CORK_API int
+cork_subprocess_start(struct cork_subprocess *sub);
+
+CORK_API bool
+cork_subprocess_is_finished(struct cork_subprocess *sub);
+
+CORK_API int
+cork_subprocess_abort(struct cork_subprocess *sub);
+
+CORK_API bool
+cork_subprocess_drain(struct cork_subprocess *sub);
+
+CORK_API int
+cork_subprocess_wait(struct cork_subprocess *sub);
+
 
 /*-----------------------------------------------------------------------
  * Groups of subprocesses
@@ -165,7 +180,7 @@ cork_subprocess_group_is_finished(struct cork_subprocess_group *group);
 CORK_API int
 cork_subprocess_group_abort(struct cork_subprocess_group *group);
 
-CORK_API int
+CORK_API bool
 cork_subprocess_group_drain(struct cork_subprocess_group *group);
 
 CORK_API int

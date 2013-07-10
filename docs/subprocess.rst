@@ -59,10 +59,8 @@ processes.
    :c:member:`~cork_thread_body.run` method.
 
 
-The functions for executing subprocesses actually work on a *group* of
-subprocesses.  This lets you start up several subprocesses at the same time, and
-wait for them all to finish.  If you only want to execute one subprocess, that's
-fine; just make a group containing one subprocess.
+You can also create *groups* of subprocesses.  This lets you start up several
+subprocesses at the same time, and wait for them all to finish.
 
 .. type:: struct cork_subprocess_group
 
@@ -87,13 +85,15 @@ fine; just make a group containing one subprocess.
    subprocess; you should not try to free it yourself.
 
 
-Once you've created your group of subprocesses, you can start them executing:
+Once you've created your subprocesses, you can start them executing:
 
-.. function:: int cork_subprocess_group_start(struct cork_subprocess_group \*group)
+.. function:: int cork_subprocess_start(struct cork_subprocess \*sub)
+              int cork_subprocess_group_start(struct cork_subprocess_group \*group)
 
-   Execute all of the subprocesses in *group*.  We immediately return once the
-   processes have been started.  You can use the
-   :c:func:`cork_subprocess_group_drain` and
+   Execute the given subprocess, or all of the subprocesses in *group*.  We
+   immediately return once the processes have been started.  You can use the
+   :c:func:`cork_subprocess_drain`, :c:func:`cork_subprocess_wait`,
+   :c:func:`cork_subprocess_group_drain`, and
    :c:func:`cork_subprocess_group_wait` functions to wait for the subprocesses
    to complete.
 
@@ -101,22 +101,18 @@ Once you've created your group of subprocesses, you can start them executing:
    subprocesses that we were able to start, set an :ref:`error condition
    <errors>`, and return ``-1``.
 
-   .. note::
-
-      This function is **not** thread-safe.  You cannot execute two groups of
-      subprocesses simultaneously.
-
 
 Since we immediately return after starting the subprocesses, you must somehow
 wait for them to finish.  There are two strategies for doing so.  If you don't
 need to communicate with the subprocesses (by writing to their stdin streams or
 sending them signals), the simplest strategy is to just wait for them to finish:
 
-.. function:: int cork_subprocess_group_wait(struct cork_subprocess_group \*group)
+.. function:: int cork_subprocess_wait(struct cork_subprocess \*sub)
+              int cork_subprocess_group_wait(struct cork_subprocess_group \*group)
 
-   Wait until all of the subprocesses in *group* have finished executing.  While
-   waiting, we'll continue to read data from the subprocesses stdout and stderr
-   streams as we can.
+   Wait until the given subprocess, or all of the subprocesses in *group*, have
+   finished executing.  While waiting, we'll continue to read data from the
+   subprocesses stdout and stderr streams as we can.
 
    If there are any errors reading from the subprocesses, we'll terminate all of
    the subprocesses that are still executing, set an :ref:`error condition
@@ -144,31 +140,41 @@ careful orchestration, you can easily get a deadlock.  Moreover, the right
 pattern of reading and writing depends on the subprocesses that you're
 executing, so it's not something that we can handle for you automatically.)
 
-.. function:: bool cork_subprocess_group_is_finished(struct cork_subprocess_group \*group)
+.. function:: bool cork_subprocess_is_finished(struct cork_subprocess \*sub)
+              bool cork_subprocess_group_is_finished(struct cork_subprocess_group \*group)
 
-   Return whether all of the subprocesses in *group* have finished executing.
+   Return whether the given subprocess, or all of the subprocesses in *group*,
+   have finished executing.
 
-.. function:: int cork_subprocess_group_abort(struct cork_subprocess_group \*group)
+.. function:: int cork_subprocess_abort(struct cork_subprocess \*sub)
+              int cork_subprocess_group_abort(struct cork_subprocess_group \*group)
 
-   Immediately terminate the subprocesses in group.  This can be used to clean
-   up if you detect an error condition and need to close the subprocesses early.
-   If the group has already finished, the function doesn't do anything.
+   Immediately terminate the given subprocess, or all of the subprocesses in
+   *group*.  This can be used to clean up if you detect an error condition and
+   need to close the subprocesses early.  If the group has already finished, the
+   function doesn't do anything.
 
-.. function:: int cork_subprocess_group_drain(struct cork_subprocess_group \*group)
+.. function:: bool cork_subprocess_drain(struct cork_subprocess \*sub)
+              bool cork_subprocess_group_drain(struct cork_subprocess_group \*group)
 
-   Check the subprocesses in *group* for any output on their stdout and stderr
-   streams.  We'll read in as much data as we can from all of the subprocesses
-   without blocking, and then return.  (Of course, we only do those for those
-   subprocesses that you provided stdout or stderr consumers for.)
+   Check the given subprocess, or all of the subprocesses in *group*, for any
+   output on their stdout and stderr streams.  We'll read in as much data as we
+   can from all of the subprocesses without blocking, and then return.  (Of
+   course, we only do this for those subprocesses that you provided stdout or
+   stderr consumers for.)
 
    This function lets you (**TODO: eventually**) pass data into the
    subprocesses's stdin streams, or send them signals, and handle any
    orchestration that's necessarily to ensure that the subprocesses don't
    deadlock.
 
+   The return value indicates whether any "progress" was made.  We will return
+   ``true`` if we were able to read any data from any of the subprocesses, or if
+   we detected that any of the subprocesses exited.
+
    If there are any errors reading from the subprocesses, we'll terminate all of
    the subprocesses that are still executing, set an :ref:`error condition
-   <errors>`, and return ``-1``.  If the group has already finished, the
+   <errors>`, and return ``false``.  If the group has already finished, the
    function doesn't do anything.
 
 To do this, you continue to "drain" the subprocesses whenever you're ready to
