@@ -78,9 +78,11 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
     "The base name of the installation directory for libraries")
 
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wall -Werror)
-endif(CMAKE_COMPILER_IS_GNUCC)
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    add_definitions(-Wall -Werror)
+endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 #-----------------------------------------------------------------------
 # Include our subdirectories
