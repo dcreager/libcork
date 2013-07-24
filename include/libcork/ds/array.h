@@ -96,7 +96,7 @@ cork_raw_array_copy(struct cork_raw_array *dest,
 #define cork_array_at(arr, i)     ((arr)->items[(i)])
 #define cork_array_size(arr)      ((arr)->size)
 #define cork_array_is_empty(arr)  ((arr)->size == 0)
-#define cork_array_to_raw(arr)    ((struct cork_raw_array *) (arr))
+#define cork_array_to_raw(arr)    ((struct cork_raw_array *) (void *) (arr))
 
 #define cork_array_init(arr) \
     (cork_raw_array_init(cork_array_to_raw(arr), cork_array_element_size(arr)))
