@@ -63,3 +63,5 @@ we can using the C preprocessor.  Any check that we can't make in the
 preprocessor has to be driven by a C preprocessor macro definition,
 which you (the libcork user) are responsible for checking for and
 defining.  So we need to have as few of those as possible.
+
+## JENKINS WILL WORK
