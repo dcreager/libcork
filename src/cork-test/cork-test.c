@@ -210,6 +210,7 @@ sub_run(int argc, char **argv)
     if (sub_cwd != NULL) {
         cork_exec_set_cwd(exec, sub_cwd);
     }
+    fprintf(stderr, "%s\n", cork_exec_description(exec));
     rp_check_exit(group = cork_subprocess_group_new());
     rp_check_exit(sp = cork_subprocess_new_exec(exec, NULL, NULL, NULL));
     cork_subprocess_group_add(group, sp);
