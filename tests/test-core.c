@@ -291,7 +291,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xac7d28cc,
       /*    big 64 */ 0x74bde19d);
     test_big_hash_buf(BUF, LEN-1,
-      /* little 32 */ 0x550c7d686f02ef30, 0x550c7d68550c7d68,
+      /* little 32 */ 0x6f02ef30550c7d68, 0x550c7d68550c7d68,
       /*    big 32 */ 0x6f02ef30550c7d68, 0x550c7d68550c7d68,
       /* little 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82,
       /*    big 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82);
@@ -304,7 +304,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xc3812fdf,
       /*    big 64 */ 0x4d18f852);
     test_big_hash_buf(BUF, LEN,
-      /* little 32 */ 0x29ab177c98c2b52b, 0x29ab177c29ab177c,
+      /* little 32 */ 0x98c2b52b29ab177c, 0x29ab177c29ab177c,
       /*    big 32 */ 0x98c2b52b29ab177c, 0x29ab177c29ab177c,
       /* little 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec,
       /*    big 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec);
@@ -317,7 +317,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xcbdc2092,
       /*    big 64 */ 0x03578c96);
     test_big_hash_buf(LONG_BUF, LONG_LEN-1,
-      /* little 32 */ 0x4fb7793c4240d513, 0x799f335aee7e281c,
+      /* little 32 */ 0x4240d5134fb7793c, 0xee7e281c799f335a,
       /*    big 32 */ 0xab564a5e029c92a4, 0x0bd80c741093400f,
       /* little 64 */ 0xcbdc20928fa72e9c, 0x48de52d2c680420e,
       /*    big 64 */ 0x5935f90a03578c96, 0x163e514fff9c30a8);
@@ -330,7 +330,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xe89ec005,
       /*    big 64 */ 0x8c919559);
     test_big_hash_buf(LONG_BUF, LONG_LEN,
-      /* little 32 */ 0xc261514663bcdcd0, 0xece3cab68e7fd7aa,
+      /* little 32 */ 0x63bcdcd0c2615146, 0x8e7fd7aaece3cab6,
       /*    big 32 */ 0x250b47cda3fc07fd, 0x840c4bb606aafbd0,
       /* little 64 */ 0xe89ec0054becb434, 0x826391b83f0b4d3e,
       /*    big 64 */ 0xf00a12ab8c919559, 0x684ecf4973c66eac);

@@ -164,10 +164,10 @@ do { \
     const cork_aliased_uint32_t  *curr; \
     const uint8_t  *tail = (const uint8_t *) end; \
     \
-    uint32_t  h1 = seed; \
-    uint32_t  h2 = seed; \
-    uint32_t  h3 = seed; \
-    uint32_t  h4 = seed; \
+    uint32_t  h1 = cork_u128_be32(seed.u128, 0); \
+    uint32_t  h2 = cork_u128_be32(seed.u128, 1); \
+    uint32_t  h3 = cork_u128_be32(seed.u128, 2); \
+    uint32_t  h4 = cork_u128_be32(seed.u128, 3); \
     \
     uint32_t  c1 = 0x239b961b; \
     uint32_t  c2 = 0xab0e9789; \
