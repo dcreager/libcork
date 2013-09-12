@@ -87,12 +87,14 @@ cork_hash_table_init(struct cork_hash_table *table,
                      cork_hash_table_hasher hasher,
                      cork_hash_table_comparator comparator)
 {
-    table->bins = NULL;
-    table->bin_count = 0;
     table->entry_count = 0;
     table->hasher = hasher;
     table->comparator = comparator;
     table->entry_mempool = cork_mempool_new(struct cork_hash_table_entry);
+    if (initial_size < CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE) {
+        initial_size = CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE;
+    }
+    cork_hash_table_allocate_bins(table, initial_size);
 }
 
 
