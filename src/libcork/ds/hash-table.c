@@ -392,6 +392,16 @@ cork_hash_table_put(struct cork_hash_table *table,
 }
 
 
+void
+cork_hash_table_delete_entry(struct cork_hash_table *table,
+                             struct cork_hash_table_entry *entry)
+{
+    cork_dllist_remove(&entry->siblings);
+    table->entry_count--;
+    cork_mempool_free_object(table->entry_mempool, entry);
+}
+
+
 bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value)

@@ -101,6 +101,10 @@ cork_hash_table_put(struct cork_hash_table *table,
                     void *key, void *value, bool *is_new,
                     void **old_key, void **old_value);
 
+CORK_API void
+cork_hash_table_delete_entry(struct cork_hash_table *table,
+                             struct cork_hash_table_entry *entry);
+
 CORK_API bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value);
