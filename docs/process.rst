@@ -143,6 +143,11 @@ Executing another program
    (by calling :c:func:`cork_exec_run`), which means you won't have a chance to
    free the specification object.
 
+.. function:: const char \*cork_exec_description(struct cork_exec \*exec)
+
+   Return a string description of the program described by an execution
+   specification.
+
 .. function:: void cork_exec_add_param(struct cork_exec \*exec, const char \*param)
 
    Add a parameter to the parameter list that will be passed into the new

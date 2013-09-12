@@ -83,6 +83,9 @@ CORK_API void
 cork_exec_free(struct cork_exec *exec);
 
 CORK_API const char *
+cork_exec_description(struct cork_exec *exec);
+
+CORK_API const char *
 cork_exec_program(struct cork_exec *exec);
 
 CORK_API size_t
