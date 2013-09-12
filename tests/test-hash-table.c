@@ -175,12 +175,9 @@ START_TEST(test_uint64_hash_table)
     fail_if(cork_hash_table_delete(table, &key, NULL, NULL),
             "Shouldn't be able to delete nonexistent {3=>X}");
 
-    key = 1;
-    fail_unless(cork_hash_table_delete
-                (table, &key, &v_key, &v_value),
-                "Couldn't delete {1=>2}");
-    old_key = v_key;
-    old_value = v_value;
+    old_key = entry->key;
+    old_value = entry->value;
+    cork_hash_table_delete_entry(table, entry);
     free(old_key);
     free(old_value);
 

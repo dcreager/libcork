@@ -198,6 +198,15 @@ particular use case.
    value.  This can be used, for instance, to finalize an overwritten
    key or value object.
 
+.. function:: void cork_hash_table_entry(struct cork_hash_table \*table, struct cork_hash_table_entry \*entry)
+
+   Removes *entry* from *table*.  You must ensure that *entry* refers to a
+   valid, existing entry in the hash table.  This function can be more efficient
+   than :c:func:`cork_hash_table_delete` if you've recently retrieved a hash
+   table entry using :c:func:`cork_hash_table_get_or_create` or
+   :c:func:`cork_hash_table_get_entry`, since we won't have to search for the
+   entry again.
+
 .. function:: bool cork_hash_table_delete(struct cork_hash_table \*table, const void \*key, void \*\*deleted_key, void \*\*deleted_value)
 
    Removes the entry with the given *key* from *table*.  If there isn't
