@@ -30,14 +30,22 @@ Ring buffers
 
 
 .. function:: int cork_ring_buffer_init(struct cork_ring_buffer \*buf, size_t size)
+              struct cork_ring_buffer \*cork_ring_buffer_new(size_t size)
 
-   Initializes a ring buffer instance, having a capacity of *size*
-   elements.  If we cannot initialize the ring buffer, we'll return
-   ``1``.
+   Initializes a ring buffer instance, having a capacity of *size* elements.
+   The ``_init`` version should be used to initialize an instance you
+   allocated yourself on the stack.  The ``_new`` version will allocate an
+   instance from the heap.  If memory allocation fails in either function,
+   the program will abort with an error.
+
 
 .. function:: void cork_ring_buffer_done(struct cork_ring_buffer \*buf)
+              void cork_ring_buffer_free(struct cork_ring_buffer \*buf)
 
-   Finalizes a ring buffer instance.  Nothing special is done to any
+   Finalizes a ring buffer instance.  The ``_done`` variant should be used to
+   finalize an instance that you allocated yourself (i.e., on the stack).  The
+   ``_free`` version should be used on instance allocated on the heap by using
+   :c:func:`cork_hash_table_new()`.  Nothing special is done to any
    remaining elements in the ring buffer; if they need to be finalized,
    you should do that yourself before calling this function.
 
