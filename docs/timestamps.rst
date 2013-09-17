@@ -70,6 +70,15 @@ High-precision timestamps
    according to *fmt*, which should be a format string compatible with
    the POSIX ``strftime`` function.  *size* must be the size (in bytes)
    of *buf*.  If we can't format the timestamp for any reason, we return
-   ``false``.  The ``_utc`` variant assumes that *ts* represents a UTC
-   time, whereas teh ``_local`` variant assumes that it represents a
-   time in the local time zone.
+   ``false``.  We assume *ts* represents a UTC time in both functions.
+
+
+.. function:: bool cork_timestamp_format_iso8601_utc(const cork timestamp ts, char \*buf, size_t size)
+              bool cork_timestamp_format_iso8601_local(const cork timestamp ts, char \*buf, size_t size)
+
+   Fills in *buf* with the string representation of the given timestamp,
+   according to the ISO 8601 compatible format ``YYYY-MM-DDThh:mm:ssZ``
+   for UTC time and ``YYYY-MM-DDThh:mm:zz+/-hhmm`` for times in the local
+   time zone. *size* must be the size (in bytes) of *buf*.  If we can't
+   format the timestamp for any reason, we return ``false``.  We assume
+   that *ts* represents a UTC time in both functions.

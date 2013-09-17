@@ -592,12 +592,15 @@ START_TEST(test_timestamp)
 
     static const uint32_t  TEST_TIME_1 = 700000000;
     static const char  *FORMATTED_TIME_1 = "1992-03-07 20:26:40";
+    static const char  *FORMATTED_ISO8601_TIME_1 = "1992-03-07T20:26:40Z";
 
     static const uint32_t  TEST_TIME_2 = 1200000000;
     static const char  *FORMATTED_TIME_2 = "2008-01-10 21:20:00";
+    static const char  *FORMATTED_ISO8601_TIME_2 = "2008-01-10T21:20:00Z";
 
     static const uint32_t  TEST_TIME_3 = 1305180745;
     static const char  *FORMATTED_TIME_3 = "2011-05-12 06:12:25";
+    static const char  *FORMATTED_ISO8601_TIME_3 = "2011-05-12T06:12:25Z";
 
     cork_timestamp  ts;
 
@@ -615,6 +618,13 @@ START_TEST(test_timestamp)
                 "Unexpected formatted time (got %s, expected %s)", \
                 buf, expected);
 
+#define test_iso8601_utc_format(expected) \
+    fail_unless(cork_timestamp_format_iso8601_utc(ts, buf, size), \
+                "Cannot format ISO 8601 timestamp"); \
+    fail_unless(strcmp(buf, expected) == 0, \
+                "Unexpected formatted ISO 8601 time (got %s, expected %s)", \
+                buf, expected);
+
     cork_timestamp_init_sec(&ts, TEST_TIME_1);
     test(sec, TEST_TIME_1);
     test(gsec, 0);
@@ -622,6 +632,7 @@ START_TEST(test_timestamp)
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_TIME_1);
+    test_iso8601_utc_format(FORMATTED_ISO8601_TIME_1);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_2);
     test(sec, TEST_TIME_2);
@@ -630,6 +641,7 @@ START_TEST(test_timestamp)
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_TIME_2);
+    test_iso8601_utc_format(FORMATTED_ISO8601_TIME_2);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_3);
     test(sec, TEST_TIME_3);
@@ -638,6 +650,7 @@ START_TEST(test_timestamp)
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_TIME_3);
+    test_iso8601_utc_format(FORMATTED_ISO8601_TIME_3);
 
     cork_timestamp_init_gsec(&ts, TEST_TIME_1, 1 << 30);
     test(sec, TEST_TIME_1);
