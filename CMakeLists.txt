@@ -9,6 +9,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 set(PROJECT_NAME APPNAME)
+set(RELEASE_DATE 2013-06-01)
 project(${PROJECT_NAME})
 enable_testing()
 
