@@ -1,88 +1,93 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2013, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the LICENSE.txt file in this distribution for license
 # details.
 # ----------------------------------------------------------------------
 
-find_program(
-  SPHINX_EXECUTABLE
-  NAMES sphinx-build
-  HINTS ENV SPHINX_DIR
-  PATH_SUFFIXES bin
-  DOC "Sphinx documentation generator"
+# Fill this in with any man pages that should be built from a pandoc source
+# file.  For a man page called foo.5, there should be a pandoc source file
+# called foo.5.pandoc.
+
+set(MAN_PAGES
 )
 
-set(GENERATE_DOC TRUE)
+#-----------------------------------------------------------------------
+# Everything below is boilerplate!
 
-if (TILERA)
-    message(STATUS "Note: We don't build documentation on the Tilera platform")
+find_program(
+    PANDOC_EXECUTABLE
+    NAMES pandoc
+    HINTS ENV PANDOC_DIR
+    PATH_SUFFIXES bin
+    DOC "Pandoc man page generator"
+)
+
+set(GENERATE_DOC TRUE CACHE BOOL
+    "Whether to rebuild documentation")
+
+if (NOT PANDOC_EXECUTABLE)
+    message(WARNING "Unable to find pandoc documentation generator")
     set(GENERATE_DOC FALSE)
-endif (TILERA)
+endif (NOT PANDOC_EXECUTABLE)
 
-if (NOT SPHINX_EXECUTABLE)
-  message(WARNING "Unable to find Sphinx documentation generator")
-  set(GENERATE_DOC FALSE)
-endif (NOT SPHINX_EXECUTABLE)
 
-set(INTERSPHINX_OVERRIDES "")
+# Link man pages go in docs/links
 
-macro(find_prereq_doc LIB_NAME)
-  execute_process(
-    COMMAND ${PKG_CONFIG_EXECUTABLE} --variable=sphinxdir ${LIB_NAME}
-    OUTPUT_VARIABLE LIB_SPHINX_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-
-  if (LIB_SPHINX_DIR)
-    message(STATUS "Using ${LIB_NAME} docs in ${LIB_SPHINX_DIR}")
-    set(
-      INTERSPHINX_OVERRIDES
-      "${INTERSPHINX_OVERRIDES}\nintersphinx_mapping['${LIB_NAME}'] = ('${LIB_SPHINX_DIR}', None)"
+macro(install_links section)
+    install(
+        DIRECTORY links/
+        DESTINATION "share/man/man${section}"
+        FILES_MATCHING PATTERN "*.${section}"
     )
-  endif (LIB_SPHINX_DIR)
-endmacro(find_prereq_doc)
+endmacro(install_links section)
 
-if (GENERATE_DOC)
-  set(SPHINX_SRC_CONF_FILE "${CMAKE_CURRENT_SOURCE_DIR}/conf.py")
-  set(SPHINX_CONF_FILE "${CMAKE_CURRENT_BINARY_DIR}/conf.py")
-  set(SPHINX_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_doctrees")
-  set(SPHINX_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/html")
+install_links(1)   # commands
+install_links(3)   # library API
+install_links(4)   # special files and drivers
+install_links(5)   # file formats and conventions
+install_links(7)   # miscellaneous
+install_links(8)   # system commands
 
-  # If your Sphinx documentation references the Sphinx documentation of
-  # any of your prerequisite libraries, add some calls to
-  # find_prereq_doc here:
-  #
-  # find_prereq_doc(libcork)
 
-  set(
-    VERSION_FOR_CONF_PY
-    "\nrelease=\"${VERSION}\"\nversion=\"${BASE_VERSION}\""
-  )
-  configure_file(${SPHINX_SRC_CONF_FILE} ${SPHINX_CONF_FILE} @ONLY)
-  file(COPY _static DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-  file(COPY _templates DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# Man pages with actual content go in docs
 
-  add_custom_target(doc ALL
-    ${SPHINX_EXECUTABLE}
-      -b html
-      -d "${SPHINX_CACHE_DIR}"
-      -c "${CMAKE_CURRENT_BINARY_DIR}"
-      "${CMAKE_CURRENT_SOURCE_DIR}"
-      "${SPHINX_HTML_DIR}"
-    COMMENT "Building HTML documentation with Sphinx"
-  )
+set(ALL_MANS)
 
-  list(APPEND CLEAN_FILES "${SPHINX_CACHE_DIR}" "${SPHINX_HTML_DIR}")
-  set_directory_properties(
-    PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${CLEAN_FILES}"
-  )
+macro(pandocify name)
+    set(src  "${CMAKE_CURRENT_SOURCE_DIR}/${name}.pandoc")
+    set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${name}")
+    get_filename_component(section "${name}" EXT)
+    string(REPLACE "." "" section "${section}")
 
-  install(
-    DIRECTORY "${SPHINX_HTML_DIR}"
-    DESTINATION "share/doc/${PROJECT_NAME}"
-  )
-endif (GENERATE_DOC)
+    # Only compile the markdown source into groff man pages if requested.
+    if (GENERATE_DOC)
+        add_custom_command(
+            OUTPUT ${dest}
+            COMMAND ${PANDOC_EXECUTABLE}
+                -f markdown -t man -s --smart
+                -V description="${PROJECT_NAME}"
+                -V date=${RELEASE_DATE}
+                -o ${dest} ${src}
+            MAIN_DEPENDENCY ${src}
+            COMMENT "Building ${name}"
+        )
+        list(APPEND ALL_MANS ${dest})
+    endif (GENERATE_DOC)
+
+    # We should always have an already-compiled copy of each man page in the
+    # source tree, which we can install even if we didn't build fresh new
+    # copies.
+    install(
+        FILES ${dest}
+        DESTINATION "share/man/man${section}"
+    )
+endmacro(pandocify)
+
+foreach(MAN_PAGE ${MAN_PAGES})
+    pandocify(${MAN_PAGE})
+endforeach(MAN_PAGE)
+
+add_custom_target(doc ALL DEPENDS ${ALL_MANS})
