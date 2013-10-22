@@ -174,10 +174,26 @@ END_TEST
  * Built-in errors
  */
 
+START_TEST(test_error_prefix)
+{
+    DESCRIBE_TEST;
+    cork_error_clear();
+    cork_error_set(CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
+                   "%u errors occurred", (unsigned int) 17);
+    fail_unless_streq("Error messages",
+                      "17 errors occurred",
+                      cork_error_message());
+    cork_error_prefix("The %s is aborting because ", "program");
+    fail_unless_streq("Error messages",
+                      "The program is aborting because 17 errors occurred",
+                      cork_error_message());
+    cork_error_clear();
+}
+END_TEST
+
 START_TEST(test_system_error)
 {
     DESCRIBE_TEST;
-
     /* Artificially flag a system error and make sure we can detect it */
     errno = ENOMEM;
     cork_error_clear();
@@ -984,6 +1000,7 @@ test_suite()
     suite_add_tcase(s, tc_endianness);
 
     TCase  *tc_errors = tcase_create("errors");
+    tcase_add_test(tc_errors, test_error_prefix);
     tcase_add_test(tc_errors, test_system_error);
     suite_add_tcase(s, tc_errors);
 

@@ -103,6 +103,13 @@ functions that you can use to interrogate the current error condition.
    condition.  If no error occurred, the result of this function is
    undefined.
 
+You can use the :c:func:`cork_error_prefix` function to add additional context
+to the beginning of an error message.
+
+.. function:: void cork_error_prefix(const char \*format, ...)
+
+   Prepends some additional text to the current error condition.
+
 When you're done checking the current error condition, you clear it so
 that later calls to :c:func:`cork_error_occurred` and friends don't
 re-report this error.
