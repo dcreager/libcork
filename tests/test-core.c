@@ -19,6 +19,7 @@
 #include "libcork/core/byte-order.h"
 #include "libcork/core/error.h"
 #include "libcork/core/hash.h"
+#include "libcork/core/id.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
@@ -934,6 +935,36 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Unique identifiers
+ */
+
+START_TEST(test_uid)
+{
+    DESCRIBE_TEST;
+    cork_uid_define(test_id_01);
+    cork_uid_define(test_id_02);
+    cork_uid  id1;
+    cork_uid  id2;
+
+    fail_unless_streq("UID name", "test_id_01", cork_uid_name(test_id_01));
+    fail_unless_streq("UID name", "test_id_02", cork_uid_name(test_id_02));
+
+    id1 = test_id_01;
+    id2 = test_id_02;
+    fail_if(cork_uid_equal(id1, id2), "Unique IDs aren't unique");
+
+    id1 = test_id_01;
+    id2 = test_id_01;
+    fail_unless(cork_uid_equal(id1, id2), "Unique ID isn't equal to itself");
+
+    id1 = test_id_01;
+    id2 = CORK_UID_NONE;
+    fail_if(cork_uid_equal(id1, id2), "NULL unique ID isn't unique");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -982,6 +1013,10 @@ test_suite()
     TCase  *tc_statement_expr = tcase_create("statement_expr");
     tcase_add_test(tc_statement_expr, test_statement_expr);
     suite_add_tcase(s, tc_statement_expr);
+
+    TCase  *tc_uid = tcase_create("uid");
+    tcase_add_test(tc_uid, test_uid);
+    suite_add_tcase(s, tc_uid);
 
     return s;
 }
