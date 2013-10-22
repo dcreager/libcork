@@ -45,6 +45,10 @@ cork_error_set(cork_error_class error_class, cork_error_code error_code,
     CORK_ATTR_PRINTF(3,4);
 
 CORK_API void
+cork_error_prefix(const char *format, ...)
+    CORK_ATTR_PRINTF(1,2);
+
+CORK_API void
 cork_error_clear(void);
 
 

@@ -17,6 +17,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/error.h"
 #include "libcork/ds/buffer.h"
+#include "libcork/os/process.h"
 #include "libcork/threads/basics.h"
 
 
@@ -27,24 +28,76 @@
 struct cork_error {
     cork_error_class  error_class;
     cork_error_code  error_code;
-    struct cork_buffer  message;
+    struct cork_buffer  *message;
+    struct cork_buffer  *other;
+    struct cork_buffer  buf1;
+    struct cork_buffer  buf2;
+    struct cork_error  *next;
 };
 
-CORK_ATTR_UNUSED
-static void
-cork_error_init(struct cork_error *err)
+static struct cork_error *
+cork_error_new(void)
 {
-    memset(err, 0, sizeof(struct cork_error));
+    struct cork_error  *error = cork_new(struct cork_error);
+    error->error_class = CORK_ERROR_NONE;
+    cork_buffer_init(&error->buf1);
+    cork_buffer_init(&error->buf2);
+    error->message = &error->buf1;
+    error->other = &error->buf2;
+    return error;
 }
 
-CORK_ATTR_UNUSED
 static void
-cork_error_done(struct cork_error *err)
+cork_error_free(struct cork_error *error)
 {
-    cork_buffer_done(&err->message);
+    cork_buffer_done(&error->buf1);
+    cork_buffer_done(&error->buf2);
+    free(error);
 }
 
-cork_tls(struct cork_error, cork_error);
+
+static struct cork_error * volatile  errors;
+
+cork_once_barrier(cork_error_list);
+
+static void
+cork_error_list_done(void)
+{
+    struct cork_error  *curr;
+    struct cork_error  *next;
+    for (curr = errors; curr != NULL; curr = next) {
+        next = curr->next;
+        cork_error_free(curr);
+    }
+}
+
+static void
+cork_error_list_init(void)
+{
+    cork_cleanup_at_exit(0, cork_error_list_done);
+}
+
+
+cork_tls(struct cork_error *, cork_error_);
+
+static struct cork_error *
+cork_error_get(void)
+{
+    struct cork_error  **error_ptr = cork_error__get();
+    if (CORK_UNLIKELY(*error_ptr == NULL)) {
+        struct cork_error  *old_head;
+        struct cork_error  *error = cork_error_new();
+        cork_once(cork_error_list, cork_error_list_init());
+        do {
+            old_head = errors;
+            error->next = old_head;
+        } while (cork_ptr_cas(&errors, old_head, error) != old_head);
+        *error_ptr = error;
+        return error;
+    } else {
+        return *error_ptr;
+    }
+}
 
 
 /*-----------------------------------------------------------------------
@@ -76,20 +129,35 @@ const char *
 cork_error_message(void)
 {
     struct cork_error  *error = cork_error_get();
-    return error->message.buf;
+    return error->message->buf;
 }
 
 void
 cork_error_set(cork_error_class error_class, cork_error_code error_code,
                const char *format, ...)
 {
+    va_list  args;
     struct cork_error  *error = cork_error_get();
     error->error_class = error_class;
     error->error_code = error_code;
-    va_list  args;
     va_start(args, format);
-    cork_buffer_vprintf(&error->message, format, args);
+    cork_buffer_vprintf(error->message, format, args);
     va_end(args);
+}
+
+void
+cork_error_prefix(const char *format, ...)
+{
+    va_list  args;
+    struct cork_error  *error = cork_error_get();
+    struct cork_buffer  *temp;
+    va_start(args, format);
+    cork_buffer_vprintf(error->other, format, args);
+    va_end(args);
+    cork_buffer_append_copy(error->other, error->message);
+    temp = error->other;
+    error->other = error->message;
+    error->message = temp;
 }
 
 void
