@@ -37,11 +37,13 @@ endif (NOT PANDOC_EXECUTABLE)
 # Link man pages go in docs/links
 
 macro(install_links section)
-    install(
-        DIRECTORY links/
-        DESTINATION "share/man/man${section}"
-        FILES_MATCHING PATTERN "*.${section}"
-    )
+    file(GLOB links "links/*.${section}")
+    if (links)
+        install(
+            FILES ${links}
+            DESTINATION "share/man/man${section}"
+        )
+    endif (links)
 endmacro(install_links section)
 
 install_links(1)   # commands
