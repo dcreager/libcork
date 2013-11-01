@@ -141,6 +141,9 @@ cork_subprocess_new_exec(struct cork_exec *exec,
 CORK_API void
 cork_subprocess_free(struct cork_subprocess *sub);
 
+CORK_API struct cork_stream_consumer *
+cork_subprocess_stdin(struct cork_subprocess *sub);
+
 CORK_API int
 cork_subprocess_start(struct cork_subprocess *sub);
 
