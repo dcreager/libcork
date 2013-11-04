@@ -140,6 +140,14 @@ careful orchestration, you can easily get a deadlock.  Moreover, the right
 pattern of reading and writing depends on the subprocesses that you're
 executing, so it's not something that we can handle for you automatically.)
 
+.. function:: struct cork_stream_consumer \*cork_subprocess_stdin(struct cork_subprocess \*sub)
+
+   Return a :ref:`stream consumer <stream-consumers>` that lets you write data
+   to the subprocess's stdin.  We do not buffer this data in any way; calling
+   :c:func:`cork_stream_consumer_data` immediately tries to write the given data
+   to the subprocess's stdin stream.  This can easily lead to deadlock if you do
+   not manage the subprocess's particular orchestration correctly.
+
 .. function:: bool cork_subprocess_is_finished(struct cork_subprocess \*sub)
               bool cork_subprocess_group_is_finished(struct cork_subprocess_group \*group)
 
@@ -163,10 +171,9 @@ executing, so it's not something that we can handle for you automatically.)
    course, we only do this for those subprocesses that you provided stdout or
    stderr consumers for.)
 
-   This function lets you (**TODO: eventually**) pass data into the
-   subprocesses's stdin streams, or send them signals, and handle any
-   orchestration that's necessarily to ensure that the subprocesses don't
-   deadlock.
+   This function lets you pass data into the subprocesses's stdin streams, or
+   (**TODO: eventually**) send them signals, and handle any orchestration that's
+   necessarily to ensure that the subprocesses don't deadlock.
 
    The return value indicates whether any "progress" was made.  We will return
    ``true`` if we were able to read any data from any of the subprocesses, or if
