@@ -7,6 +7,12 @@
 # details.
 # ----------------------------------------------------------------------
 
+# Fill in this with the text that you want to include in the header and footer
+# of each man page.
+
+set(MAN_HEADER "APPNAME documentation")
+set(MAN_FOOTER "APPNAME")
+
 # Fill this in with any man pages that should be built from a pandoc source
 # file.  For a man page called foo.5, there should be a pandoc source file
 # called foo.5.pandoc.
@@ -37,11 +43,13 @@ endif (NOT PANDOC_EXECUTABLE)
 # Link man pages go in docs/links
 
 macro(install_links section)
-    install(
-        DIRECTORY links/
-        DESTINATION "share/man/man${section}"
-        FILES_MATCHING PATTERN "*.${section}"
-    )
+    file(GLOB links "links/*.${section}")
+    if (links)
+        install(
+            FILES ${links}
+            DESTINATION "share/man/man${section}"
+        )
+    endif (links)
 endmacro(install_links section)
 
 install_links(1)   # commands
@@ -68,7 +76,8 @@ macro(pandocify name)
             OUTPUT ${dest}
             COMMAND ${PANDOC_EXECUTABLE}
                 -f markdown -t man -s --smart
-                -V description="${PROJECT_NAME}"
+                -V header="${MAN_HEADER}"
+                -V footer="${MAN_FOOTER}"
                 -V date=${RELEASE_DATE}
                 -o ${dest} ${src}
             MAIN_DEPENDENCY ${src}
