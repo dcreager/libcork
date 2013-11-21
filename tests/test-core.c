@@ -24,6 +24,7 @@
 #include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
 #include "libcork/core/u128.h"
+#include "libcork/os/subprocess.h"
 
 #include "helpers.h"
 
@@ -601,22 +602,62 @@ END_TEST
  * Timestamps
  */
 
+static void
+test_timestamp_bad_format(cork_timestamp ts, const char *format)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_unless_error(cork_timestamp_format_utc(ts, format, &buf));
+    cork_buffer_done(&buf);
+}
+
+static void
+test_timestamp_utc_format(cork_timestamp ts, const char *format,
+                          const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_if_error(cork_timestamp_format_utc(ts, format, &buf));
+    fail_unless(strcmp(buf.buf, expected) == 0,
+                "Unexpected formatted UTC time "
+                "(got \"%s\", expected \"%s\")",
+                (char *) buf.buf, expected);
+    cork_buffer_done(&buf);
+}
+
+static void
+test_timestamp_local_format(cork_timestamp ts, const char *format,
+                            const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_if_error(cork_timestamp_format_local(ts, format, &buf));
+    fail_unless(strcmp(buf.buf, expected) == 0,
+                "Unexpected formatted local time "
+                "(got \"%s\", expected \"%s\")",
+                (char *) buf.buf, expected);
+    cork_buffer_done(&buf);
+}
+
 START_TEST(test_timestamp)
 {
-    DESCRIBE_TEST;
-    static char  buf[4096];
-    static size_t  size = sizeof(buf);
+    /* All of the local times here are in America/Los_Angeles.  Down at the
+     * bottom of the file we override the TZ environment variable to ensure that
+     * we use a consistent local time zone in the test cases, regardless of the
+     * actual time zone of the current machine. */
 
     static const uint32_t  TEST_TIME_1 = 700000000;
-    static const char  *FORMATTED_TIME_1 = "1992-03-07 20:26:40";
+    static const char  *FORMATTED_UTC_TIME_1   = " 1992-03-07 20:26:40 ";
+    static const char  *FORMATTED_LOCAL_TIME_1 = " 1992-03-07 12:26:40 ";
 
     static const uint32_t  TEST_TIME_2 = 1200000000;
-    static const char  *FORMATTED_TIME_2 = "2008-01-10 21:20:00";
+    static const char  *FORMATTED_UTC_TIME_2   = " 2008-01-10 21:20:00 ";
+    static const char  *FORMATTED_LOCAL_TIME_2 = " 2008-01-10 13:20:00 ";
 
     static const uint32_t  TEST_TIME_3 = 1305180745;
-    static const char  *FORMATTED_TIME_3 = "2011-05-12 06:12:25";
+    static const char  *FORMATTED_UTC_TIME_3   = " 2011-05-12 06:12:25 ";
+    static const char  *FORMATTED_LOCAL_TIME_3 = " 2011-05-11 23:12:25 ";
 
     cork_timestamp  ts;
+
+    DESCRIBE_TEST;
 
 #define test(unit, expected) \
     fail_unless(cork_timestamp_##unit(ts) == expected, \
@@ -625,12 +666,9 @@ START_TEST(test_timestamp)
                 (unsigned long) cork_timestamp_##unit(ts), \
                 (unsigned long) expected);
 
-#define test_format(expected) \
-    fail_unless(cork_timestamp_format_utc(ts, "%Y-%m-%d %H:%M:%S", buf, size), \
-                "Cannot format timestamp"); \
-    fail_unless(strcmp(buf, expected) == 0, \
-                "Unexpected formatted time (got %s, expected %s)", \
-                buf, expected);
+#define test_format(utc, local) \
+    test_timestamp_utc_format(ts, " %Y-%m-%d %H:%M:%S ", utc); \
+    test_timestamp_local_format(ts, " %Y-%m-%d %H:%M:%S ", local);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_1);
     test(sec, TEST_TIME_1);
@@ -638,7 +676,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_1);
+    test_format(FORMATTED_UTC_TIME_1, FORMATTED_LOCAL_TIME_1);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_2);
     test(sec, TEST_TIME_2);
@@ -646,7 +684,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_2);
+    test_format(FORMATTED_UTC_TIME_2, FORMATTED_LOCAL_TIME_2);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_3);
     test(sec, TEST_TIME_3);
@@ -654,7 +692,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_3);
+    test_format(FORMATTED_UTC_TIME_3, FORMATTED_LOCAL_TIME_3);
 
     cork_timestamp_init_gsec(&ts, TEST_TIME_1, 1 << 30);
     test(sec, TEST_TIME_1);
@@ -683,6 +721,30 @@ START_TEST(test_timestamp)
     test(msec, 500);
     test(usec, 500000);
     test(nsec, 500000000);
+}
+END_TEST
+
+START_TEST(test_timestamp_format)
+{
+    cork_timestamp  ts;
+    DESCRIBE_TEST;
+
+    cork_timestamp_init_nsec(&ts, 0, 123456789);
+    test_timestamp_bad_format(ts, "%f");
+    test_timestamp_bad_format(ts, "%0f");
+    test_timestamp_bad_format(ts, "%10f");
+    test_timestamp_utc_format(ts, "%1f",   "1");
+    test_timestamp_utc_format(ts, "%2f",   "12");
+    test_timestamp_utc_format(ts, "%3f",   "123");
+    test_timestamp_utc_format(ts, "%4f",   "1235");
+    test_timestamp_utc_format(ts, "%5f",   "12346");
+    test_timestamp_utc_format(ts, "%6f",   "123457");
+    test_timestamp_utc_format(ts, "%7f",   "1234568");
+    test_timestamp_utc_format(ts, "%8f",   "12345679");
+    test_timestamp_utc_format(ts, "%9f",   "123456789");
+    test_timestamp_utc_format(ts, "%009f", "123456789");
+
+    cork_timestamp_init_nsec(&ts, 1200000000, 123456789);
 }
 END_TEST
 
@@ -1016,6 +1078,7 @@ test_suite()
 
     TCase  *tc_timestamp = tcase_create("timestamp");
     tcase_add_test(tc_timestamp, test_timestamp);
+    tcase_add_test(tc_timestamp, test_timestamp_format);
     suite_add_tcase(s, tc_timestamp);
 
     TCase  *tc_u128 = tcase_create("u128");
@@ -1045,6 +1108,10 @@ main(int argc, const char **argv)
     int  number_failed;
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
+
+    /* Before anything starts, override the TZ environment variable so that we
+     * get consistent test results. */
+    cork_env_add(NULL, "TZ", "America/Los_Angeles");
 
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
