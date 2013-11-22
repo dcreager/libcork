@@ -62,6 +62,8 @@ cork_error_clear(void);
 enum cork_builtin_error {
     /* An error reported by the C library's errno mechanism */
     CORK_SYSTEM_ERROR,
+    /* A bad format string */
+    CORK_BAD_FORMAT,
     /* An unknown error */
     CORK_UNKNOWN_ERROR
 };

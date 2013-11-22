@@ -63,13 +63,35 @@ High-precision timestamps
    microseconds, or nanoseconds.
 
 
-.. function:: bool cork_timestamp_format_utc(const cork_timestamp ts, const char \*format, char \*buf, size_t size)
-              bool cork_timestamp_format_local(const cork_timestamp ts, const char \*format, char \*buf, size_t size)
+.. function:: int cork_timestamp_format_utc(const cork_timestamp ts, const char \*format, struct cork_buffer \*buf)
+              int cork_timestamp_format_local(const cork_timestamp ts, const char \*format, struct cork_buffer \*buf)
 
-   Fills in *buf* with the string representation of the given timestamp,
-   according to *fmt*, which should be a format string compatible with
-   the POSIX ``strftime`` function.  *size* must be the size (in bytes)
-   of *buf*.  If we can't format the timestamp for any reason, we return
-   ``false``.  The ``_utc`` variant assumes that *ts* represents a UTC
-   time, whereas teh ``_local`` variant assumes that it represents a
-   time in the local time zone.
+   Create the string representation of the given timestamp according to
+   *format*, appending the result to the current contents of *buf*.
+
+   The ``_utc`` variant assumes that *ts* represents a UTC time, whereas the
+   ``_local`` variant assumes that it represents a time in the local time zone.
+
+   *format* is a format string whose syntax is similar to that of the POSIX
+   ``strftime`` function.  *format* must contain arbitrary text interspersed
+   with ``%`` specifiers, which will be replaced with portions of the timestamp.
+   The following specifiers are recognized (note that this list does **not**
+   include all of the specifiers supported by ``strftime``):
+
+   ============== ====================================================
+   Specifier      Replacement
+   ============== ====================================================
+   ``%%``         A literal ``%`` character
+   ``%d``         Day of month (``01``-``31``)
+   ``%[width]f``  Fractional seconds (zero-padded, limited to ``[width]``
+                  digits)
+   ``%H``         Hour in current day (``00``-``23``)
+   ``%m``         Month (``01``-``12``)
+   ``%M``         Minute in current hour (``00``-``59``)
+   ``%s``         Number of seconds since Unix epoch
+   ``%S``         Second in current minute (``00``-``60``)
+   ``%Y``         Four-digit year (including century)
+   ============== ====================================================
+
+   If the format string is invalid, we will return an :ref:`error condition
+   <errors>`.
