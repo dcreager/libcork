@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -48,8 +47,8 @@ append_fractional(const cork_timestamp ts, unsigned int width,
                   struct cork_buffer *dest)
 {
     if (CORK_UNLIKELY(width == 0 || width > 9)) {
-        cork_error_set
-            (CORK_BUILTIN_ERROR, CORK_BAD_FORMAT,
+        cork_error_set_printf
+            (EINVAL,
              "Invalid width %u for fractional cork_timestamp", width);
         return -1;
     } else {
@@ -82,8 +81,8 @@ cork_timestamp_format_parts(const cork_timestamp ts, struct tm *tm,
 
         switch (*spec) {
             case '\0':
-                cork_error_set
-                    (CORK_BUILTIN_ERROR, CORK_BAD_FORMAT,
+                cork_error_set_string
+                    (EINVAL,
                      "Trailing %% at end of cork_timestamp format string");
                 return -1;
 
@@ -125,8 +124,8 @@ cork_timestamp_format_parts(const cork_timestamp ts, struct tm *tm,
                 break;
 
             default:
-                cork_error_set
-                    (CORK_BUILTIN_ERROR, CORK_BAD_FORMAT,
+                cork_error_set_printf
+                    (EINVAL,
                      "Unknown cork_timestamp format specifier %%%c", *spec);
                 return -1;
         }

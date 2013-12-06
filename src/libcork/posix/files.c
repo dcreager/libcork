@@ -478,9 +478,9 @@ cork_path_list_find_file(const struct cork_path_list *list,
         }
     }
 
-    cork_error_set
-        (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-         "%s not found in %s", rel_path, cork_path_list_to_string(list));
+    cork_error_set_printf
+        (ENOENT, "%s not found in %s",
+         rel_path, cork_path_list_to_string(list));
     return NULL;
 
 error:
@@ -753,9 +753,7 @@ cork_path_home(void)
 {
     const char  *path = cork_env_get(NULL, "HOME");
     if (empty_string(path)) {
-        cork_error_set
-            (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-             "Cannot determine home directory");
+        cork_undefined("Cannot determine home directory");
         return NULL;
     } else {
         return cork_path_new(path);
@@ -866,9 +864,7 @@ cork_path_user_runtime_path(void)
      * no default given by the spec. */
     var = cork_env_get(NULL, "XDG_RUNTIME_DIR");
     if (empty_string(var)) {
-        cork_error_set
-            (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-             "Cannot determine user-specific runtime directory");
+        cork_undefined("Cannot determine user-specific runtime directory");
         return NULL;
     } else {
         return cork_path_new(var);

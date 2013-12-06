@@ -3,8 +3,7 @@
  * Copyright © 2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -15,6 +14,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/error.h"
 #include "libcork/core/types.h"
+#include "libcork/ds/buffer.h"
 #include "libcork/threads/basics.h"
 
 
@@ -29,9 +29,8 @@ struct cork_thread {
     cork_thread_id  id;
     pthread_t  thread_id;
     struct cork_thread_body  *body;
-    cork_error_class  error_class;
-    cork_error_code  error_code;
-    const char  *error_message;
+    cork_error  error_code;
+    struct cork_buffer  error_message;
     bool  started;
     bool  joined;
 };
@@ -76,8 +75,8 @@ cork_thread_new(const char *name, struct cork_thread_body *body)
     self->name = cork_strdup(name);
     self->id = cork_uint_atomic_add(&last_thread_descriptor, 1);
     self->body = body;
-    self->error_class = CORK_ERROR_NONE;
-    self->error_message = NULL;
+    self->error_code = CORK_ERROR_NONE;
+    cork_buffer_init(&self->error_message);
     self->started = false;
     self->joined = false;
     return self;
@@ -88,9 +87,7 @@ cork_thread_free_private(struct cork_thread *self)
 {
     cork_strfree(self->name);
     cork_thread_body_free(self->body);
-    if (self->error_message != NULL) {
-        cork_strfree(self->error_message);
-    }
+    cork_buffer_done(&self->error_message);
     free(self);
 }
 
@@ -129,13 +126,11 @@ cork_thread_pthread_run(void *vself)
      * cork_thread_join. */
     if (CORK_UNLIKELY(rc != 0)) {
         if (CORK_LIKELY(cork_error_occurred())) {
-            self->error_class = cork_error_get_class();
-            self->error_code = cork_error_get_code();
-            self->error_message = cork_strdup(cork_error_message());
+            self->error_code = cork_error_code();
+            cork_buffer_set_string(&self->error_message, cork_error_message());
         } else {
-            self->error_class = CORK_BUILTIN_ERROR;
             self->error_code = CORK_UNKNOWN_ERROR;
-            self->error_message = cork_strdup("Unknown error");
+            cork_buffer_set_string(&self->error_message, "Unknown error");
         }
     }
 
@@ -175,10 +170,10 @@ cork_thread_join(struct cork_thread *self)
         return -1;
     }
 
-    if (CORK_UNLIKELY(self->error_class != CORK_ERROR_NONE)) {
-        cork_error_set(self->error_class, self->error_code,
-                       "Error from thread %s: %s",
-                       self->name, self->error_message);
+    if (CORK_UNLIKELY(self->error_code != CORK_ERROR_NONE)) {
+        cork_error_set_printf
+            (self->error_code, "Error from thread %s: %s",
+             self->name, (char *) self->error_message.buf);
         cork_thread_free_private(self);
         return -1;
     }

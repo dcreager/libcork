@@ -179,8 +179,8 @@ START_TEST(test_error_prefix)
 {
     DESCRIBE_TEST;
     cork_error_clear();
-    cork_error_set(CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-                   "%u errors occurred", (unsigned int) 17);
+    cork_error_set_printf
+        (CORK_UNKNOWN_ERROR, "%u errors occurred", (unsigned int) 17);
     fail_unless_streq("Error messages",
                       "17 errors occurred",
                       cork_error_message());
@@ -199,9 +199,7 @@ START_TEST(test_system_error)
     errno = ENOMEM;
     cork_error_clear();
     cork_system_error_set();
-    fail_unless(cork_error_get_class() == CORK_BUILTIN_ERROR,
-                "Expected a built-in error");
-    fail_unless(cork_error_get_code() == CORK_SYSTEM_ERROR,
+    fail_unless(cork_error_code() == ENOMEM,
                 "Expected a system error");
     printf("Got error: %s\n", cork_error_message());
     cork_error_clear();
