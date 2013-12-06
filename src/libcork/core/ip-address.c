@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -99,9 +98,7 @@ cork_ipv4_parse(struct cork_ipv4 *addr, const char *str)
 
 parse_error:
     DEBUG("parse error\n");
-    cork_error_set
-        (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
-         "Invalid IPv4 address: \"%s\"", str);
+    cork_parse_error("Invalid IPv4 address: \"%s\"", str);
     return NULL;
 }
 
@@ -331,9 +328,7 @@ cork_ipv6_init(struct cork_ipv6 *addr, const char *str)
 
 parse_error:
     DEBUG("parse error\n");
-    cork_error_set
-        (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
-         "Invalid IPv6 address: \"%s\"", str);
+    cork_parse_error("Invalid IPv6 address: \"%s\"", str);
     return -1;
 }
 
@@ -492,9 +487,7 @@ cork_ip_init(struct cork_ip *addr, const char *str)
     }
 
     /* Parse error for both address types */
-    cork_error_set
-        (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
-         "Invalid IP address: \"%s\"", str);
+    cork_parse_error("Invalid IP address: \"%s\"", str);
     return -1;
 }
 
