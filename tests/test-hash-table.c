@@ -57,14 +57,6 @@ uint64_sum(void *vsum, struct cork_hash_table_entry *entry)
     return CORK_HASH_TABLE_MAP_CONTINUE;
 }
 
-static enum cork_hash_table_map_result
-uint64_map_free(void *user_data, struct cork_hash_table_entry *entry)
-{
-    free(entry->key);
-    free(entry->value);
-    return CORK_HASH_TABLE_MAP_DELETE;
-}
-
 static void
 test_map_sum(struct cork_hash_table *table, uint64_t expected)
 {
@@ -150,6 +142,8 @@ START_TEST(test_uint64_hash_table)
     table = cork_hash_table_new(0, 0);
     cork_hash_table_set_hash(table, uint64_hash);
     cork_hash_table_set_equals(table, uint64_equals);
+    cork_hash_table_set_free_key(table, free);
+    cork_hash_table_set_free_value(table, free);
     fail_unless(cork_hash_table_size(table) == 0,
                 "Hash table should start empty");
 
@@ -211,12 +205,8 @@ START_TEST(test_uint64_hash_table)
     test_iterator_to_string(table, "[0:32, 1:2]");
 
     key = 0;
-    fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
+    fail_unless(cork_hash_table_delete(table, &key, NULL, NULL),
                 "Couldn't delete {0=>32}");
-    old_key = v_key;
-    old_value = v_value;
-    free(old_key);
-    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 1,
                 "Unexpected size after deleting entry");
@@ -228,11 +218,7 @@ START_TEST(test_uint64_hash_table)
     fail_if(cork_hash_table_delete(table, &key, NULL, NULL),
             "Shouldn't be able to delete nonexistent {3=>X}");
 
-    old_key = entry->key;
-    old_value = entry->value;
     cork_hash_table_delete_entry(table, entry);
-    free(old_key);
-    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
@@ -264,14 +250,11 @@ START_TEST(test_uint64_hash_table)
     old_key = v_key;
     old_value = v_value;
 
-    cork_hash_table_map(table, NULL, uint64_map_free);
+    cork_hash_table_clear(table);
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting entries using map");
 
-    /*
-     * And we're done, so let's free everything.
-     */
-
+    /* And we're done, so let's free everything. */
     cork_hash_table_free(table);
 }
 END_TEST

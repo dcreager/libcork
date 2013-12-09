@@ -49,8 +49,9 @@ cork_env_var_new(const char *name, const char *value)
 }
 
 static void
-cork_env_var_free(struct cork_env_var *var)
+cork_env_var_free(void *vvar)
 {
+    struct cork_env_var  *var = vvar;
     cork_strfree(var->name);
     cork_strfree(var->value);
     free(var);
@@ -67,6 +68,7 @@ cork_env_new(void)
 {
     struct cork_env  *env = cork_new(struct cork_env);
     env->variables = cork_string_hash_table_new(0, 0);
+    cork_hash_table_set_free_value(env->variables, cork_env_var_free);
     cork_buffer_init(&env->buffer);
     return env;
 }
@@ -115,18 +117,9 @@ cork_env_clone_current(void)
 }
 
 
-static enum cork_hash_table_map_result
-cork_env_free_vars(void *user_data, struct cork_hash_table_entry *entry)
-{
-    struct cork_env_var  *var = entry->value;
-    cork_env_var_free(var);
-    return CORK_HASH_TABLE_MAP_DELETE;
-}
-
 void
 cork_env_free(struct cork_env *env)
 {
-    cork_hash_table_map(env->variables, NULL, cork_env_free_vars);
     cork_hash_table_free(env->variables);
     cork_buffer_done(&env->buffer);
     free(env);

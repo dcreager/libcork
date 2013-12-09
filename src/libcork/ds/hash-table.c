@@ -56,6 +56,8 @@ struct cork_hash_table {
     cork_free_f  free_user_data;
     cork_hash_f  hash;
     cork_equals_f  equals;
+    cork_free_f  free_key;
+    cork_free_f  free_value;
 };
 
 static cork_hash
@@ -132,6 +134,12 @@ static void
 cork_hash_table_free_entry(struct cork_hash_table *table,
                            struct cork_hash_table_entry_priv *entry)
 {
+    if (table->free_key != NULL) {
+        table->free_key(entry->public.key);
+    }
+    if (table->free_value != NULL) {
+        table->free_value(entry->public.value);
+    }
     cork_dllist_remove(&entry->insertion_order);
     cork_mempool_free_object(table->pool, entry);
 }
@@ -146,6 +154,8 @@ cork_hash_table_new(size_t initial_size, unsigned int flags)
     table->free_user_data = NULL;
     table->hash = cork_hash_table__default_hash;
     table->equals = cork_hash_table__default_equals;
+    table->free_key = NULL;
+    table->free_value = NULL;
     table->pool = cork_mempool_new(struct cork_hash_table_entry_priv);
     cork_dllist_init(&table->insertion_order);
     if (initial_size < CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE) {
@@ -216,6 +226,18 @@ void
 cork_hash_table_set_equals(struct cork_hash_table *table, cork_equals_f equals)
 {
     table->equals = equals;
+}
+
+void
+cork_hash_table_set_free_key(struct cork_hash_table *table, cork_free_f free)
+{
+    table->free_key = free;
+}
+
+void
+cork_hash_table_set_free_value(struct cork_hash_table *table, cork_free_f free)
+{
+    table->free_value = free;
 }
 
 
