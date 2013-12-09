@@ -163,7 +163,23 @@ from a hash table.  Each one has slightly different semantics; you
 should read through them all before deciding which one to use for a
 particular use case.
 
+.. note::
+
+   Each of these functions comes in two variants.  The “normal” variant will use
+   the hash table's :c:func:`hash <cork_hash_table_set_hash>` callback to
+   calculate the hash value for the *key* parameter.  This is the normal way to
+   interact with a hash table.
+
+   When using the ``_hash`` variant, you must calculate the hash value for each
+   key yourself, and pass in this hash value as an extra parameter.  The hash
+   table's :c:func:`hash <cork_hash_table_set_hash>` callback is not invoked.
+   This can be more efficient, if you've already calculated or cached the hash
+   value.  It is your responsibility to make sure that the hash values you
+   provide are consistent, just like when you write a :c:func:`hash
+   <cork_hash_table_set_hash>` callback.
+
 .. function:: void \*cork_hash_table_get(const struct cork_hash_table \*table, const void \*key)
+              void \*cork_hash_table_get_hash(const struct cork_hash_table \*table, cork_hash hash, const void \*key)
 
    Retrieves the value in *table* with the given *key*.  We return
    ``NULL`` if there's no corresponding entry in the table.  This means
@@ -173,6 +189,7 @@ particular use case.
    :c:func:`cork_hash_table_get_entry()` instead.
 
 .. function:: struct cork_hash_table_entry \*cork_hash_table_get_entry(const struct cork_hash_table \*table, const void \*key)
+              struct cork_hash_table_entry \*cork_hash_table_get_entry_hash(const struct cork_hash_table \*table, cork_hash hash, const void \*key)
 
    Retrieves the entry in *table* with the given *key*.  We return
    ``NULL`` if there's no corresponding entry in the table.
@@ -185,6 +202,7 @@ particular use case.
    for this hash table.
 
 .. function:: struct cork_hash_table_entry \*cork_hash_table_get_or_create(struct cork_hash_table \*table, void \*key, bool \*is_new)
+              struct cork_hash_table_entry \*cork_hash_table_get_or_create_hash(struct cork_hash_table \*table, cork_hash hash, void \*key, bool \*is_new)
 
    Retrieves the entry in *table* with the given *key*.  If there is no
    entry with the given key, it will be created.  (If we can't create
@@ -205,6 +223,7 @@ particular use case.
    successful lookups of existing keys.
 
 .. function:: int cork_hash_table_put(struct cork_hash_table \*table, void \*key, void \*value, bool \*is_new, void \*\*old_key, void \*\*old_value)
+              int cork_hash_table_put_hash(struct cork_hash_table \*table, cork_hash hash, void \*key, void \*value, bool \*is_new, void \*\*old_key, void \*\*old_value)
 
    Add an entry to a hash table.  If there is already an entry with the
    given key, we will overwrite its key and value with the *key* and
@@ -215,7 +234,7 @@ particular use case.
    value.  This can be used, for instance, to finalize an overwritten
    key or value object.
 
-.. function:: void cork_hash_table_entry(struct cork_hash_table \*table, struct cork_hash_table_entry \*entry)
+.. function:: void cork_hash_table_delete_entry(struct cork_hash_table \*table, struct cork_hash_table_entry \*entry)
 
    Removes *entry* from *table*.  You must ensure that *entry* refers to a
    valid, existing entry in the hash table.  This function can be more efficient
@@ -225,6 +244,7 @@ particular use case.
    entry again.
 
 .. function:: bool cork_hash_table_delete(struct cork_hash_table \*table, const void \*key, void \*\*deleted_key, void \*\*deleted_value)
+              bool cork_hash_table_delete_hash(struct cork_hash_table \*table, cork_hash hash, const void \*key, void \*\*deleted_key, void \*\*deleted_value)
 
    Removes the entry with the given *key* from *table*.  If there isn't
    any entry with the given key, we'll return ``false``.  If the

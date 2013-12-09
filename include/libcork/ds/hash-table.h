@@ -70,18 +70,35 @@ cork_hash_table_size(const struct cork_hash_table *table);
 CORK_API void *
 cork_hash_table_get(const struct cork_hash_table *table, const void *key);
 
+CORK_API void *
+cork_hash_table_get_hash(const struct cork_hash_table *table,
+                         cork_hash hash, const void *key);
+
 CORK_API struct cork_hash_table_entry *
 cork_hash_table_get_entry(const struct cork_hash_table *table,
                           const void *key);
 
 CORK_API struct cork_hash_table_entry *
+cork_hash_table_get_entry_hash(const struct cork_hash_table *table,
+                               cork_hash hash, const void *key);
+
+CORK_API struct cork_hash_table_entry *
 cork_hash_table_get_or_create(struct cork_hash_table *table,
                               void *key, bool *is_new);
 
+CORK_API struct cork_hash_table_entry *
+cork_hash_table_get_or_create_hash(struct cork_hash_table *table,
+                                   cork_hash hash, void *key, bool *is_new);
+
 CORK_API void
 cork_hash_table_put(struct cork_hash_table *table,
-                    void *key, void *value, bool *is_new,
-                    void **old_key, void **old_value);
+                    void *key, void *value,
+                    bool *is_new, void **old_key, void **old_value);
+
+CORK_API void
+cork_hash_table_put_hash(struct cork_hash_table *table,
+                         cork_hash hash, void *key, void *value,
+                         bool *is_new, void **old_key, void **old_value);
 
 CORK_API void
 cork_hash_table_delete_entry(struct cork_hash_table *table,
@@ -90,6 +107,11 @@ cork_hash_table_delete_entry(struct cork_hash_table *table,
 CORK_API bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value);
+
+CORK_API bool
+cork_hash_table_delete_hash(struct cork_hash_table *table,
+                            cork_hash hash, const void *key,
+                            void **deleted_key, void **deleted_value);
 
 
 enum cork_hash_table_map_result {
