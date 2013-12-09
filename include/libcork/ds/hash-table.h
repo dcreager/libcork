@@ -46,6 +46,12 @@ CORK_API void
 cork_hash_table_set_equals(struct cork_hash_table *table, cork_equals_f equals);
 
 CORK_API void
+cork_hash_table_set_free_key(struct cork_hash_table *table, cork_free_f free);
+
+CORK_API void
+cork_hash_table_set_free_value(struct cork_hash_table *table, cork_free_f free);
+
+CORK_API void
 cork_hash_table_set_hash(struct cork_hash_table *table, cork_hash_f hash);
 
 

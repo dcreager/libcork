@@ -27,11 +27,6 @@ to your comparator, they must also map to the same hash value.  (The inverse
 doesn't need to be true; it's fine for two keys to have the same hash value but
 not be equal.)
 
-The hash table does not take ownership of the keys or values in the
-table.  It is your responsibility, as a hash table user, to ensure that
-the keys and values in a hash table are disposed of correctly *before*
-you dispose of the hash table.
-
 .. type:: struct cork_hash_table
 
    A hash table.
@@ -59,10 +54,10 @@ you dispose of the hash table.
 
 .. function:: void cork_hash_table_free(struct cork_hash_table \*table)
 
-   Frees a hash table.  Nothing special is done to any remaining keys or values
-   in the table; if they need to be finalized, you should do that yourself
-   (using :c:func:`cork_hash_table_map`, for instance) before calling this
-   function.
+   Frees a hash table.  If you have provided a :c:func:`free_key
+   <cork_hash_table_set_free_key>` or :c:func:`free_value
+   <cork_hash_table_set_free_value>` callback for *table*, then we'll
+   automatically free any remaining keys and/or values.
 
 
 .. type:: struct cork_hash_table_entry
@@ -101,6 +96,10 @@ a hash table.
    hash table will take control of *user_data*, and will use the
    *free_user_data* function to free it when the hash table is destroyed.
 
+
+Key management
+~~~~~~~~~~~~~~
+
 .. function:: void cork_hash_table_set_hash(struct cork_hash_table \*table, void \*user_data, cork_hash_f hash)
 
    The hash table will use the ``hash`` callback to calculate a hash value for
@@ -135,12 +134,25 @@ prevents you from having to duplicate common hashing and comparison functions.
 
    Create a hash table whose keys will be C strings.
 
-
 .. function:: struct cork_hash_table \*cork_pointer_hash_table_new(size_t initial_size, unsigned int flags)
 
    Create a hash table where keys should be compared using standard pointer
    equality.  (In other words, keys should only be considered equal if they
    point to the same physical object.)
+
+
+Automatically freeing entries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. function:: void cork_hash_table_set_free_key(struct cork_hash_table \*table, void \*user_data, cork_free_f free_key)
+              void cork_hash_table_set_free_value(struct cork_hash_table \*table, void \*user_data, cork_free_f free_value)
+
+   If you provide ``free_key`` and/or ``free_value`` callbacks, then the hash
+   table will take ownership of any keys and values that you add.  The hash
+   table will use these callbacks to free each key and value when entries are
+   explicitly deleted (via :c:func:`cork_hash_table_delete` or
+   :c:func:`cork_hash_table_clear`), and when the hash table itself is
+   destroyed.
 
 
 Adding and retrieving entries
@@ -221,6 +233,12 @@ particular use case.
    for instance, to finalize the key or value object that was stored in
    the hash table entry.
 
+   If you have provided a :c:func:`free_key <cork_hash_table_set_free_key>` or
+   :c:func:`free_value <cork_hash_table_set_free_value>` callback for *table*,
+   then we'll automatically free the key and/or value of the deleted entry.
+   (This happens before ``cork_hash_table_delete`` returns, so you must not
+   provide a *deleted_key* and/or *deleted_value* in this case.)
+
 
 Other operations
 ----------------
@@ -234,9 +252,9 @@ Other operations
    Removes all of the entries in a hash table, without finalizing the
    hash table itself.
 
-   Nothing special is done to any remaining keys or values in the table;
-   if they need to be finalized, you should do that yourself before
-   calling this function.
+   If you have provided a :c:func:`free_key <cork_hash_table_set_free_key>` or
+   :c:func:`free_value <cork_hash_table_set_free_value>` callback for *table*,
+   then we'll automatically free any remaining keys and/or values.
 
 .. function:: int cork_hash_table_ensure_size(struct cork_hash_table \*table, size_t desired_count)
 
