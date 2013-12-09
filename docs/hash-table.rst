@@ -14,19 +14,18 @@ This section defines a hash table class.  Our hash table implementation
 is based on the public domain hash table package written in the late
 1980's by Peter Moore at UC Berkeley.
 
-The keys and values of a libcork hash table are both represented by
-``void *`` pointers.  You can also store integer keys or values, as long
-as you use the :c:type:`intptr_t` or :c:type:`uintptr_t` integral types.
-(These are the only integer types guaranteed by the C99 standard to fit
-within the space used by a ``void *``.)  The keys of the hash table can
-be any arbitrary type; you must provide two functions that control how
-key pointers are used to identify entries in the table: the *hasher*
-(:c:type:`cork_hash_table_hasher`) and the *comparator*
-(:c:type:`cork_hash_table_comparator`).  It's your responsibility to
-ensure that these two functions are consistent with each other — i.e.,
-if two keys are equal according to your comparator, they must also map
-to the same hash value.  (The inverse doesn't need to be true; it's fine
-for two keys to have the same hash value but not be equal.)
+The keys and values of a libcork hash table are both represented by ``void *``
+pointers.  You can also store integer keys or values, as long as you use the
+:c:type:`intptr_t` or :c:type:`uintptr_t` integral types.  (These are the only
+integer types guaranteed by the C99 standard to fit within the space used by a
+``void *``.)  The keys of the hash table can be any arbitrary type; you must
+provide two functions that control how key pointers are used to identify entries
+in the table: the *hasher* (:c:type:`cork_hash_f`) and the *comparator*
+(:c:type:`cork_equals_f`).  It's your responsibility to ensure that these two
+functions are consistent with each other — i.e., if two keys are equal according
+to your comparator, they must also map to the same hash value.  (The inverse
+doesn't need to be true; it's fine for two keys to have the same hash value but
+not be equal.)
 
 The hash table does not take ownership of the keys or values in the
 table.  It is your responsibility, as a hash table user, to ensure that
@@ -35,62 +34,35 @@ you dispose of the hash table.
 
 .. type:: struct cork_hash_table
 
-   A hash table instance.  A common use case is to embed this type
-   directly into another type that needs to use a hash table internally.
-   All of the fields of this type should be considered opaque; you
-   should only you the functions described below to query or update the
-   hash table.
+   A hash table.
 
-.. function:: void cork_hash_table_init(struct cork_hash_table \*table, size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
-              struct cork_hash_table \*cork_hash_table_new(size_t initial_size, cork_hash_table_hasher hasher, cork_hash_table_comparator comparator)
+.. function:: struct cork_hash_table \*cork_hash_table_new(size_t initial_size, unsigned int flags)
 
-   Initializes a new hash table instance.  The ``_init`` variant should
-   be used to initialize an instance that you've allocated yourself.
-   The ``_new`` variant will allocate a new instance from the heap,
-   returning ``NULL`` if the allocation fails.
-
-   .. note::
-
-      Note that the ``_init`` variant cannot fail; we don't allocate any
-      space for the hash table bins until you add the first element to
-      the table.
+   Creates a new hash table instance.
 
    If you know roughly how many entries you're going to add to the hash
    table, you can pass this in as the *initial_size* parameter.  If you
    don't know how many entries there will be, you can use ``0`` for this
-   parameter instead.  You must also provide the *hasher* and
-   *comparator* functions that will be used for the keys of this hash
+   parameter instead.
+
+   You will most likely need to provide a hashing function and a comparison
+   function for the new hash table (using :c:func:`cork_hash_table_set_hash` and
+   :c:func:`cork_hash_table_set_equals`), which will be used to compare key
+   values of the entries in the table.  If you do not provide your own
+   functions, the default functions will compare key pointers as-is without
+   interpreting what they point to.
+
+   The *flags* field is currently unused, and should be ``0``.  In the future,
+   this parameter will be used to let you customize the behavior of the hash
    table.
 
-.. type:: cork_hash (\*cork_hash_table_hasher)(const void \*key)
 
-   Translates a key pointer into a :c:type:`cork_hash` hash value.
+.. function:: void cork_hash_table_free(struct cork_hash_table \*table)
 
-   .. note::
-
-      It's important to use a hash function that has a uniform distribution of
-      hash values for the set of values you expect to use as hash table keys.
-      In particular, you *should not* rely on there being a prime number of hash
-      table bins to get the desired uniform distribution.  The :ref:`hash value
-      functions <hash-values>` that we provide have uniform distribution, and
-      should be safe to use for most key types.
-
-.. type:: bool (\*cork_hash_table_comparator)(const void \*key1, const void \*key2)
-
-   Compares two key pointers for equality.
-
-
-.. function:: void cork_hash_table_done(struct cork_hash_table \*table)
-              void cork_hash_table_free(struct cork_hash_table \*table)
-
-   Finalizes a hash table.  The ``_done`` variant should be used to
-   finalize an instance that you allocated yourself.  The ``_free``
-   variant should be used on instances that were allocated from the heap
-   using :c:func:`cork_hash_table_new()`.
-
-   Nothing special is done to any remaining keys or values in the table;
-   if they need to be finalized, you should do that yourself before
-   calling this function.
+   Frees a hash table.  Nothing special is done to any remaining keys or values
+   in the table; if they need to be finalized, you should do that yourself
+   (using :c:func:`cork_hash_table_map`, for instance) before calling this
+   function.
 
 
 .. type:: struct cork_hash_table_entry
@@ -115,23 +87,56 @@ you dispose of the hash table.
       read-only.
 
 
-Built-in key types
+Callback functions
 ------------------
 
-With the :c:func:`cork_hash_table_init` and :c:func:`cork_hash_table_new`
-functions, you must provide hasher and comparator functions for the keys that
-you're going to use in the hash table.  To save you from effort, we also provide
-a handful of specialized constructors for common key types.
+You can use the callback functions in this section to customize the behavior of
+a hash table.
+
+.. function:: void cork_hash_table_set_user_data(struct cork_hash_table \*table, void \*user_data, cork_free_f free_user_data)
+
+   Lets you provide an opaque *user_data* pointer to each of the hash table's
+   callbacks.  This lets you provide additional state, other than the hash table
+   itself to those callbacks.  If *free_user_data* is not ``NULL``, then the
+   hash table will take control of *user_data*, and will use the
+   *free_user_data* function to free it when the hash table is destroyed.
+
+.. function:: void cork_hash_table_set_hash(struct cork_hash_table \*table, void \*user_data, cork_hash_f hash)
+
+   The hash table will use the ``hash`` callback to calculate a hash value for
+   each key.
+
+   .. type:: cork_hash (\*cork_hash_f)(void \*user_data, const void \*key)
+
+      .. note::
+
+         It's important to use a hash function that has a uniform distribution
+         of hash values for the set of values you expect to use as hash table
+         keys.  In particular, you *should not* rely on there being a prime
+         number of hash table bins to get the desired uniform distribution.  The
+         :ref:`hash value functions <hash-values>` that we provide have uniform
+         distribution (and are fast), and should be safe to use for most key
+         types.
+
+.. function:: void cork_hash_table_set_equals(struct cork_hash_table \*table, void \*user_data, cork_equals_f equals)
+
+   The hash table will use the ``equals`` callback to compare keys.
+
+   .. type:: bool (\*cork_equals_f)(void \*user_data, const void \*key1, const void \*key2)
 
 
-.. function:: void cork_string_hash_table_init(struct cork_hash_table \*table, size_t initial_size)
-              struct cork_hash_table \*cork_string_hash_table_new(size_t initial_size)
+Built-in key types
+~~~~~~~~~~~~~~~~~~
+
+We also provide a couple of specialized constructors for common key types, which
+prevents you from having to duplicate common hashing and comparison functions.
+
+.. function:: struct cork_hash_table \*cork_string_hash_table_new(size_t initial_size, unsigned int flags)
 
    Create a hash table whose keys will be C strings.
 
 
-.. function:: void cork_pointer_hash_table_init(struct cork_hash_table \*table, size_t initial_size)
-              struct cork_hash_table \*cork_pointer_hash_table_new(size_t initial_size)
+.. function:: struct cork_hash_table \*cork_pointer_hash_table_new(size_t initial_size, unsigned int flags)
 
    Create a hash table where keys should be compared using standard pointer
    equality.  (In other words, keys should only be considered equal if they
@@ -246,58 +251,76 @@ Iterating through a hash table
 ------------------------------
 
 There are two strategies you can use to access all of the entries in a
-hash table: *mapping* and *iterating*.  With mapping, you write a
-mapping function, which will be applied to each entry in the table.  (In
-this case, libcork controls the loop that steps through each entry.)
+hash table: *mapping* and *iterating*.
 
-.. function:: void cork_hash_table_map(struct cork_hash_table \*table, cork_hash_table_mapper mapper, void \*user_data)
 
-   Applies the *mapper* function to each entry in a hash table.  The
-   mapper function's :c:type:`cork_hash_table_map_result` return value
-   can be used to influence the iteration.
+Iteration order
+~~~~~~~~~~~~~~~
 
-.. type:: enum cork_hash_table_map_result (\*cork_hash_table_mapper)(struct cork_hash_table_entry \*entry, void \*user_data)
+Regardless of whether you use the mapping or iteration functions, we guarantee
+that the collection of items will be processed in the same order that they were
+added to the hash table.
 
-   A function that can be applied to each entry in a hash table.  The
-   function's return value can be used to influence the iteration:
 
-.. type:: enum cork_hash_table_map_result
+Mapping
+~~~~~~~
 
-   .. var:: CORK_HASH_TABLE_CONTINUE
+With mapping, you write a mapping function that will be applied to each entry in
+the table.  (In this case, libcork controls the loop that steps through each
+entry.)
 
-      Continue the current :c:func:`cork_hash_table_map()` operation.
-      If there are remaining elements, the next one will be passed into
-      another call of the mapping function.
+.. function:: void cork_hash_table_map(struct cork_hash_table \*table, void \*user_data, cork_hash_table_map_f map)
 
-   .. var:: CORK_HASH_TABLE_ABORT
+   Applies the *map* function to each entry in a hash table.  The *map*
+   function's :c:type:`cork_hash_table_map_result` return value can be used to
+   influence the iteration.
 
-      Stop the current :c:func:`cork_hash_table_map()` operation.  No
-      more entries will be processed after this one.
+   .. type:: enum cork_hash_table_map_result (\*cork_hash_table_map_f)(void \*user_data, struct cork_hash_table_entry \*entry)
 
-   .. var:: CORK_HASH_TABLE_DELETE
+      The function that will be applied to each entry in a hash table.  The
+      function's return value can be used to influence the iteration:
 
-      Continue the current :c:func:`cork_hash_table_map()` operation,
-      but first delete the entry that was just processed.  If there are
-      remaining elements, the next one will be passed into another call
-      of the mapping function.
+      .. type:: enum cork_hash_table_map_result
+
+         .. var:: CORK_HASH_TABLE_CONTINUE
+
+            Continue the current :c:func:`cork_hash_table_map()` operation.  If
+            there are any remaining elements, the next one will be passed into
+            another call of the *map* function.
+
+         .. var:: CORK_HASH_TABLE_ABORT
+
+            Stop the current :c:func:`cork_hash_table_map()` operation.  No more
+            entries will be processed after this one, even if there are
+            remaining elements in the hash table.
+
+         .. var:: CORK_HASH_TABLE_DELETE
+
+            Continue the current :c:func:`cork_hash_table_map()` operation, but
+            first delete the entry that was just processed.  If there are any
+            remaining elements, the next one will be passed into another call of
+            the *map* function.
 
 For instance, you can manually calculate the number of entries in a hash
 table as follows (assuming you didn't want to use the built-in
 :c:func:`cork_hash_table_size()` function, of course)::
 
   static enum cork_hash_table_map_result
-  count_entries(struct cork_hash_table_entry *entry, void *ud)
+  count_entries(void *user_data, struct cork_hash_table_entry *entry)
   {
-      size_t  *count = ud;
+      size_t  *count = user_data;
       (*count)++;
       return CORK_HASH_TABLE_MAP_CONTINUE;
   }
 
   struct cork_hash_table  *table = /* from somewhere */;
   size_t  count = 0;
-  cork_hash_table_map(table, count_entries, &count);
+  cork_hash_table_map(table, &count, count_entries);
   /* the number of entries is now in count */
 
+
+Iterating
+~~~~~~~~~
 
 The second strategy is to iterate through the entries yourself.  Since
 the internal struture of the :c:type:`cork_hash_table` type is opaque

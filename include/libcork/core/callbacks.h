@@ -11,6 +11,9 @@
 #define LIBCORK_CORE_CALLBACKS_H
 
 
+#include <libcork/core/hash.h>
+
+
 typedef int
 (*cork_copy_f)(void *user_data, void *dest, const void *src);
 
@@ -19,6 +22,12 @@ typedef void
 
 typedef void
 (*cork_free_f)(void *value);
+
+typedef cork_hash
+(*cork_hash_f)(void *user_data, const void *value);
+
+typedef bool
+(*cork_equals_f)(void *user_data, const void *value1, const void *value2);
 
 typedef void
 (*cork_init_f)(void *user_data, void *value);
