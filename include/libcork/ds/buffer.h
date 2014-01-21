@@ -86,6 +86,12 @@ cork_buffer_set_string(struct cork_buffer *buffer, const char *str);
 CORK_API void
 cork_buffer_append_string(struct cork_buffer *buffer, const char *str);
 
+#define cork_buffer_set_literal(buffer, str) \
+    (cork_buffer_set((buffer), (str), sizeof((str)) - 1))
+
+#define cork_buffer_append_literal(buffer, str) \
+    (cork_buffer_append((buffer), (str), sizeof((str)) - 1))
+
 
 CORK_API void
 cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
@@ -104,6 +110,30 @@ CORK_API void
 cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
                            va_list args)
     CORK_ATTR_PRINTF(2,0);
+
+
+/*-----------------------------------------------------------------------
+ * Some helpers for pretty-printing data
+ */
+
+CORK_API void
+cork_buffer_append_indent(struct cork_buffer *buffer, size_t indent);
+
+CORK_API void
+cork_buffer_append_c_string(struct cork_buffer *buffer,
+                            const char *src, size_t length);
+
+CORK_API void
+cork_buffer_append_hex_dump(struct cork_buffer *buffer, size_t indent,
+                            const char *src, size_t length);
+
+CORK_API void
+cork_buffer_append_multiline(struct cork_buffer *buffer, size_t indent,
+                             const char *src, size_t length);
+
+CORK_API void
+cork_buffer_append_binary(struct cork_buffer *buffer, size_t indent,
+                          const char *src, size_t length);
 
 
 /*-----------------------------------------------------------------------
