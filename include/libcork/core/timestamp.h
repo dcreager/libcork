@@ -59,20 +59,69 @@ cork_timestamp_init_now(cork_timestamp *ts);
 #define cork_timestamp_gsec(ts)  ((uint32_t) ((ts) & 0xffffffff))
 
 CORK_ATTR_UNUSED
-static inline uint64_t
-cork_timestamp_gsec_to_units(const cork_timestamp ts, uint64_t denom)
+static inline uint32_t
+cork_timestamp_round_sec(const cork_timestamp ts)
 {
-    uint64_t  half = ((uint64_t) 1 << 31) / denom;
-    uint64_t  gsec = cork_timestamp_gsec(ts);
-    gsec += half;
-    gsec *= denom;
-    gsec >>= 32;
-    return gsec;
+    uint32_t  sec = cork_timestamp_sec(ts);
+    uint32_t  gsec = cork_timestamp_gsec(ts);
+    sec = cork_timestamp_sec(ts);
+    if (gsec >= 0x80000000) {
+        sec++;
+    }
+    return sec;
 }
 
-#define cork_timestamp_msec(ts)  cork_timestamp_gsec_to_units(ts, 1000)
-#define cork_timestamp_usec(ts)  cork_timestamp_gsec_to_units(ts, 1000000)
-#define cork_timestamp_nsec(ts)  cork_timestamp_gsec_to_units(ts, 1000000000)
+CORK_ATTR_UNUSED
+static inline void
+cork_timestamp_round(uint32_t *sec, uint32_t *frac, uint64_t denom)
+{
+    if (denom == 0) {
+        if (*frac >= 0x80000000) {
+            (*sec)++;
+        }
+    } else {
+        uint64_t  gsec = *frac;
+        uint64_t  half = ((uint64_t) 1 << 31) / denom;
+        gsec += half;
+        gsec *= denom;
+        gsec >>= 32;
+        while (gsec >= denom) {
+            gsec -= denom;
+            (*sec)++;
+        }
+        *frac = gsec;
+    }
+}
+
+CORK_ATTR_UNUSED
+static inline void
+cork_timestamp_round_msec(const cork_timestamp ts,
+                          uint32_t *sec, uint32_t *msec)
+{
+    *sec = cork_timestamp_sec(ts);
+    *msec = cork_timestamp_gsec(ts);
+    cork_timestamp_round(sec, msec, 1000);
+}
+
+CORK_ATTR_UNUSED
+static inline void
+cork_timestamp_round_usec(const cork_timestamp ts,
+                          uint32_t *sec, uint32_t *usec)
+{
+    *sec = cork_timestamp_sec(ts);
+    *usec = cork_timestamp_gsec(ts);
+    cork_timestamp_round(sec, usec, 1000000);
+}
+
+CORK_ATTR_UNUSED
+static inline void
+cork_timestamp_round_nsec(const cork_timestamp ts,
+                          uint32_t *sec, uint32_t *nsec)
+{
+    *sec = cork_timestamp_sec(ts);
+    *nsec = cork_timestamp_gsec(ts);
+    cork_timestamp_round(sec, nsec, 1000000000);
+}
 
 
 CORK_API int

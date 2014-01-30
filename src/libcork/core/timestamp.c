@@ -43,18 +43,47 @@ power_of_10(unsigned int width)
 }
 
 static int
-append_fractional(const cork_timestamp ts, unsigned int width,
-                  struct cork_buffer *dest)
+append_seconds(const cork_timestamp ts, uint32_t sec, unsigned int width,
+               struct cork_buffer *dest)
 {
-    if (CORK_UNLIKELY(width == 0 || width > 9)) {
+    if (CORK_UNLIKELY(width > 9)) {
         cork_error_set_printf
-            (EINVAL,
-             "Invalid width %u for fractional cork_timestamp", width);
+            (EINVAL, "Invalid width %u for cork_timestamp seconds", width);
         return -1;
+    } else if (width == 0) {
+        uint32_t  frac = cork_timestamp_gsec(ts);
+        cork_timestamp_round(&sec, &frac, 0);
+        cork_buffer_append_printf(dest, "%02" PRIu32, sec);
+        return 0;
     } else {
-        uint64_t  denom = power_of_10(width);
-        uint64_t  frac = cork_timestamp_gsec_to_units(ts, denom);
-        cork_buffer_append_printf(dest, "%0*" PRIu64, width, frac);
+        uint32_t  frac = cork_timestamp_gsec(ts);
+        cork_timestamp_round(&sec, &frac, power_of_10(width));
+        cork_buffer_append_printf
+            (dest, "%02" PRIu32 ".%0*" PRIu32, sec, width, frac);
+        return 0;
+    }
+}
+
+static int
+append_epoch_seconds(const cork_timestamp ts, unsigned int width,
+                     struct cork_buffer *dest)
+{
+    if (CORK_UNLIKELY(width > 9)) {
+        cork_error_set_printf
+            (EINVAL, "Invalid width %u for cork_timestamp seconds", width);
+        return -1;
+    } else if (width == 0) {
+        uint32_t  sec = cork_timestamp_sec(ts);
+        uint32_t  frac = cork_timestamp_gsec(ts);
+        cork_timestamp_round(&sec, &frac, 0);
+        cork_buffer_append_printf(dest, "%" PRIu32, sec);
+        return 0;
+    } else {
+        uint32_t  sec = cork_timestamp_sec(ts);
+        uint32_t  frac = cork_timestamp_gsec(ts);
+        cork_timestamp_round(&sec, &frac, power_of_10(width));
+        cork_buffer_append_printf
+            (dest, "%" PRIu32 ".%0*" PRIu32, sec, width, frac);
         return 0;
     }
 }
@@ -74,9 +103,12 @@ cork_timestamp_format_parts(const cork_timestamp ts, struct tm *tm,
         cork_buffer_append(dest, format, next_percent - format);
 
         /* Then parse the format specifier */
-        while (is_digit(*spec)) {
-            width *= 10;
-            width += (*spec++ - '0');
+        if (*spec == '.') {
+            spec++;
+            while (is_digit(*spec)) {
+                width *= 10;
+                width += (*spec++ - '0');
+            }
         }
 
         switch (*spec) {
@@ -111,16 +143,11 @@ cork_timestamp_format_parts(const cork_timestamp ts, struct tm *tm,
                 break;
 
             case 'S':
-                cork_buffer_append_printf(dest, "%02d", tm->tm_sec);
+                rii_check(append_seconds(ts, tm->tm_sec, width, dest));
                 break;
 
             case 's':
-                cork_buffer_append_printf
-                    (dest, "%" PRIu32, cork_timestamp_sec(ts));
-                break;
-
-            case 'f':
-                rii_check(append_fractional(ts, width, dest));
+                rii_check(append_epoch_seconds(ts, width, dest));
                 break;
 
             default:

@@ -50,17 +50,26 @@ High-precision timestamps
 
 
 .. function:: uint32_t cork_timestamp_sec(const cork_timestamp ts)
+              uint32_t cork_timestamp_round_sec(const cork_timestamp ts)
 
-   Returns the seconds portion of a timestamp.
+   Returns the seconds portion of a timestamp.  If the timestamp includes a
+   subsecond fractional component, the ``round`` variant will round the result
+   towards the nearest second.  The non-``round`` variant will truncate the
+   result towards zero.
 
 .. function:: uint32_t cork_timestamp_gsec(const cork_timestamp ts)
-              uint32_t cork_timestamp_msec(const cork_timestamp ts)
-              uint32_t cork_timestamp_usec(const cork_timestamp ts)
-              uint32_t cork_timestamp_nsec(const cork_timestamp ts)
 
-   Returns the fractional portion of a timestamp.  The variants return the
-   fractional portion in, respectively, gammaseconds, milliseconds,
-   microseconds, or nanoseconds.
+   Returns the fractional portion of a timestamp, in gammaseconds.
+
+.. function:: void cork_timestamp_round_msec(const cork_timestamp ts, uint32_t \*sec, uint32_t \*msec)
+              void cork_timestamp_round_usec(const cork_timestamp ts, uint32_t \*sec, uint32_t \*usec)
+              void cork_timestamp_round_nsec(const cork_timestamp ts, uint32_t \*sec, uint32_t \*nsec)
+
+   Returns the seconds and fractional portions of a timestamp, with the
+   fractional portion rounded to, respectively, milliseconds, microseconds, or
+   nanoseconds.  (You must extract the seconds and fractional portions together,
+   because rounding the fractional portion might involve adding a carry bit to
+   the seconds portion.)
 
 
 .. function:: int cork_timestamp_format_utc(const cork_timestamp ts, const char \*format, struct cork_buffer \*buf)
@@ -83,15 +92,22 @@ High-precision timestamps
    ============== ====================================================
    ``%%``         A literal ``%`` character
    ``%d``         Day of month (``01``-``31``)
-   ``%[width]f``  Fractional seconds (zero-padded, limited to ``[width]``
-                  digits)
    ``%H``         Hour in current day (``00``-``23``)
    ``%m``         Month (``01``-``12``)
    ``%M``         Minute in current hour (``00``-``59``)
-   ``%s``         Number of seconds since Unix epoch
-   ``%S``         Second in current minute (``00``-``60``)
+   ``%[.width]s`` Number of seconds (and possibly fractional seconds)
+                  since Unix epoch
+   ``%[.width]S`` Second (and possibly fractional second) in current
+                  minute (``00``-``60``)
    ``%Y``         Four-digit year (including century)
    ============== ====================================================
+
+   For the ``%s`` and ``%S`` specifiers, you can also provide a ``width``.  If
+   you do, then we will also include the subsecond fractional portion of the
+   timestamp, rounded to the nearnest number of fractional digits.  For
+   instance, if you want the number of milliseconds since the Unix epoch, you
+   would use ``%.3s`` as your format specifier.  If you want the 24-hour time
+   within the day, including microseconds, you would use `%H:%M:%.6S`.
 
    If the format string is invalid, we will return an :ref:`error condition
    <errors>`.
