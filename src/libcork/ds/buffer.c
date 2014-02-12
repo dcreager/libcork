@@ -163,16 +163,28 @@ void
 cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
                            va_list args)
 {
-    size_t  new_size;
+    size_t  format_size;
     va_list  args1;
+
     va_copy(args1, args);
-    size_t  formatted_length = vsnprintf(NULL, 0, format, args1);
+    format_size = vsnprintf(buffer->buf + buffer->size,
+                            buffer->allocated_size - buffer->size,
+                            format, args1);
     va_end(args1);
 
-    new_size = buffer->size + formatted_length;
-    cork_buffer_ensure_size_int(buffer, new_size+1);
-    vsnprintf(buffer->buf + buffer->size, formatted_length+1, format, args);
-    buffer->size = new_size;
+    /* If the first call works, then set buffer->size and return. */
+    if (format_size < (buffer->allocated_size - buffer->size)) {
+        buffer->size += format_size;
+        return;
+    }
+
+    /* If the first call fails, resize buffer and try again. */
+    cork_buffer_ensure_size_int
+        (buffer, buffer->allocated_size + format_size + 1);
+    format_size = vsnprintf(buffer->buf + buffer->size,
+                            buffer->allocated_size - buffer->size,
+                            format, args);
+    buffer->size += format_size;
 }
 
 
