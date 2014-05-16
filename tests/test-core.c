@@ -657,65 +657,87 @@ START_TEST(test_timestamp)
 
     DESCRIBE_TEST;
 
+#define test_sec(expected) \
+    do { \
+        uint32_t  sec = cork_timestamp_round_sec(ts); \
+        fail_unless(sec == expected, \
+                    "Unexpected sec portion of timestamp " \
+                    "(got %" PRIu32 ", expected %" PRIu32 ")", \
+                    sec, (uint32_t) expected); \
+    } while (0)
+
+#define test_gsec(expected) \
+    do { \
+        uint32_t  gsec = cork_timestamp_gsec(ts); \
+        fail_unless(gsec == (expected), \
+                    "Unexpected gsec portion of timestamp " \
+                    "(got %" PRIu32 ", expected %" PRIu32 ")", \
+                    gsec, (uint32_t) (expected)); \
+    } while (0)
+
 #define test(unit, expected) \
-    fail_unless(cork_timestamp_##unit(ts) == expected, \
-                "Unexpected " #unit " portion of timestamp " \
-                "(got %lu, expected %lu)", \
-                (unsigned long) cork_timestamp_##unit(ts), \
-                (unsigned long) expected);
+    do { \
+        uint32_t  sec; \
+        uint32_t  frac; \
+        cork_timestamp_round_##unit(ts, &sec, &frac); \
+        fail_unless(frac == expected, \
+                    "Unexpected " #unit " portion of timestamp " \
+                    "(got %" PRIu32 ", expected %" PRIu32 ")", \
+                    frac, (uint32_t) expected); \
+    } while (0)
 
 #define test_format(utc, local) \
     test_timestamp_utc_format(ts, " %Y-%m-%d %H:%M:%S ", utc); \
     test_timestamp_local_format(ts, " %Y-%m-%d %H:%M:%S ", local);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_1);
-    test(sec, TEST_TIME_1);
-    test(gsec, 0);
+    test_sec(TEST_TIME_1);
+    test_gsec(0);
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_UTC_TIME_1, FORMATTED_LOCAL_TIME_1);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_2);
-    test(sec, TEST_TIME_2);
-    test(gsec, 0);
+    test_sec(TEST_TIME_2);
+    test_gsec(0);
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_UTC_TIME_2, FORMATTED_LOCAL_TIME_2);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_3);
-    test(sec, TEST_TIME_3);
-    test(gsec, 0);
+    test_sec(TEST_TIME_3);
+    test_gsec(0);
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
     test_format(FORMATTED_UTC_TIME_3, FORMATTED_LOCAL_TIME_3);
 
     cork_timestamp_init_gsec(&ts, TEST_TIME_1, 1 << 30);
-    test(sec, TEST_TIME_1);
-    test(gsec, 1 << 30);
+    test_sec(TEST_TIME_1);
+    test_gsec(1 << 30);
     test(msec, 250);
     test(usec, 250000);
     test(nsec, 250000000);
 
     cork_timestamp_init_msec(&ts, TEST_TIME_1, 500);
-    test(sec, TEST_TIME_1);
-    test(gsec, 1 << 31);
+    test_sec(TEST_TIME_1 + 1);  /* fractional part >= 0.5, round up */
+    test_gsec(1 << 31);
     test(msec, 500);
     test(usec, 500000);
     test(nsec, 500000000);
 
     cork_timestamp_init_usec(&ts, TEST_TIME_1, 500000);
-    test(sec, TEST_TIME_1);
-    test(gsec, 1 << 31);
+    test_sec(TEST_TIME_1 + 1);  /* fractional part >= 0.5, round up */
+    test_gsec(1 << 31);
     test(msec, 500);
     test(usec, 500000);
     test(nsec, 500000000);
 
     cork_timestamp_init_nsec(&ts, TEST_TIME_1, 500000000);
-    test(sec, TEST_TIME_1);
-    test(gsec, 1 << 31);
+    test_sec(TEST_TIME_1 + 1);  /* fractional part >= 0.5, round up */
+    test_gsec(1 << 31);
     test(msec, 500);
     test(usec, 500000);
     test(nsec, 500000000);
@@ -728,21 +750,41 @@ START_TEST(test_timestamp_format)
     DESCRIBE_TEST;
 
     cork_timestamp_init_nsec(&ts, 0, 123456789);
-    test_timestamp_bad_format(ts, "%f");
-    test_timestamp_bad_format(ts, "%0f");
-    test_timestamp_bad_format(ts, "%10f");
-    test_timestamp_utc_format(ts, "%1f",   "1");
-    test_timestamp_utc_format(ts, "%2f",   "12");
-    test_timestamp_utc_format(ts, "%3f",   "123");
-    test_timestamp_utc_format(ts, "%4f",   "1235");
-    test_timestamp_utc_format(ts, "%5f",   "12346");
-    test_timestamp_utc_format(ts, "%6f",   "123457");
-    test_timestamp_utc_format(ts, "%7f",   "1234568");
-    test_timestamp_utc_format(ts, "%8f",   "12345679");
-    test_timestamp_utc_format(ts, "%9f",   "123456789");
-    test_timestamp_utc_format(ts, "%009f", "123456789");
+    test_timestamp_bad_format(ts, "%.10s");
+    test_timestamp_utc_format(ts, "%.1s",   "0.1");
+    test_timestamp_utc_format(ts, "%.2s",   "0.12");
+    test_timestamp_utc_format(ts, "%.3s",   "0.123");
+    test_timestamp_utc_format(ts, "%.4s",   "0.1235");
+    test_timestamp_utc_format(ts, "%.5s",   "0.12346");
+    test_timestamp_utc_format(ts, "%.6s",   "0.123457");
+    test_timestamp_utc_format(ts, "%.7s",   "0.1234568");
+    test_timestamp_utc_format(ts, "%.8s",   "0.12345679");
+    test_timestamp_utc_format(ts, "%.9s",   "0.123456789");
+    test_timestamp_utc_format(ts, "%.009s", "0.123456789");
 
-    cork_timestamp_init_nsec(&ts, 1200000000, 123456789);
+    cork_timestamp_init_msec(&ts, 1200000000, 999);
+    test_timestamp_utc_format(ts, "%H:%M:%S",   "21:20:01");
+    test_timestamp_utc_format(ts, "%H:%M:%.1S", "21:20:01.0");
+    test_timestamp_utc_format(ts, "%H:%M:%.2S", "21:20:01.00");
+    test_timestamp_utc_format(ts, "%H:%M:%.3S", "21:20:00.999");
+    test_timestamp_utc_format(ts, "%H:%M:%.4S", "21:20:00.9990");
+    test_timestamp_utc_format(ts, "%H:%M:%.5S", "21:20:00.99900");
+    test_timestamp_utc_format(ts, "%H:%M:%.6S", "21:20:00.999000");
+    test_timestamp_utc_format(ts, "%H:%M:%.7S", "21:20:00.9990000");
+    test_timestamp_utc_format(ts, "%H:%M:%.8S", "21:20:00.99900000");
+    test_timestamp_utc_format(ts, "%H:%M:%.9S", "21:20:00.999000000");
+
+    cork_timestamp_init_usec(&ts, 1200000000, 500999);
+    test_timestamp_utc_format(ts, "%H:%M:%S",   "21:20:01");
+    test_timestamp_utc_format(ts, "%H:%M:%.1S", "21:20:00.5");
+    test_timestamp_utc_format(ts, "%H:%M:%.2S", "21:20:00.50");
+    test_timestamp_utc_format(ts, "%H:%M:%.3S", "21:20:00.501");
+    test_timestamp_utc_format(ts, "%H:%M:%.4S", "21:20:00.5010");
+    test_timestamp_utc_format(ts, "%H:%M:%.5S", "21:20:00.50100");
+    test_timestamp_utc_format(ts, "%H:%M:%.6S", "21:20:00.500999");
+    test_timestamp_utc_format(ts, "%H:%M:%.7S", "21:20:00.5009990");
+    test_timestamp_utc_format(ts, "%H:%M:%.8S", "21:20:00.50099900");
+    test_timestamp_utc_format(ts, "%H:%M:%.9S", "21:20:00.500999000");
 }
 END_TEST
 
