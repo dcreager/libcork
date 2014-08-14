@@ -50,8 +50,8 @@ Creating threads
 
 The functions in this section let you create and start new threads in the
 current process.  Each libcork thread is named and has a unique :ref:`thread ID
-<thread-ids>`.  Each thread also contains a *body*, which defines the code that
-should be executed within the new thread.
+<thread-ids>`.  Each thread also contains a ``run`` function, which defines the
+code that should be executed within the new thread.
 
 Every thread goes through the same lifecycle:
 
@@ -60,20 +60,20 @@ Every thread goes through the same lifecycle:
    encounter an error before you start the thread, you must use
    :c:func:`cork_thread_free` to free the thread object.
 
-   When you create the thread, you give it a :c:type:`cork_thread_body`
-   instance.  This body serves two purposes: it defines the code that will be
-   executed in the new thread, and by embedding the :c:type:`cork_thread_body`
-   instance inside of a larger ``struct``, it gives you a place to pass data
-   into and out of the thread.
+   When you create the thread, you give it a :c:type:`cork_run_f` function,
+   which defines the code that will be executed in the new thread.  You also
+   provide a ``user_data`` value, which it gives you a place to pass data into
+   and out of the thread.
 
    .. note::
 
       Any data passed into and out of the thread via the body instance is not
-      automatically synchronized or thread-safe.  You can pass in input data
-      before calling :c:type:`cork_thread_new`, and retrieve output data after
-      calling :c:type:`cork_thread_join`.  While the thread is executing, you
-      must implement your own synchronization or locking to access the contents
-      of the body from some other thread.
+      automatically synchronized or thread-safe.  You can safely pass in input
+      data before calling :c:type:`cork_thread_new`, and retrieve output data
+      after calling :c:type:`cork_thread_join`, all without requiring any extra
+      synchronization effort.  While the thread is executing, however, you must
+      implement your own synchronization or locking to access the contents of
+      the body from some other thread.
 
 2) You start the thread via :c:func:`cork_thread_start`.  You must ensure that
    you don't try to start a thread more than once.  Once you've started a
@@ -84,37 +84,9 @@ Every thread goes through the same lifecycle:
 3) Once you've started a thread, you wait for it to finish via
    :c:func:`cork_thread_join`.  Any thread can wait for any other thread to
    finish, although you are responsible for ensuring that your threads don't
-   deadlock.  However, you can only join a particular thread once.  The thread
-   does not automatically free its :c:type:`cork_thread_body` instance, so you
-   can extract any output data from the thread at this point.
+   deadlock.  However, you can only join a particular thread once.
 
 
-.. type:: struct cork_thread_body
-
-   The code that should be executed within a new thread.  If you need to pass
-   any information into the thread before it starts, or to retrieve information
-   from the thread when it finishes, you should create a :ref:`subclass
-   <embedded-struct>` of this type.
-
-   .. member:: int (\*run)(struct cork_thread_body \*body)
-
-      The function that gets executed within the new thread.
-
-   .. member:: void (\*free)(struct cork_thread_body \*body)
-
-      Free any additional resources used by this thread body.
-
-.. function:: int cork_thread_body_run(struct cork_thread_body \*body)
-
-   Execute the *body*'s :c:member:`~cork_thread_body.run` method.  You will
-   normally not have to call this function directly; the
-   :c:member:`~cork_thread_body.run` method will be called automatically when
-   the corresponding thread is started.
-
-.. function:: void cork_thread_body_free(struct cork_thread_body \*body)
-
-   Free *body*.  You must make sure not to call this function if there's a
-   thread currently executing this body.
 
 
 .. type:: struct cork_thread
@@ -123,10 +95,29 @@ Every thread goes through the same lifecycle:
    functions defined below to interact with the thread.
 
 
-.. function:: struct cork_thread \*cork_thread_new(const char \*name, struct cork_thread_body \*body)
+.. function:: struct cork_thread \*cork_thread_new(const char \*name, void \*user_data, cork_free_f free_user_data, cork_run_f run)
 
-   Create a new thread with the given *name* that will execute *body*.  The
+   Create a new thread with the given *name* that will execute *run*.  The
    thread does not start running immediately.
+
+   When the thread is started, the *run* function will be called with
+   *user_data* as its only parameter.  When the thread finishes (or if it is
+   freed via :c:func:`cork_thread_free` before the thread is started), we'll use
+   the *free_user_data* function to free the *user_data* value.  You can provide
+   ``NULL`` if *user_data* shouldn't be freed, or if you want to free it
+   yourself.
+
+   .. note::
+
+      If you provide a *free_user_data* function, it will be called as soon as
+      the thread finished.  That means that if you use
+      :c:func:`cork_thread_join` to wait for the thread to finish, the
+      *user_data* value will no longer be valid when :c:func:`cork_thread_join`
+      returns.  You must either copy any necessary data out into more a more
+      persistent memory location before the thread finishes, or you should use a
+      ``NULL`` *free_user_data* function and free the *user_data* memory
+      yourself once you're sure the thread has finished.
+
 
 .. function:: void cork_thread_free(struct cork_thread \*thread)
 
@@ -154,10 +145,10 @@ Every thread goes through the same lifecycle:
 
 .. function:: int cork_thread_join(struct cork_thread \*thread)
 
-   Wait for *thread* to finish executing.  If the thread's body's
-   :c:member:`~cork_thread_body.run` method returns an :ref:`error condition
-   <errors>`, we will catch that error and return it ourselves.  The thread is
-   automatically freed once it finishes executing.
+   Wait for *thread* to finish executing.  If the thread's body's ``run``
+   function an :ref:`error condition <errors>`, we will catch that error and
+   return it ourselves.  The thread is automatically freed once it finishes
+   executing.
 
    You cannot join a thread that has not been started, and once you've started a
    thread, you **must** join it exactly once.  (If you don't join it, there's no

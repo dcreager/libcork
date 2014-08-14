@@ -28,7 +28,9 @@ struct cork_thread {
     const char  *name;
     cork_thread_id  id;
     pthread_t  thread_id;
-    struct cork_thread_body  *body;
+    void  *user_data;
+    cork_free_f  free_user_data;
+    cork_run_f  run;
     cork_error  error_code;
     struct cork_buffer  error_message;
     bool  started;
@@ -69,12 +71,16 @@ cork_current_thread_get_id(void)
  */
 
 struct cork_thread *
-cork_thread_new(const char *name, struct cork_thread_body *body)
+cork_thread_new(const char *name,
+                void *user_data, cork_free_f free_user_data,
+                cork_run_f run)
 {
     struct cork_thread  *self = cork_new(struct cork_thread);
     self->name = cork_strdup(name);
     self->id = cork_uint_atomic_add(&last_thread_descriptor, 1);
-    self->body = body;
+    self->user_data = user_data;
+    self->free_user_data = free_user_data;
+    self->run = run;
     self->error_code = CORK_ERROR_NONE;
     cork_buffer_init(&self->error_message);
     self->started = false;
@@ -86,7 +92,7 @@ static void
 cork_thread_free_private(struct cork_thread *self)
 {
     cork_strfree(self->name);
-    cork_thread_body_free(self->body);
+    cork_free_user_data(self);
     cork_buffer_done(&self->error_message);
     free(self);
 }
@@ -119,7 +125,7 @@ cork_thread_pthread_run(void *vself)
 
     desc->current_thread = self;
     desc->id = self->id;
-    rc = cork_thread_body_run(self->body);
+    rc = self->run(self->user_data);
 
     /* If an error occurred in the body of the thread, save the error into the
      * cork_thread object so that we can propagate that error when some calls
