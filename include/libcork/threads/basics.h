@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -15,6 +14,7 @@
 
 #include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
+#include <libcork/core/callbacks.h>
 #include <libcork/threads/atomics.h>
 
 
@@ -33,22 +33,6 @@ cork_current_thread_get_id(void);
 
 
 /*-----------------------------------------------------------------------
- * Main functions
- */
-
-struct cork_thread_body {
-    int
-    (*run)(struct cork_thread_body *self);
-
-    void
-    (*free)(struct cork_thread_body *self);
-};
-
-#define cork_thread_body_run(tb)  ((tb)->run((tb)))
-#define cork_thread_body_free(tb)  ((tb)->free((tb)))
-
-
-/*-----------------------------------------------------------------------
  * Threads
  */
 
@@ -60,7 +44,9 @@ CORK_API struct cork_thread *
 cork_current_thread_get(void);
 
 CORK_API struct cork_thread *
-cork_thread_new(const char *name, struct cork_thread_body *body);
+cork_thread_new(const char *name,
+                void *user_data, cork_free_f free_user_data,
+                cork_run_f run);
 
 /* Thread must not have been started yet. */
 CORK_API void

@@ -312,13 +312,16 @@ struct cork_subprocess {
     struct cork_write_pipe  stdin_pipe;
     struct cork_read_pipe  stdout_pipe;
     struct cork_read_pipe  stderr_pipe;
-    struct cork_thread_body  *body;
+    void  *user_data;
+    cork_free_f  free_user_data;
+    cork_run_f  run;
     int  *exit_code;
     char  buf[BUF_SIZE];
 };
 
 struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body,
+cork_subprocess_new(void *user_data, cork_free_f free_user_data,
+                    cork_run_f run,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code)
@@ -328,7 +331,9 @@ cork_subprocess_new(struct cork_thread_body *body,
     cork_read_pipe_init(&self->stdout_pipe, stdout_consumer);
     cork_read_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
-    self->body = body;
+    self->user_data = user_data;
+    self->free_user_data = free_user_data;
+    self->run = run;
     self->exit_code = exit_code;
     return self;
 }
@@ -336,7 +341,7 @@ cork_subprocess_new(struct cork_thread_body *body,
 void
 cork_subprocess_free(struct cork_subprocess *self)
 {
-    cork_thread_body_free(self->body);
+    cork_free_user_data(self);
     cork_write_pipe_done(&self->stdin_pipe);
     cork_read_pipe_done(&self->stdout_pipe);
     cork_read_pipe_done(&self->stderr_pipe);
@@ -354,36 +359,18 @@ cork_subprocess_stdin(struct cork_subprocess *self)
  * Executing another program
  */
 
-struct cork_exec_body {
-    struct cork_thread_body  parent;
-    struct cork_exec  *exec;
-};
-
 static int
-cork_exec__run(struct cork_thread_body *vself)
+cork_exec__run(void *vself)
 {
-    struct cork_exec_body  *self =
-        cork_container_of(vself, struct cork_exec_body, parent);
-    return cork_exec_run(self->exec);
+    struct cork_exec  *exec = vself;
+    return cork_exec_run(exec);
 }
 
 static void
-cork_exec__free(struct cork_thread_body *vself)
+cork_exec__free(void *vself)
 {
-    struct cork_exec_body  *self =
-        cork_container_of(vself, struct cork_exec_body, parent);
-    cork_exec_free(self->exec);
-    free(self);
-}
-
-static struct cork_thread_body *
-cork_exec_body_new(struct cork_exec *exec)
-{
-    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
-    self->parent.run = cork_exec__run;
-    self->parent.free = cork_exec__free;
-    self->exec = exec;
-    return &self->parent;
+    struct cork_exec  *exec = vself;
+    cork_exec_free(exec);
 }
 
 struct cork_subprocess *
@@ -392,8 +379,10 @@ cork_subprocess_new_exec(struct cork_exec *exec,
                          struct cork_stream_consumer *err,
                          int *exit_code)
 {
-    struct cork_thread_body  *body = cork_exec_body_new(exec);
-    return cork_subprocess_new(body, out, err, exit_code);
+    return cork_subprocess_new
+        (exec, cork_exec__free,
+         cork_exec__run,
+         out, err, exit_code);
 }
 
 
@@ -446,8 +435,8 @@ cork_subprocess_start(struct cork_subprocess *self)
             _exit(EXIT_FAILURE);
         }
 
-        /* Run the subprocess's body */
-        rc = cork_thread_body_run(self->body);
+        /* Run the subprocess */
+        rc = self->run(self->user_data);
         if (CORK_LIKELY(rc == 0)) {
             _exit(EXIT_SUCCESS);
         } else {

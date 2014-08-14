@@ -161,44 +161,39 @@ END_TEST
  * Threads
  */
 
-struct cork_test_thread_body {
-    struct cork_thread_body  parent;
+struct cork_test_thread {
     int  *dest;
     int  value;
 };
 
 static int
-cork_test_thread_body__run(struct cork_thread_body *vself)
+cork_test_thread__run(void *vself)
 {
-    struct cork_test_thread_body  *self =
-        cork_container_of(vself, struct cork_test_thread_body, parent);
+    struct cork_test_thread  *self = vself;
     *self->dest = self->value;
     return 0;
 }
 
 static void
-cork_test_thread_body__free(struct cork_thread_body *vself)
+cork_test_thread__free(void *vself)
 {
-    struct cork_test_thread_body  *self =
-        cork_container_of(vself, struct cork_test_thread_body, parent);
+    struct cork_test_thread  *self = vself;
     free(self);
 }
 
-static struct cork_thread_body *
-cork_test_thread_body_new(int *dest, int value)
+static struct cork_thread *
+cork_test_thread_new(const char *name, int *dest, int value)
 {
-    struct cork_test_thread_body  *self =
-        cork_new(struct cork_test_thread_body);
-    self->parent.run = cork_test_thread_body__run;
-    self->parent.free = cork_test_thread_body__free;
+    struct cork_test_thread  *self = cork_new(struct cork_test_thread);
     self->dest = dest;
     self->value = value;
-    return &self->parent;
+    return cork_thread_new
+        (name, self, cork_test_thread__free, cork_test_thread__run);
 }
 
 
 static int
-cork_error_thread_body__run(struct cork_thread_body *self)
+cork_error_thread__run(void *vself)
 {
     /* The particular error doesn't matter; just want to make sure it gets
      * propagated from the cork_thread_join call. */
@@ -206,26 +201,15 @@ cork_error_thread_body__run(struct cork_thread_body *self)
     return -1;
 }
 
-static void
-cork_error_thread_body__free(struct cork_thread_body *self)
-{
-    /* nothing to free */
-}
-
-static struct cork_thread_body  cork_error_thread_body = {
-    cork_error_thread_body__run,
-    cork_error_thread_body__free
-};
-
 
 START_TEST(test_threads_01)
 {
-    DESCRIBE_TEST;
     struct cork_thread  *t1;
     int  v1 = -1;
 
-    fail_if_error(t1 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v1, 1)));
+    DESCRIBE_TEST;
+
+    fail_if_error(t1 = cork_test_thread_new("test", &v1, 1));
     fail_unless_equal("Values", "%d", -1, v1);
     cork_thread_free(t1);
 }
@@ -233,12 +217,12 @@ END_TEST
 
 START_TEST(test_threads_02)
 {
-    DESCRIBE_TEST;
     struct cork_thread  *t1;
     int  v1 = -1;
 
-    fail_if_error(t1 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v1, 1)));
+    DESCRIBE_TEST;
+
+    fail_if_error(t1 = cork_test_thread_new("test", &v1, 1));
     fail_if_error(cork_thread_start(t1));
     fail_if_error(cork_thread_join(t1));
     fail_unless_equal("Values", "%d", 1, v1);
@@ -247,16 +231,15 @@ END_TEST
 
 START_TEST(test_threads_03)
 {
-    DESCRIBE_TEST;
     struct cork_thread  *t1;
     struct cork_thread  *t2;
     int  v1 = -1;
     int  v2 = -1;
 
-    fail_if_error(t1 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v1, 1)));
-    fail_if_error(t2 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v2, 2)));
+    DESCRIBE_TEST;
+
+    fail_if_error(t1 = cork_test_thread_new("test1", &v1, 1));
+    fail_if_error(t2 = cork_test_thread_new("test2", &v2, 2));
     fail_if_error(cork_thread_start(t1));
     fail_if_error(cork_thread_start(t2));
     fail_if_error(cork_thread_join(t1));
@@ -268,16 +251,15 @@ END_TEST
 
 START_TEST(test_threads_04)
 {
-    DESCRIBE_TEST;
     struct cork_thread  *t1;
     struct cork_thread  *t2;
     int  v1 = -1;
     int  v2 = -1;
 
-    fail_if_error(t1 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v1, 1)));
-    fail_if_error(t2 = cork_thread_new
-                  ("test", cork_test_thread_body_new(&v2, 2)));
+    DESCRIBE_TEST;
+
+    fail_if_error(t1 = cork_test_thread_new("test1", &v1, 1));
+    fail_if_error(t2 = cork_test_thread_new("test2", &v2, 2));
     fail_if_error(cork_thread_start(t1));
     fail_if_error(cork_thread_start(t2));
     fail_if_error(cork_thread_join(t2));
@@ -292,7 +274,8 @@ START_TEST(test_threads_error_01)
     DESCRIBE_TEST;
     struct cork_thread  *t1;
 
-    fail_if_error(t1 = cork_thread_new("test", &cork_error_thread_body));
+    fail_if_error(t1 = cork_thread_new
+                  ("test", NULL, NULL, cork_error_thread__run));
     fail_if_error(cork_thread_start(t1));
     fail_unless_error(cork_thread_join(t1));
 }
