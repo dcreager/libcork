@@ -91,11 +91,15 @@ Querying a list
 Editing a list
 --------------
 
-.. function:: void cork_dllist_add(struct cork_dllist \*list, struct cork_dllist_item \*element)
+.. function:: void cork_dllist_add_to_head(struct cork_dllist \*list, struct cork_dllist_item \*element)
+              void cork_dllist_add_to_tail(struct cork_dllist \*list, struct cork_dllist_item \*element)
 
-   Adds *element* to the end of *list*.  You are responsible for
-   allocating the list element yourself, most likely by allocating the
-   ``struct`` that you've embedded :c:type:`cork_dllist_item` into.
+   Adds *element* to *list*.  The ``_head`` variant adds the new element to the
+   beginning of the list; the ``_tail`` variant adds it to the end.
+   
+   You are responsible for allocating the list element yourself, most likely by
+   allocating the ``struct`` that you've embedded :c:type:`cork_dllist_item`
+   into.
 
    .. note::
 
@@ -105,6 +109,7 @@ Editing a list
       malformed.)
 
    This operation runs in :math:`O(1)` time.
+
 
 .. function:: void cork_dllist_add_after(struct cork_dllist_item \*pred, struct cork_dllist_item \*element)
               void cork_dllist_add_before(struct cork_dllist_item \*succ, struct cork_dllist_item \*element)
@@ -120,6 +125,16 @@ Editing a list
       list.  You're responsible for calling :c:func:`cork_dllist_remove()` if
       this isn't the case.  (If you don't, the other list will become
       malformed.)
+
+   This operation runs in :math:`O(1)` time.
+
+
+.. function:: void cork_dllist_add_list_to_head(struct cork_dllist \*dest, struct cork_dllist \*src)
+              void cork_dllist_add_list_to_tail(struct cork_dllist \*dest, struct cork_dllist \*src)
+
+   Moves all of the elements in *src* to *dest*.  The ``_head`` variant moves
+   the elements to the beginning of *dest*; the ``_tail`` variant moves them to
+   the end.  After these functions return, *src* will be empty.
 
    This operation runs in :math:`O(1)` time.
 
@@ -140,43 +155,103 @@ Iterating through a list
 ------------------------
 
 There are two strategies you can use to access all of the elements in a
-doubly-linked list: *mapping* and *iterating*.  With mapping, you write
-a mapping function, which will be applied to each element in the list.
+doubly-linked list: *visiting* and *iterating*.  With visiting, you write
+a visitor function, which will be applied to each element in the list.
 (In this case, libcork controls the loop that steps through each
 element.)
 
-.. function:: void cork_dllist_map(struct cork_dllist \*list, cork_dllist_map_func func, void \*user_data)
+.. function:: int cork_dllist_visit(struct cork_dllist \*list, void \*user_data, cork_dllist_visit_f \*func)
 
    Apply a function to each element in *list*.  The function is allowed
    to remove the current element from the list; this will not affect our
    ability to iterate through the remainder of the list.  The function
    will be given a pointer to the :c:type:`cork_dllist_item` for each
-   element; you can use :c:func:`cork_container_of()` to obtain a
-   pointer to the actual element type.
+   element; you can use :c:func:`cork_container_of()` to get a pointer to the
+   actual element type.
 
-.. type:: void (\*cork_dllist_map_func)(struct cork_dllist_item \*element, void \*user_data)
+   If your visitor function ever returns a non-zero value, we will abort the
+   iteration and return that value from ``cork_dllist_visit``.  If your function
+   always returns ``0``, then you will visit all of the elements in *list*, and
+   we'll return ``0`` from ``cork_dllist_visit``.
 
-   A function that can be applied to each element in a doubly-linked
-   list.
+   .. type:: int cork_dllist_visit_f(void \*user_data, struct cork_dllist_item \*element)
+
+      A function that can be applied to each element in a doubly-linked list.
 
 For instance, you can manually calculate the number of elements in a
 list as follows (assuming you didn't want to use the built-in
 :c:func:`cork_dllist_size()` function, of course)::
 
-  static void
-  count_elements(struct cork_dllist_item *element, void *ud)
+  static int
+  count_elements(void *user_data, struct cork_dllist_item *element)
   {
       size_t  *count = ud;
       (*count)++;
+      return 0;
   }
 
   struct cork_dllist  *list = /* from somewhere */;
   size_t  count = 0;
-  cork_dllist_map(list, count_elements, &count);
+  cork_dllist_visit(list, &count, count_elements);  /* returns 0 */
   /* the number of elements is now in count */
 
 
 The second strategy is to iterate through the elements yourself.
+
+.. macro:: cork_dllist_foreach(struct cork_dllist \*list, struct cork_dllist_item &\*curr, struct cork_dllist_item &\*next, TYPE element_type, TYPE &\*element, FIELD item_field)
+           cork_dllist_foreach_void(struct cork_dllist \*list, struct cork_dllist_item &\*curr, struct cork_dllist_item &\*next)
+
+   Iterate through each element in *list*, executing a statement for each one.
+   You must declare two variables of type ``struct cork_dllist_item *``, and
+   pass in their names as *curr* and *next*.  (You'll usually call the variables
+   ``curr`` and ``next``, too.)
+
+   For the ``_void`` variant, your statement can only use these
+   :c:type:`cork_dllist_item` variables to access the current list element.  You
+   can use :c:func:`cork_container_of` to get a pointer to the actual element
+   type.
+
+   For the non-``_void`` variant, we'll automatically call
+   :c:func:`cork_container_of` for you.  *element_type* should be the actual
+   element type, which must contain an embedded :c:func:`cork_dllist_item`
+   field.  *item_field* should be the name of this embedded field.  You must
+   allocate a pointer to the element type, and pass in its name as *element*.
+
+For instance, you can use these macros calculate the number of elements as
+follows::
+
+  struct cork_dllist  *list = /* from somewhere */;
+  struct cork_dllist  *curr;
+  struct cork_dllist  *next;
+  size_t  count = 0;
+  cork_dllist_foreach_void(list, curr, next) {
+      count++;
+  }
+  /* the number of elements is now in count */
+
+We're able to use :c:macro:`cork_dllist_foreach_void` since we don't need to
+access the contents of each element to calculate how many of theo there are.  If
+we wanted to calculuate a sum, however, we'd have to use
+:c:macro:`cork_dllist_foreach`::
+
+  struct element {
+      unsigned int  value;
+      struct cork_dllist_item  item;
+  };
+
+  struct cork_dllist  *list = /* from somewhere */;
+  struct cork_dllist  *curr;
+  struct cork_dllist  *next;
+  struct element  *element;
+  unsigned int  sum = 0;
+  cork_dllist_foreach(list, curr, next, struct element, element, item) {
+      sum += element->value;
+  }
+  /* the sum of the elements is now in sum */
+
+
+If the ``foreach`` macros don't provide what you need, you can also iterate
+through the list manually.
 
 .. function:: struct cork_dllist_item \*cork_dllist_head(struct cork_dllist \*list)
               struct cork_dllist_item \*cork_dllist_start(struct cork_dllist \*list)

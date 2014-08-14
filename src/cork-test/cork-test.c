@@ -163,6 +163,7 @@ static struct cork_command  c2 =
  */
 
 static const char  *sub_cwd = NULL;
+static const char  *sub_stdin = NULL;
 
 static int
 sub_options(int argc, char **argv);
@@ -178,17 +179,29 @@ static struct cork_command  sub =
 static int
 sub_options(int argc, char **argv)
 {
-    if (argc >= 2 && (streq(argv[1], "-d") || streq(argv[1], "--cwd"))) {
-        if (argc >= 3) {
-            sub_cwd = argv[2];
-            return 3;
+    int  processed = 1;
+    for (argc--, argv++; argc >= 1; argc--, argv++, processed++) {
+        if ((streq(argv[0], "-d") || streq(argv[0], "--cwd"))) {
+            if (argc >= 2) {
+                sub_cwd = argv[1];
+                argc--, argv++, processed++;
+            } else {
+                cork_command_show_help(&sub, "Missing directory for --cwd");
+                exit(EXIT_FAILURE);
+            }
+        } else if ((streq(argv[0], "-i") || streq(argv[0], "--stdin"))) {
+            if (argc >= 2) {
+                sub_stdin = argv[1];
+                argc--, argv++, processed++;
+            } else {
+                cork_command_show_help(&sub, "Missing content for --stdin");
+                exit(EXIT_FAILURE);
+            }
         } else {
-            cork_command_show_help(&sub, "Missing directory for --cwd");
-            exit(EXIT_FAILURE);
+            return processed;
         }
-    } else {
-        return 1;
     }
+    return processed;
 }
 
 static void
@@ -198,6 +211,7 @@ sub_run(int argc, char **argv)
     struct cork_exec  *exec;
     struct cork_subprocess_group  *group;
     struct cork_subprocess  *sp;
+    struct cork_stream_consumer  *stdin_consumer;
 
     if (argc == 0) {
         cork_command_show_help(&sub, "Missing command");
@@ -210,10 +224,19 @@ sub_run(int argc, char **argv)
     if (sub_cwd != NULL) {
         cork_exec_set_cwd(exec, sub_cwd);
     }
+    fprintf(stderr, "%s\n", cork_exec_description(exec));
     rp_check_exit(group = cork_subprocess_group_new());
     rp_check_exit(sp = cork_subprocess_new_exec(exec, NULL, NULL, NULL));
     cork_subprocess_group_add(group, sp);
     ri_check_exit(cork_subprocess_group_start(group));
+    stdin_consumer = cork_subprocess_stdin(sp);
+    if (sub_stdin != NULL) {
+        size_t  stdin_length = strlen(sub_stdin);
+        cork_stream_consumer_data
+            (stdin_consumer, sub_stdin, stdin_length, true);
+        cork_stream_consumer_data(stdin_consumer, "\n", 1, false);
+    }
+    cork_stream_consumer_eof(stdin_consumer);
     ri_check_exit(cork_subprocess_group_wait(group));
     cork_subprocess_group_free(group);
 }

@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012-2013, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -14,6 +13,7 @@
 #include <stdarg.h>
 
 #include <libcork/core/api.h>
+#include <libcork/core/callbacks.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/stream.h>
 #include <libcork/threads/basics.h>
@@ -83,6 +83,9 @@ CORK_API void
 cork_exec_free(struct cork_exec *exec);
 
 CORK_API const char *
+cork_exec_description(struct cork_exec *exec);
+
+CORK_API const char *
 cork_exec_program(struct cork_exec *exec);
 
 CORK_API size_t
@@ -123,7 +126,8 @@ struct cork_subprocess;
 
 /* Takes control of body */
 CORK_API struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body,
+cork_subprocess_new(void *user_data, cork_free_f free_user_data,
+                    cork_run_f run,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code);
@@ -137,6 +141,24 @@ cork_subprocess_new_exec(struct cork_exec *exec,
 
 CORK_API void
 cork_subprocess_free(struct cork_subprocess *sub);
+
+CORK_API struct cork_stream_consumer *
+cork_subprocess_stdin(struct cork_subprocess *sub);
+
+CORK_API int
+cork_subprocess_start(struct cork_subprocess *sub);
+
+CORK_API bool
+cork_subprocess_is_finished(struct cork_subprocess *sub);
+
+CORK_API int
+cork_subprocess_abort(struct cork_subprocess *sub);
+
+CORK_API bool
+cork_subprocess_drain(struct cork_subprocess *sub);
+
+CORK_API int
+cork_subprocess_wait(struct cork_subprocess *sub);
 
 
 /*-----------------------------------------------------------------------
@@ -165,7 +187,7 @@ cork_subprocess_group_is_finished(struct cork_subprocess_group *group);
 CORK_API int
 cork_subprocess_group_abort(struct cork_subprocess_group *group);
 
-CORK_API int
+CORK_API bool
 cork_subprocess_group_drain(struct cork_subprocess_group *group);
 
 CORK_API int

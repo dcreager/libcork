@@ -19,10 +19,12 @@
 #include "libcork/core/byte-order.h"
 #include "libcork/core/error.h"
 #include "libcork/core/hash.h"
+#include "libcork/core/id.h"
 #include "libcork/core/net-addresses.h"
 #include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
 #include "libcork/core/u128.h"
+#include "libcork/os/subprocess.h"
 
 #include "helpers.h"
 
@@ -173,17 +175,31 @@ END_TEST
  * Built-in errors
  */
 
+START_TEST(test_error_prefix)
+{
+    DESCRIBE_TEST;
+    cork_error_clear();
+    cork_error_set_printf
+        (CORK_UNKNOWN_ERROR, "%u errors occurred", (unsigned int) 17);
+    fail_unless_streq("Error messages",
+                      "17 errors occurred",
+                      cork_error_message());
+    cork_error_prefix("The %s is aborting because ", "program");
+    fail_unless_streq("Error messages",
+                      "The program is aborting because 17 errors occurred",
+                      cork_error_message());
+    cork_error_clear();
+}
+END_TEST
+
 START_TEST(test_system_error)
 {
     DESCRIBE_TEST;
-
     /* Artificially flag a system error and make sure we can detect it */
     errno = ENOMEM;
     cork_error_clear();
     cork_system_error_set();
-    fail_unless(cork_error_get_class() == CORK_BUILTIN_ERROR,
-                "Expected a built-in error");
-    fail_unless(cork_error_get_code() == CORK_SYSTEM_ERROR,
+    fail_unless(cork_error_code() == ENOMEM,
                 "Expected a system error");
     printf("Got error: %s\n", cork_error_message());
     cork_error_clear();
@@ -291,7 +307,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xac7d28cc,
       /*    big 64 */ 0x74bde19d);
     test_big_hash_buf(BUF, LEN-1,
-      /* little 32 */ 0x550c7d686f02ef30, 0x550c7d68550c7d68,
+      /* little 32 */ 0x6f02ef30550c7d68, 0x550c7d68550c7d68,
       /*    big 32 */ 0x6f02ef30550c7d68, 0x550c7d68550c7d68,
       /* little 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82,
       /*    big 64 */ 0xac7d28cc74bde19d, 0x9a128231f9bd4d82);
@@ -304,7 +320,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xc3812fdf,
       /*    big 64 */ 0x4d18f852);
     test_big_hash_buf(BUF, LEN,
-      /* little 32 */ 0x29ab177c98c2b52b, 0x29ab177c29ab177c,
+      /* little 32 */ 0x98c2b52b29ab177c, 0x29ab177c29ab177c,
       /*    big 32 */ 0x98c2b52b29ab177c, 0x29ab177c29ab177c,
       /* little 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec,
       /*    big 64 */ 0xc3812fdf4d18f852, 0xc81a9057aa737aec);
@@ -317,7 +333,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xcbdc2092,
       /*    big 64 */ 0x03578c96);
     test_big_hash_buf(LONG_BUF, LONG_LEN-1,
-      /* little 32 */ 0x4fb7793c4240d513, 0x799f335aee7e281c,
+      /* little 32 */ 0x4240d5134fb7793c, 0xee7e281c799f335a,
       /*    big 32 */ 0xab564a5e029c92a4, 0x0bd80c741093400f,
       /* little 64 */ 0xcbdc20928fa72e9c, 0x48de52d2c680420e,
       /*    big 64 */ 0x5935f90a03578c96, 0x163e514fff9c30a8);
@@ -330,7 +346,7 @@ START_TEST(test_hash)
       /* little 64 */ 0xe89ec005,
       /*    big 64 */ 0x8c919559);
     test_big_hash_buf(LONG_BUF, LONG_LEN,
-      /* little 32 */ 0xc261514663bcdcd0, 0xece3cab68e7fd7aa,
+      /* little 32 */ 0x63bcdcd0c2615146, 0x8e7fd7aaece3cab6,
       /*    big 32 */ 0x250b47cda3fc07fd, 0x840c4bb606aafbd0,
       /* little 64 */ 0xe89ec0054becb434, 0x826391b83f0b4d3e,
       /*    big 64 */ 0xf00a12ab8c919559, 0x684ecf4973c66eac);
@@ -584,22 +600,62 @@ END_TEST
  * Timestamps
  */
 
+static void
+test_timestamp_bad_format(cork_timestamp ts, const char *format)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_unless_error(cork_timestamp_format_utc(ts, format, &buf));
+    cork_buffer_done(&buf);
+}
+
+static void
+test_timestamp_utc_format(cork_timestamp ts, const char *format,
+                          const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_if_error(cork_timestamp_format_utc(ts, format, &buf));
+    fail_unless(strcmp(buf.buf, expected) == 0,
+                "Unexpected formatted UTC time "
+                "(got \"%s\", expected \"%s\")",
+                (char *) buf.buf, expected);
+    cork_buffer_done(&buf);
+}
+
+static void
+test_timestamp_local_format(cork_timestamp ts, const char *format,
+                            const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    fail_if_error(cork_timestamp_format_local(ts, format, &buf));
+    fail_unless(strcmp(buf.buf, expected) == 0,
+                "Unexpected formatted local time "
+                "(got \"%s\", expected \"%s\")",
+                (char *) buf.buf, expected);
+    cork_buffer_done(&buf);
+}
+
 START_TEST(test_timestamp)
 {
-    DESCRIBE_TEST;
-    static char  buf[4096];
-    static size_t  size = sizeof(buf);
+    /* All of the local times here are in America/Los_Angeles.  Down at the
+     * bottom of the file we override the TZ environment variable to ensure that
+     * we use a consistent local time zone in the test cases, regardless of the
+     * actual time zone of the current machine. */
 
     static const uint32_t  TEST_TIME_1 = 700000000;
-    static const char  *FORMATTED_TIME_1 = "1992-03-07 20:26:40";
+    static const char  *FORMATTED_UTC_TIME_1   = " 1992-03-07 20:26:40 ";
+    static const char  *FORMATTED_LOCAL_TIME_1 = " 1992-03-07 12:26:40 ";
 
     static const uint32_t  TEST_TIME_2 = 1200000000;
-    static const char  *FORMATTED_TIME_2 = "2008-01-10 21:20:00";
+    static const char  *FORMATTED_UTC_TIME_2   = " 2008-01-10 21:20:00 ";
+    static const char  *FORMATTED_LOCAL_TIME_2 = " 2008-01-10 13:20:00 ";
 
     static const uint32_t  TEST_TIME_3 = 1305180745;
-    static const char  *FORMATTED_TIME_3 = "2011-05-12 06:12:25";
+    static const char  *FORMATTED_UTC_TIME_3   = " 2011-05-12 06:12:25 ";
+    static const char  *FORMATTED_LOCAL_TIME_3 = " 2011-05-11 23:12:25 ";
 
     cork_timestamp  ts;
+
+    DESCRIBE_TEST;
 
 #define test(unit, expected) \
     fail_unless(cork_timestamp_##unit(ts) == expected, \
@@ -608,12 +664,9 @@ START_TEST(test_timestamp)
                 (unsigned long) cork_timestamp_##unit(ts), \
                 (unsigned long) expected);
 
-#define test_format(expected) \
-    fail_unless(cork_timestamp_format_utc(ts, "%Y-%m-%d %H:%M:%S", buf, size), \
-                "Cannot format timestamp"); \
-    fail_unless(strcmp(buf, expected) == 0, \
-                "Unexpected formatted time (got %s, expected %s)", \
-                buf, expected);
+#define test_format(utc, local) \
+    test_timestamp_utc_format(ts, " %Y-%m-%d %H:%M:%S ", utc); \
+    test_timestamp_local_format(ts, " %Y-%m-%d %H:%M:%S ", local);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_1);
     test(sec, TEST_TIME_1);
@@ -621,7 +674,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_1);
+    test_format(FORMATTED_UTC_TIME_1, FORMATTED_LOCAL_TIME_1);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_2);
     test(sec, TEST_TIME_2);
@@ -629,7 +682,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_2);
+    test_format(FORMATTED_UTC_TIME_2, FORMATTED_LOCAL_TIME_2);
 
     cork_timestamp_init_sec(&ts, TEST_TIME_3);
     test(sec, TEST_TIME_3);
@@ -637,7 +690,7 @@ START_TEST(test_timestamp)
     test(msec, 0);
     test(usec, 0);
     test(nsec, 0);
-    test_format(FORMATTED_TIME_3);
+    test_format(FORMATTED_UTC_TIME_3, FORMATTED_LOCAL_TIME_3);
 
     cork_timestamp_init_gsec(&ts, TEST_TIME_1, 1 << 30);
     test(sec, TEST_TIME_1);
@@ -666,6 +719,30 @@ START_TEST(test_timestamp)
     test(msec, 500);
     test(usec, 500000);
     test(nsec, 500000000);
+}
+END_TEST
+
+START_TEST(test_timestamp_format)
+{
+    cork_timestamp  ts;
+    DESCRIBE_TEST;
+
+    cork_timestamp_init_nsec(&ts, 0, 123456789);
+    test_timestamp_bad_format(ts, "%f");
+    test_timestamp_bad_format(ts, "%0f");
+    test_timestamp_bad_format(ts, "%10f");
+    test_timestamp_utc_format(ts, "%1f",   "1");
+    test_timestamp_utc_format(ts, "%2f",   "12");
+    test_timestamp_utc_format(ts, "%3f",   "123");
+    test_timestamp_utc_format(ts, "%4f",   "1235");
+    test_timestamp_utc_format(ts, "%5f",   "12346");
+    test_timestamp_utc_format(ts, "%6f",   "123457");
+    test_timestamp_utc_format(ts, "%7f",   "1234568");
+    test_timestamp_utc_format(ts, "%8f",   "12345679");
+    test_timestamp_utc_format(ts, "%9f",   "123456789");
+    test_timestamp_utc_format(ts, "%009f", "123456789");
+
+    cork_timestamp_init_nsec(&ts, 1200000000, 123456789);
 }
 END_TEST
 
@@ -934,6 +1011,36 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Unique identifiers
+ */
+
+START_TEST(test_uid)
+{
+    DESCRIBE_TEST;
+    cork_uid_define(test_id_01);
+    cork_uid_define(test_id_02);
+    cork_uid  id1;
+    cork_uid  id2;
+
+    fail_unless_streq("UID name", "test_id_01", cork_uid_name(test_id_01));
+    fail_unless_streq("UID name", "test_id_02", cork_uid_name(test_id_02));
+
+    id1 = test_id_01;
+    id2 = test_id_02;
+    fail_if(cork_uid_equal(id1, id2), "Unique IDs aren't unique");
+
+    id1 = test_id_01;
+    id2 = test_id_01;
+    fail_unless(cork_uid_equal(id1, id2), "Unique ID isn't equal to itself");
+
+    id1 = test_id_01;
+    id2 = CORK_UID_NONE;
+    fail_if(cork_uid_equal(id1, id2), "NULL unique ID isn't unique");
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Testing harness
  */
 
@@ -953,6 +1060,7 @@ test_suite()
     suite_add_tcase(s, tc_endianness);
 
     TCase  *tc_errors = tcase_create("errors");
+    tcase_add_test(tc_errors, test_error_prefix);
     tcase_add_test(tc_errors, test_system_error);
     suite_add_tcase(s, tc_errors);
 
@@ -968,6 +1076,7 @@ test_suite()
 
     TCase  *tc_timestamp = tcase_create("timestamp");
     tcase_add_test(tc_timestamp, test_timestamp);
+    tcase_add_test(tc_timestamp, test_timestamp_format);
     suite_add_tcase(s, tc_timestamp);
 
     TCase  *tc_u128 = tcase_create("u128");
@@ -983,6 +1092,10 @@ test_suite()
     tcase_add_test(tc_statement_expr, test_statement_expr);
     suite_add_tcase(s, tc_statement_expr);
 
+    TCase  *tc_uid = tcase_create("uid");
+    tcase_add_test(tc_uid, test_uid);
+    suite_add_tcase(s, tc_uid);
+
     return s;
 }
 
@@ -993,6 +1106,10 @@ main(int argc, const char **argv)
     int  number_failed;
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
+
+    /* Before anything starts, override the TZ environment variable so that we
+     * get consistent test results. */
+    cork_env_add(NULL, "TZ", "America/Los_Angeles");
 
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);

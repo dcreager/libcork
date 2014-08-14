@@ -10,41 +10,40 @@ Error reporting
 
   #include <libcork/core.h>
 
-This section defines an API for reporting error conditions.  It's
-loosely modeled on glib's *GError* API.
+This section defines an API for reporting error conditions.  It's loosely
+modeled on the POSIX ``errno`` mechanism.
 
-The standard POSIX approach for reporting errors is to return an integer
-status code, and to store error codes into the ``errno`` global
-variable.  This approach has a couple of drawbacks.  The first is that
-you have to ensure that ``errno`` is placed in thread-local storage, so
-that separate threads have their own error condition variables.  The
-second, and in our mind more important, is that the set of error codes
-is fixed and platform-dependent.  It's difficult to add new error codes
-to represent application-level error conditions.
+The standard POSIX approach for reporting errors is to return an integer status
+code, and to store error codes into the ``errno`` global variable.  This
+approach has a couple of drawbacks.  The first is that you --- or really, your C
+library --- has to ensure that ``errno`` is placed in thread-local storage, so
+that separate threads have their own error condition variables.  The second, and
+in our mind more important, is that the set of error codes is fixed and
+platform-dependent.  It's difficult to add new error codes to represent
+application-level error conditions.
 
-The libcork error API is a way around this.  Errors are represented by a
-tuple of an *error class* and an *error code*, along with a
-human-readable string description of the error.  Error classes represent
-broad classes of errors, and usually correspond to a library or to an
-important group of related functions within a library.  An error class
-is represented by a hash of some string identifying the library or group
-of functions.  This “hash of a string” approach makes it easy to define
-new error classes, without needing any centralized mechanism for
-assigning IDs to the various classes.  An error code is a simple
-integer, and only needs to be unique within a particular error class.
-This means that each error class is free to define its error codes
-however it wishes (usually via an ``enum`` type), without having to
-worry about them clashing with the codes of any other class.
+The libcork error API is a way around this.  Like standard POSIX-conforming
+functions, you return an integer status code from any function that might need
+to report an error to its caller.  The status return code is simple: ``0``
+indicates success, ``-1`` indicates failure.
+
+When an error occurs, you can use the functions in this section to get more
+information about the error: an *error code*, and human-readable string
+description of the error.  The POSIX ``errno`` values, while hard to extend, are
+perfectly well-defined for most platforms; therefore, any ``errno`` value
+supported by your system's C library is a valid libcork error code.  To support
+new application-specific error codes, an error code can also be the hash of some
+string describing the error.  This “hash of a string” approach makes it easy to
+define new error codes without needing any centralized mechanism for assigning
+IDs to the various codes.  Moreover, it's very unlikely that a hashed error code
+will conflict with some existing POSIX ``errno`` value, or with any other hashed
+error codes.
 
 .. note::
 
    We correctly maintain a separate error condition for each thread in
    the current process.  This is all hidden by the functions in this
    section; it's safe to call them from multiple threads simultaneously.
-
-.. macro:: CORK_ERROR_NONE
-
-   A special error class that signals that no error occurred.
 
 
 Calling a function that can return an error
@@ -68,21 +67,6 @@ possible, if the function needs to signal more than a simple “success”
 or “failure”; in that case, you'll need to check the function's
 documentation for details.)
 
-If you want to know specifics about the error, we provide several
-accessor functions:
-
-.. function:: bool cork_error_occurred(void)
-              cork_error_class cork_error_get_class(void)
-              cork_error_code cork_error_get_code(void)
-              const char \*cork_error_message(void)
-
-   Returns information about the current error condition.  This
-   information is maintained in thread-local storage, so it is safe
-   to call these functions from multiple threads simultaneously.  Note
-   that you often won't need to call ``cork_error_occurred``, since
-   you'll usually be able to detect error conditions by checking a
-   function's return value.
-
 If you want to know specifics about the error, there are several
 functions that you can use to interrogate the current error condition.
 
@@ -90,18 +74,25 @@ functions that you can use to interrogate the current error condition.
 
    Returns whether an error has occurred.
 
-.. function:: cork_error_class cork_error_get_class(void)
-              cork_error_code cork_error_get_code(void)
+.. function:: cork_error cork_error_code(void)
 
-   Returns the class and code of the current error condition.  If no
-   error has occurred, the error class will be
-   :c:macro:`CORK_ERROR_NONE`, and the code will be ``0``.
+   Returns the error code of the current error condition.  If no error has
+   occurred, the result will be :c:macro:`CORK_ERROR_NONE`.
 
 .. function:: const char \*cork_error_message(void)
 
    Returns the human-readable string description the current error
    condition.  If no error occurred, the result of this function is
    undefined.
+
+You can use the ``cork_error_prefix`` family of functions to add additional
+context to the beginning of an error message.
+
+.. function:: void cork_error_prefix_printf(const char \*format, ...)
+              void cork_error_prefix_string(const char \*string)
+              void cork_error_prefix_vprintf(const char \*format, va_list args)
+
+   Prepends some additional text to the current error condition.
 
 When you're done checking the current error condition, you clear it so
 that later calls to :c:func:`cork_error_occurred` and friends don't
@@ -134,23 +125,24 @@ codes if there are other possible results besides a simple “success” and
 “failure”.)
 
 If your function results in an error, you need to fill in the current
-error condition using the ``cork_error_set`` function:
+error condition using the ``cork_error_set`` family of functions:
 
-.. function:: void cork_error_set(cork_error_class eclass, cork_error_code ecode, const char \*format, ...)
+.. function:: void cork_error_set_printf(cork_error ecode, const char \*format, ...)
+              void cork_error_set_string(cork_error ecode, const char \*string)
+              void cork_error_set_vprintf(cork_error ecode, const char \*format, va_list args)
 
    Fills in the current error condition.  The error condition is defined
-   by the error class *eclass*, the error code *ecode*.  The
-   human-readable description is constructed from *format* and any
-   additional parameters.
+   by the error code *ecode*.  The human-readable description is constructed
+   from *string*, or from *format* and any additional parameters, depending on
+   which variant you use.
 
-As an example, the :ref:`IP address <net-addresses>` parsing functions
-fill in ``CORK_NET_ADDRESS_PARSE_ERROR`` error conditions when you try
-to parse a malformed address::
+As an example, the :ref:`IP address <net-addresses>` parsing functions fill in
+:c:macro:`CORK_PARSE_ERROR` error conditions when you try to parse a malformed
+address::
 
   const char  *str = /* the string that's being parsed */;
-  cork_error_set
-      (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
-       "Invalid IP address: %s", str);
+  cork_error_set_printf
+      (CORK_PARSE_ERROR, "Invalid IP address: %s", str);
 
 If a particular kind of error can be raised in several places
 throughout your code, it can be useful to define a helper function for
@@ -159,9 +151,8 @@ filling in the current error condition::
   static void
   cork_ip_address_parse_error(const char *version, const char *str)
   {
-      cork_error_set
-          (CORK_NET_ADDRESS_ERROR, CORK_NET_ADDRESS_PARSE_ERROR,
-           "Invalid %s address: %s", version, str);
+      cork_error_set_printf
+          (CORK_PARSE_ERROR, "Invalid %s address: %s", version, str);
   }
 
 
@@ -327,8 +318,9 @@ Calling POSIX functions
 
 The :c:func:`cork_system_error_set` function automatically translates a POSIX
 error (specified in the standard ``errno`` variable) into a libcork error
-condition.  We also define several helper macros for calling a POSIX function
-and automatically checking its result.
+condition (which will be reported by :c:func:`cork_error_occurred` and friends).
+We also define several helper macros for calling a POSIX function and
+automatically checking its result.
 
 ::
 
@@ -379,88 +371,100 @@ and automatically checking its result.
    the current scope's ``error`` label.
 
 
-Defining a new error class
---------------------------
+Defining new error codes
+------------------------
 
-If none of the built-in error classes and codes suffice for an error
-condition that you need to report, you'll have to define our own error
-class.
+If none of the built-in error codes suffice for an error condition that you need
+to report, you'll have to define our own.  As mentioned above, each libcork
+error code is either a predefined POSIX ``errno`` value, or a hash some of
+string identifying a custom error condition.
 
-Error classes and codes
-~~~~~~~~~~~~~~~~~~~~~~~
+Typically, you will create a macro in one of your public header files, whose
+value will be your new custom error code.  If this is the case, you can use the
+macro name itself to create the hash value for the error code.  This is what we
+do for the non-POSIX builtin errors; for instance, the value of the
+:c:macro:`CORK_PARSE_ERROR` error code macro is the hash of the string
+``CORK_PARSE_ERROR``.
 
-The first step is to decide on some string that will represent your
-error class.  This string must be unique across all error classes, so it
-should include (at least) some representation of the library name.  In
-libcork itself, we always use the name of the header file that the error
-class is defined in.  (This limits us to one error class per header, but
-that's not a deal-breaker.)  Thus, the :c:macro:`CORK_NET_ADDRESS_ERROR`
-error class is represented by the string
-``"libcork/core/net-addresses.h"``.
+Given this string, you can produce the error code's hash value using the
+:ref:`cork-hash <cork-hash>` command that's installed with libcork::
 
-Given this string, you can produce the error class's hash value using
-the :ref:`cork-hash <cork-hash>` command that's installed with libcork::
+  $ cork-hash CORK_PARSE_ERROR
+  0x95dfd3c8
 
-  $ cork-hash "libcork/core/net-addresses.h"
-  0x1f76fedf
+It's incredibly unlikely that the hash value for your new error code will
+conflict with any other custom hash-based error codes, or with any predefined
+POSIX ``errno`` values.
 
-The next step is to define the error codes within the class.  This is
-best done by creating an ``enum`` class.  Taken together, we have the
-following definitions for the error conditions in the
-:ref:`net-addresses` module::
+With your macro name and hash value ready, defining the new error code is
+simple::
 
-  /* hash of "libcork/core/net-addresses.h" */
-  #define CORK_NET_ADDRESS_ERROR  0x1f76fedf
+  #define CORK_PARSE_ERROR  0x95dfd3c8
 
-  enum cork_net_address_error {
-      /* A parse error while parsing a network address. */
-      CORK_NET_ADDRESS_PARSE_ERROR
-  };
+You should also provide a helper macro that makes it easier to report new
+instances of this error condition::
 
-This gives us a constant for the error class, and a set of constants for
-each error code within the class, all of which start with a standard
-namespace prefix (``CORK_NET_ADDRESS_``).
+  #define cork_parse_error(...) \
+      cork_error_set_printf(CORK_PARSE_ERROR, __VA_ARGS__)
 
-.. type:: uint32_t  cork_error_class
+.. type:: uint32_t  cork_error
 
-   An identifier for a class of error conditions.  Should be the hash of
-   a unique string describing the error class.
-
-.. type:: unsigned int  cork_error_code
-
-   An identifier for a particular type of error within an error class.
-   The particular values within an error class should be defined using
-   an ``enum`` type.
+   An identifier for a particular error condition.  This will either be a
+   predefined POSIX ``errno`` value, or the hash of a unique string describing
+   the error condition.
 
 With your error class and code defined, you can fill in error instances
-using :c:func:`cork_error_set()`.
+using :c:func:`cork_error_set_printf` and friends.
 
 
 Builtin errors
 --------------
 
-There are a few basic, builtin errors that you can use if no others are
-applicable.  In almost all cases, you'll want to define a more specific
-error class and code instead.
+In addition to all of the predefined POSIX ``errno`` values, we also provide
+error codes for a handful of common error conditions.  You should feel free to
+use these in your libraries and applications, instead of creating custom error
+codes, if they apply.
 
-.. macro:: CORK_BUILTIN_ERROR
-           CORK_SYSTEM_ERROR
-           CORK_UNKNOWN_ERROR
+.. macro:: CORK_ERROR_NONE
 
-   The error class and codes used for the error conditions described in
-   this section.
+   A special error code that signals that no error occurred.
+
+.. macro:: CORK_PARSE_ERROR
+
+   The provided input violates the rules of the language grammar or file format
+   (or anything else, really) that you're trying to parse.
+
+   .. function:: void cork_parse_error(const char *format*, ...)
+
+.. macro:: CORK_REDEFINED
+           CORK_UNDEFINED
+
+   Useful when you have a container type that must ensure that there is only one
+   entry for any given key.
+
+   .. function:: void cork_redefined(const char *format*, ...)
+                 void cork_undefined(const char *format*, ...)
+
+.. macro:: CORK_UNKNOWN_ERROR
+
+   Some error occurred, but we don't have any other information about the error.
+
+   .. function:: void cork_unknown_error(void)
+
+      The error description will include the name of the current function.
+
+
+We also provide some helper functions for setting these built-in errors:
 
 .. function:: void cork_system_error_set(void)
+              void cork_system_error_set_explicit(int err)
 
-   Fills in the current error condition with information from the C
-   library's ``errno`` variable.  The human-readable description of the
-   error will be obtained from the standard ``strerror`` function.
+   Fills in the current libcork error condition with information from a POSIX
+   ``errno`` value.  The human-readable description of the error will be
+   obtained from the standard ``strerror`` function.  With the ``_explicit``
+   variant, you provide the ``errno`` value directly; for the other variant, we
+   get the error code from the C library's ``errno`` variable.
 
-.. function:: void cork_unknown_error_set(void)
-
-   Fills in the current error condition to indicate that there was some
-   unknown error.  The error description will include the name of the
-   current function.
 
 .. function:: void cork_abort(const char \*fmt, ...)
 

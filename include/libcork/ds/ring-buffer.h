@@ -33,8 +33,14 @@ struct cork_ring_buffer {
 CORK_API int
 cork_ring_buffer_init(struct cork_ring_buffer *buf, size_t size);
 
+CORK_API struct cork_ring_buffer *
+cork_ring_buffer_new(size_t size);
+
 CORK_API void
 cork_ring_buffer_done(struct cork_ring_buffer *buf);
+
+CORK_API void
+cork_ring_buffer_free(struct cork_ring_buffer *buf);
 
 
 #define cork_ring_buffer_is_empty(buf) ((buf)->size == 0)

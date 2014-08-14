@@ -44,12 +44,6 @@
 
 struct cork_subprocess_group {
     cork_array(struct cork_subprocess *)  subprocesses;
-    size_t  still_running;
-    struct sigaction  old_chld;
-    struct sigaction  old_hup;
-    struct sigaction  old_int;
-    struct sigaction  old_term;
-    char  read_buf[BUF_SIZE];
 };
 
 struct cork_subprocess_group *
@@ -65,7 +59,6 @@ cork_subprocess_group_new(void)
 void
 cork_subprocess_group_free(struct cork_subprocess_group *group)
 {
-    assert(group->still_running == 0);
     cork_array_done(&group->subprocesses);
     free(group);
 }
@@ -79,17 +72,17 @@ cork_subprocess_group_add(struct cork_subprocess_group *group,
 
 
 /*-----------------------------------------------------------------------
- * Pipes
+ * Pipes (parent reads)
  */
 
-struct cork_pipe {
+struct cork_read_pipe {
     struct cork_stream_consumer  *consumer;
     int  fds[2];
     bool  first;
 };
 
 static void
-cork_pipe_init(struct cork_pipe *p, struct cork_stream_consumer *consumer)
+cork_read_pipe_init(struct cork_read_pipe *p, struct cork_stream_consumer *consumer)
 {
     p->consumer = consumer;
     p->fds[0] = -1;
@@ -97,7 +90,7 @@ cork_pipe_init(struct cork_pipe *p, struct cork_stream_consumer *consumer)
 }
 
 static int
-cork_pipe_close_read(struct cork_pipe *p)
+cork_read_pipe_close_read(struct cork_read_pipe *p)
 {
     if (p->fds[0] != -1) {
         DEBUG("Closing read pipe %d\n", p->fds[0]);
@@ -108,7 +101,7 @@ cork_pipe_close_read(struct cork_pipe *p)
 }
 
 static int
-cork_pipe_close_write(struct cork_pipe *p)
+cork_read_pipe_close_write(struct cork_read_pipe *p)
 {
     if (p->fds[1] != -1) {
         DEBUG("Closing write pipe %d\n", p->fds[1]);
@@ -119,29 +112,29 @@ cork_pipe_close_write(struct cork_pipe *p)
 }
 
 static void
-cork_pipe_close(struct cork_pipe *p)
+cork_read_pipe_close(struct cork_read_pipe *p)
 {
-    cork_pipe_close_read(p);
-    cork_pipe_close_write(p);
+    cork_read_pipe_close_read(p);
+    cork_read_pipe_close_write(p);
 }
 
 static void
-cork_pipe_done(struct cork_pipe *p)
+cork_read_pipe_done(struct cork_read_pipe *p)
 {
-    cork_pipe_close(p);
+    cork_read_pipe_close(p);
 }
 
 static int
-cork_pipe_open(struct cork_pipe *p)
+cork_read_pipe_open(struct cork_read_pipe *p)
 {
     if (p->consumer != NULL) {
         int  flags;
 
         /* We want the read end of the pipe to be non-blocking. */
-        DEBUG("Opening pipe\n");
+        DEBUG("[read] Opening pipe\n");
         rii_check_posix(pipe(p->fds));
-        DEBUG("  Got read=%d write=%d\n", p->fds[0], p->fds[1]);
-        DEBUG("  Setting non-blocking flag on read pipe\n");
+        DEBUG("[read]   Got read=%d write=%d\n", p->fds[0], p->fds[1]);
+        DEBUG("[read]   Setting non-blocking flag on read pipe\n");
         ei_check_posix(flags = fcntl(p->fds[0], F_GETFD));
         flags |= O_NONBLOCK;
         ei_check_posix(fcntl(p->fds[0], F_SETFD, flags));
@@ -151,12 +144,12 @@ cork_pipe_open(struct cork_pipe *p)
     return 0;
 
 error:
-    cork_pipe_close(p);
+    cork_read_pipe_close(p);
     return -1;
 }
 
 static int
-cork_pipe_dup(struct cork_pipe *p, int fd)
+cork_read_pipe_dup(struct cork_read_pipe *p, int fd)
 {
     if (p->fds[1] != -1) {
         rii_check_posix(dup2(p->fds[1], fd));
@@ -164,58 +157,149 @@ cork_pipe_dup(struct cork_pipe *p, int fd)
     return 0;
 }
 
-static void
-cork_pipe_set_fd(struct cork_pipe *p, fd_set *fds, int *nfds)
-{
-    if (p->fds[0] != -1) {
-        DEBUG("  Adding read pipe %d\n", p->fds[0]);
-        FD_SET(p->fds[0], fds);
-        if (p->fds[0] >= *nfds) {
-            *nfds = p->fds[0] + 1;
-        }
-    }
-}
-
 static int
-cork_pipe_read(struct cork_pipe *p, struct cork_subprocess_group *group,
-               fd_set *fds)
+cork_read_pipe_read(struct cork_read_pipe *p, char *buf, bool *progress)
 {
-    if (p->fds[0] == -1 || !FD_ISSET(p->fds[0], fds)) {
+    if (p->fds[0] == -1) {
         return 0;
     }
 
     do {
-        DEBUG("Reading from pipe %d\n", p->fds[0]);
-        ssize_t  bytes_read = read(p->fds[0], group->read_buf, BUF_SIZE);
+        DEBUG("[read] Reading from pipe %d\n", p->fds[0]);
+        ssize_t  bytes_read = read(p->fds[0], buf, BUF_SIZE);
         if (bytes_read == -1) {
             if (errno == EAGAIN) {
                 /* We've exhausted all of the data currently available. */
-                DEBUG("  No more bytes without blocking\n");
+                DEBUG("[read]   No more bytes without blocking\n");
                 return 0;
             } else if (errno == EINTR) {
                 /* Interrupted by a signal; return so that our wait loop can
                  * catch that. */
-                DEBUG("  Interrupted by signal\n");
+                DEBUG("[read]   Interrupted by signal\n");
                 return 0;
             } else {
                 /* An actual error */
                 cork_system_error_set();
-                DEBUG("  Error: %s\n", cork_error_message());
+                DEBUG("[read]   Error: %s\n", cork_error_message());
                 return -1;
             }
         } else if (bytes_read == 0) {
-            DEBUG("  End of stream\n");
+            DEBUG("[read]   End of stream\n");
+            *progress = true;
             rii_check(cork_stream_consumer_eof(p->consumer));
             rii_check_posix(close(p->fds[0]));
             p->fds[0] = -1;
             return 0;
         } else {
-            DEBUG("  Got %zd bytes\n", bytes_read);
+            DEBUG("[read]   Got %zd bytes\n", bytes_read);
+            *progress = true;
             rii_check(cork_stream_consumer_data
-                      (p->consumer, group->read_buf, bytes_read, p->first));
+                      (p->consumer, buf, bytes_read, p->first));
             p->first = false;
         }
     } while (true);
+}
+
+static bool
+cork_read_pipe_is_finished(struct cork_read_pipe *p)
+{
+    return p->fds[0] == -1;
+}
+
+
+/*-----------------------------------------------------------------------
+ * Pipes (parent writes)
+ */
+
+struct cork_write_pipe {
+    struct cork_stream_consumer  consumer;
+    int  fds[2];
+};
+
+static int
+cork_write_pipe_close_read(struct cork_write_pipe *p)
+{
+    if (p->fds[0] != -1) {
+        DEBUG("[write] Closing read pipe %d\n", p->fds[0]);
+        rii_check_posix(close(p->fds[0]));
+        p->fds[0] = -1;
+    }
+    return 0;
+}
+
+static int
+cork_write_pipe_close_write(struct cork_write_pipe *p)
+{
+    if (p->fds[1] != -1) {
+        DEBUG("[write] Closing write pipe %d\n", p->fds[1]);
+        rii_check_posix(close(p->fds[1]));
+        p->fds[1] = -1;
+    }
+    return 0;
+}
+
+static int
+cork_write_pipe__data(struct cork_stream_consumer *consumer,
+                      const void *buf, size_t size, bool is_first_chunk)
+{
+    struct cork_write_pipe  *p =
+        cork_container_of(consumer, struct cork_write_pipe, consumer);
+    rii_check_posix(write(p->fds[1], buf, size));
+    return 0;
+}
+
+static int
+cork_write_pipe__eof(struct cork_stream_consumer *consumer)
+{
+    struct cork_write_pipe  *p =
+        cork_container_of(consumer, struct cork_write_pipe, consumer);
+    return cork_write_pipe_close_write(p);
+}
+
+static void
+cork_write_pipe__free(struct cork_stream_consumer *consumer)
+{
+}
+
+static void
+cork_write_pipe_init(struct cork_write_pipe *p)
+{
+    p->consumer.data = cork_write_pipe__data;
+    p->consumer.eof = cork_write_pipe__eof;
+    p->consumer.free = cork_write_pipe__free;
+    p->fds[0] = -1;
+    p->fds[1] = -1;
+}
+
+static void
+cork_write_pipe_close(struct cork_write_pipe *p)
+{
+    cork_write_pipe_close_read(p);
+    cork_write_pipe_close_write(p);
+}
+
+static void
+cork_write_pipe_done(struct cork_write_pipe *p)
+{
+    cork_write_pipe_close(p);
+}
+
+static int
+cork_write_pipe_open(struct cork_write_pipe *p)
+{
+    DEBUG("[write] Opening writer pipe\n");
+    rii_check_posix(pipe(p->fds));
+    DEBUG("[write]   Got read=%d write=%d\n", p->fds[0], p->fds[1]);
+    return 0;
+}
+
+static int
+cork_write_pipe_dup(struct cork_write_pipe *p, int fd)
+{
+    if (p->fds[0] != -1) {
+        rii_check_posix(dup2(p->fds[0], fd));
+    }
+    return 0;
 }
 
 
@@ -225,23 +309,31 @@ cork_pipe_read(struct cork_pipe *p, struct cork_subprocess_group *group,
 
 struct cork_subprocess {
     pid_t  pid;
-    struct cork_pipe  stdout_pipe;
-    struct cork_pipe  stderr_pipe;
-    struct cork_thread_body  *body;
+    struct cork_write_pipe  stdin_pipe;
+    struct cork_read_pipe  stdout_pipe;
+    struct cork_read_pipe  stderr_pipe;
+    void  *user_data;
+    cork_free_f  free_user_data;
+    cork_run_f  run;
     int  *exit_code;
+    char  buf[BUF_SIZE];
 };
 
 struct cork_subprocess *
-cork_subprocess_new(struct cork_thread_body *body,
+cork_subprocess_new(void *user_data, cork_free_f free_user_data,
+                    cork_run_f run,
                     struct cork_stream_consumer *stdout_consumer,
                     struct cork_stream_consumer *stderr_consumer,
                     int *exit_code)
 {
     struct cork_subprocess  *self = cork_new(struct cork_subprocess);
-    cork_pipe_init(&self->stdout_pipe, stdout_consumer);
-    cork_pipe_init(&self->stderr_pipe, stderr_consumer);
+    cork_write_pipe_init(&self->stdin_pipe);
+    cork_read_pipe_init(&self->stdout_pipe, stdout_consumer);
+    cork_read_pipe_init(&self->stderr_pipe, stderr_consumer);
     self->pid = 0;
-    self->body = body;
+    self->user_data = user_data;
+    self->free_user_data = free_user_data;
+    self->run = run;
     self->exit_code = exit_code;
     return self;
 }
@@ -249,10 +341,17 @@ cork_subprocess_new(struct cork_thread_body *body,
 void
 cork_subprocess_free(struct cork_subprocess *self)
 {
-    cork_thread_body_free(self->body);
-    cork_pipe_done(&self->stdout_pipe);
-    cork_pipe_done(&self->stderr_pipe);
+    cork_free_user_data(self);
+    cork_write_pipe_done(&self->stdin_pipe);
+    cork_read_pipe_done(&self->stdout_pipe);
+    cork_read_pipe_done(&self->stderr_pipe);
     free(self);
+}
+
+struct cork_stream_consumer *
+cork_subprocess_stdin(struct cork_subprocess *self)
+{
+    return &self->stdin_pipe.consumer;
 }
 
 
@@ -260,36 +359,18 @@ cork_subprocess_free(struct cork_subprocess *self)
  * Executing another program
  */
 
-struct cork_exec_body {
-    struct cork_thread_body  parent;
-    struct cork_exec  *exec;
-};
-
 static int
-cork_exec__run(struct cork_thread_body *vself)
+cork_exec__run(void *vself)
 {
-    struct cork_exec_body  *self =
-        cork_container_of(vself, struct cork_exec_body, parent);
-    return cork_exec_run(self->exec);
+    struct cork_exec  *exec = vself;
+    return cork_exec_run(exec);
 }
 
 static void
-cork_exec__free(struct cork_thread_body *vself)
+cork_exec__free(void *vself)
 {
-    struct cork_exec_body  *self =
-        cork_container_of(vself, struct cork_exec_body, parent);
-    cork_exec_free(self->exec);
-    free(self);
-}
-
-static struct cork_thread_body *
-cork_exec_body_new(struct cork_exec *exec)
-{
-    struct cork_exec_body  *self = cork_new(struct cork_exec_body);
-    self->parent.run = cork_exec__run;
-    self->parent.free = cork_exec__free;
-    self->exec = exec;
-    return &self->parent;
+    struct cork_exec  *exec = vself;
+    cork_exec_free(exec);
 }
 
 struct cork_subprocess *
@@ -298,8 +379,10 @@ cork_subprocess_new_exec(struct cork_exec *exec,
                          struct cork_stream_consumer *err,
                          int *exit_code)
 {
-    struct cork_thread_body  *body = cork_exec_body_new(exec);
-    return cork_subprocess_new(body, out, err, exit_code);
+    return cork_subprocess_new
+        (exec, cork_exec__free,
+         cork_exec__run,
+         out, err, exit_code);
 }
 
 
@@ -307,17 +390,22 @@ cork_subprocess_new_exec(struct cork_exec *exec,
  * Running subprocesses
  */
 
-static int
-cork_subprocess_fork(struct cork_subprocess *self)
+int
+cork_subprocess_start(struct cork_subprocess *self)
 {
     pid_t  pid;
 
     /* Create the stdout and stderr pipes. */
-    if (cork_pipe_open(&self->stdout_pipe) == -1) {
+    if (cork_write_pipe_open(&self->stdin_pipe) == -1) {
         return -1;
     }
-    if (cork_pipe_open(&self->stderr_pipe) == -1) {
-        cork_pipe_close(&self->stdout_pipe);
+    if (cork_read_pipe_open(&self->stdout_pipe) == -1) {
+        cork_write_pipe_close(&self->stdin_pipe);
+        return -1;
+    }
+    if (cork_read_pipe_open(&self->stderr_pipe) == -1) {
+        cork_write_pipe_close(&self->stdin_pipe);
+        cork_read_pipe_close(&self->stdout_pipe);
         return -1;
     }
 
@@ -330,20 +418,25 @@ cork_subprocess_fork(struct cork_subprocess *self)
 
         /* Close the parent's end of the pipes */
         DEBUG("[child] ");
-        cork_pipe_close_read(&self->stdout_pipe);
+        cork_write_pipe_close_write(&self->stdin_pipe);
         DEBUG("[child] ");
-        cork_pipe_close_read(&self->stderr_pipe);
+        cork_read_pipe_close_read(&self->stdout_pipe);
+        DEBUG("[child] ");
+        cork_read_pipe_close_read(&self->stderr_pipe);
 
         /* Bind the stdout and stderr pipes */
-        if (cork_pipe_dup(&self->stdout_pipe, STDOUT_FILENO) == -1) {
+        if (cork_write_pipe_dup(&self->stdin_pipe, STDIN_FILENO) == -1) {
             _exit(EXIT_FAILURE);
         }
-        if (cork_pipe_dup(&self->stderr_pipe, STDERR_FILENO) == -1) {
+        if (cork_read_pipe_dup(&self->stdout_pipe, STDOUT_FILENO) == -1) {
+            _exit(EXIT_FAILURE);
+        }
+        if (cork_read_pipe_dup(&self->stderr_pipe, STDERR_FILENO) == -1) {
             _exit(EXIT_FAILURE);
         }
 
-        /* Run the subprocess's body */
-        rc = cork_thread_body_run(self->body);
+        /* Run the subprocess */
+        rc = self->run(self->user_data);
         if (CORK_LIKELY(rc == 0)) {
             _exit(EXIT_SUCCESS);
         } else {
@@ -358,197 +451,155 @@ cork_subprocess_fork(struct cork_subprocess *self)
         /* Parent process */
         DEBUG("  Child PID=%d\n", (int) pid);
         self->pid = pid;
-        cork_pipe_close_write(&self->stdout_pipe);
-        cork_pipe_close_write(&self->stderr_pipe);
+        cork_write_pipe_close_read(&self->stdin_pipe);
+        cork_read_pipe_close_write(&self->stdout_pipe);
+        cork_read_pipe_close_write(&self->stderr_pipe);
         return 0;
     }
 }
 
-static void
-cork_subprocess_terminate(struct cork_subprocess *self)
+static int
+cork_subprocess_reap(struct cork_subprocess *self, int flags, bool *progress)
 {
-    if (self->pid > 0) {
-        int  status;
-        DEBUG("Terminating child process %d\n", (int) self->pid);
-        kill(self->pid, SIGTERM);
-        waitpid(self->pid, &status, 0);
+    int  pid;
+    int  status;
+    rii_check_posix(pid = waitpid(self->pid, &status, flags));
+    if (pid == self->pid) {
+        *progress = true;
+        self->pid = 0;
         if (self->exit_code != NULL) {
             *self->exit_code = WEXITSTATUS(status);
         }
     }
+    return 0;
 }
 
-static void
-cork_subprocess_mark_terminated(struct cork_subprocess *self)
+int
+cork_subprocess_abort(struct cork_subprocess *self)
 {
-    self->pid = 0;
-}
-
-
-static struct cork_subprocess_group  *current_group;
-
-static void
-cork_subprocess_group_terminate(struct cork_subprocess_group *group)
-{
-    size_t  i;
-    for (i = 0; i < cork_array_size(&current_group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&current_group->subprocesses, i);
-        cork_subprocess_terminate(sub);
+    if (self->pid > 0) {
+        CORK_ATTR_UNUSED bool  progress;
+        DEBUG("Terminating child process %d\n", (int) self->pid);
+        kill(self->pid, SIGTERM);
+        return cork_subprocess_reap(self, 0, &progress);
+    } else {
+        return 0;
     }
 }
 
-static struct cork_subprocess *
-cork_subprocess_find(pid_t pid)
+bool
+cork_subprocess_is_finished(struct cork_subprocess *self)
 {
-    size_t  i;
-    for (i = 0; i < cork_array_size(&current_group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&current_group->subprocesses, i);
-        if (sub->pid == pid) {
-            return sub;
+    return (self->pid == 0)
+        && cork_read_pipe_is_finished(&self->stdout_pipe)
+        && cork_read_pipe_is_finished(&self->stderr_pipe);
+}
+
+#if defined(__APPLE__)
+#include <pthread.h>
+#define THREAD_YIELD   pthread_yield_np
+#elif defined(__linux__) || defined(BSD)
+#include <sched.h>
+#define THREAD_YIELD   sched_yield
+#else
+#error "Unknown thread yield implementation"
+#endif
+
+static void
+cork_subprocess_yield(unsigned int *spin_count)
+{
+    /* Adapted from
+     * http://www.1024cores.net/home/lock-free-algorithms/tricks/spinning */
+
+    if (*spin_count < 10) {
+        /* Spin-wait */
+        cork_pause();
+    } else if (*spin_count < 20) {
+        /* A more intense spin-wait */
+        int  i;
+        for (i = 0; i < 50; i++) {
+            cork_pause();
         }
+    } else if (*spin_count < 22) {
+        THREAD_YIELD();
+    } else if (*spin_count < 24) {
+        usleep(0);
+    } else if (*spin_count < 50) {
+        usleep(1);
+    } else if (*spin_count < 75) {
+        usleep((*spin_count - 49) * 1000);
+    } else {
+        usleep(25000);
     }
 
-    cork_unreachable();
-}
-
-static void
-cork_subprocess_term_handler(int signum)
-{
-    size_t  i;
-    DEBUG("++ Detected signal %d\n", signum);
-    for (i = 0; i < cork_array_size(&current_group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&current_group->subprocesses, i);
-        if (sub->pid != 0) {
-            DEBUG("++   Propagating signal to child %d\n", (int) sub->pid);
-            kill(sub->pid, signum);
-        }
-    }
-}
-
-static void
-cork_subprocess_chld_handler(int signum)
-{
-    pid_t  pid;
-    int  status;
-
-    DEBUG("++ Detected signal CHLD\n");
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        struct cork_subprocess  *sub = cork_subprocess_find(pid);
-        cork_subprocess_mark_terminated(sub);
-        if (sub->exit_code != NULL) {
-            *sub->exit_code = WEXITSTATUS(status);
-        }
-        current_group->still_running--;
-        DEBUG("++   Processes still running: %zu\n",
-              current_group->still_running);
-    }
-}
-
-static void
-cork_subprocess_install_handler(int signum, struct sigaction *old,
-                                void (*handler)(int))
-{
-    struct sigaction  action;
-    action.sa_handler = handler;
-    sigemptyset(&action.sa_mask);
-    action.sa_flags = 0;
-    sigaction(signum, &action, old);
-}
-
-static void
-cork_subprocess_install_term_handler(int signum, struct sigaction *old)
-{
-    sigaction(signum, NULL, old);
-    if (old->sa_handler != SIG_IGN) {
-        cork_subprocess_install_handler
-            (signum, old, cork_subprocess_term_handler);
-    }
-}
-
-static void
-cork_subprocess_install_handlers(void)
-{
-    DEBUG("Installing signal handlers\n");
-    cork_subprocess_install_term_handler(SIGHUP, &current_group->old_hup);
-    cork_subprocess_install_term_handler(SIGINT, &current_group->old_int);
-    cork_subprocess_install_term_handler(SIGTERM, &current_group->old_term);
-    cork_subprocess_install_handler
-        (SIGCHLD, &current_group->old_chld, cork_subprocess_chld_handler);
-}
-
-static void
-cork_subprocess_restore_handlers(void)
-{
-    DEBUG("Restoring signal handlers\n");
-    sigaction(SIGCHLD, &current_group->old_chld, NULL);
-    sigaction(SIGHUP, &current_group->old_hup, NULL);
-    sigaction(SIGINT, &current_group->old_int, NULL);
-    sigaction(SIGTERM, &current_group->old_term, NULL);
-}
-
-static void
-cork_subprocess_set_fds(fd_set *fds, int *nfds)
-{
-    size_t  i;
-    DEBUG("Creating select(2) fd set\n");
-    FD_ZERO(fds);
-    for (i = 0; i < cork_array_size(&current_group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&current_group->subprocesses, i);
-        cork_pipe_set_fd(&sub->stdout_pipe, fds, nfds);
-        cork_pipe_set_fd(&sub->stderr_pipe, fds, nfds);
-    }
+    (*spin_count)++;
 }
 
 static int
-cork_subprocess_read_fds(fd_set *fds)
+cork_subprocess_drain_(struct cork_subprocess *self, bool *progress)
 {
-    size_t  i;
-    DEBUG("Reading from pipes\n");
-    for (i = 0; i < cork_array_size(&current_group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&current_group->subprocesses, i);
-        rii_check(cork_pipe_read(&sub->stdout_pipe, current_group, fds));
-        rii_check(cork_pipe_read(&sub->stderr_pipe, current_group, fds));
+    rii_check(cork_read_pipe_read(&self->stdout_pipe, self->buf, progress));
+    rii_check(cork_read_pipe_read(&self->stderr_pipe, self->buf, progress));
+    if (self->pid > 0) {
+        return cork_subprocess_reap(self, WNOHANG, progress);
+    } else {
+        return 0;
+    }
+}
+
+bool
+cork_subprocess_drain(struct cork_subprocess *self)
+{
+    bool  progress;
+    cork_subprocess_drain_(self, &progress);
+    return progress;
+}
+
+int
+cork_subprocess_wait(struct cork_subprocess *self)
+{
+    unsigned int  spin_count = 0;
+    bool  progress;
+    while (!cork_subprocess_is_finished(self)) {
+        progress = false;
+        rii_check(cork_subprocess_drain_(self, &progress));
+        if (!progress) {
+            cork_subprocess_yield(&spin_count);
+        }
     }
     return 0;
 }
 
+
+/*-----------------------------------------------------------------------
+ * Running subprocess groups
+ */
+
+static int
+cork_subprocess_group_terminate(struct cork_subprocess_group *group)
+{
+    size_t  i;
+    for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
+        struct cork_subprocess  *sub = cork_array_at(&group->subprocesses, i);
+        rii_check(cork_subprocess_abort(sub));
+    }
+    return 0;
+}
 
 int
 cork_subprocess_group_start(struct cork_subprocess_group *group)
 {
     size_t  i;
-
-    if (current_group != NULL) {
-        cork_error_set
-            (CORK_BUILTIN_ERROR, CORK_SYSTEM_ERROR,
-             "cork_subprocess_start is not thread-safe");
-        return -1;
-    }
     DEBUG("Starting subprocess group\n");
-    current_group = group;
-
-    /* Install signal handlers for a bunch of termination signals. */
-    cork_subprocess_install_handlers();
-
     /* Start each subprocess. */
     for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
-        struct cork_subprocess  *sub =
-            cork_array_at(&group->subprocesses, i);
-        ei_check(cork_subprocess_fork(sub));
+        struct cork_subprocess  *sub = cork_array_at(&group->subprocesses, i);
+        ei_check(cork_subprocess_start(sub));
     }
-
-    current_group->still_running = cork_array_size(&current_group->subprocesses);
     return 0;
 
 error:
     cork_subprocess_group_terminate(group);
-    cork_subprocess_restore_handlers();
-    current_group = NULL;
     return -1;
 }
 
@@ -556,81 +607,57 @@ error:
 int
 cork_subprocess_group_abort(struct cork_subprocess_group *group)
 {
-    if (current_group == NULL) {
-        /* Nothing is running; immediately return. */
-        return 0;
-    }
-
-    assert(current_group == group);
     DEBUG("Aborting subprocess group\n");
-    cork_subprocess_group_terminate(group);
-    cork_subprocess_restore_handlers();
-    current_group = NULL;
-    return 0;
+    return cork_subprocess_group_terminate(group);
 }
 
-
-int
-cork_subprocess_group_drain(struct cork_subprocess_group *group)
-{
-    int  nfds = 0;
-    fd_set  fds;
-
-    if (current_group == NULL) {
-        /* Nothing is running; immediately return. */
-        return 0;
-    }
-
-    assert(current_group == group);
-    DEBUG("Draining subprocess group\n");
-    cork_subprocess_set_fds(&fds, &nfds);
-
-    /* Can't use our helper macro from above because we want to handle EINTR
-     * specially. */
-    DEBUG("Waiting for signal or readable pipes\n");
-    if (select(nfds, &fds, NULL, NULL, NULL) == -1) {
-        if (errno == EINTR) {
-            DEBUG("  Interrupted by signal\n");
-        } else {
-            cork_system_error_set();
-            goto error;
-        }
-    } else {
-        ei_check(cork_subprocess_read_fds(&fds));
-    }
-
-    /* If there aren't any more processes running, clean up before returning. */
-    if (group->still_running == 0) {
-        cork_subprocess_restore_handlers();
-        current_group = NULL;
-    }
-    return 0;
-
-error:
-    cork_subprocess_group_terminate(group);
-    cork_subprocess_restore_handlers();
-    current_group = NULL;
-    return -1;
-}
 
 bool
 cork_subprocess_group_is_finished(struct cork_subprocess_group *group)
 {
-    return (group->still_running == 0);
+    size_t  i;
+    for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
+        struct cork_subprocess  *sub = cork_array_at(&group->subprocesses, i);
+        bool  sub_finished = cork_subprocess_is_finished(sub);
+        if (!sub_finished) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static int
+cork_subprocess_group_drain_(struct cork_subprocess_group *group,
+                             bool *progress)
+{
+    size_t  i;
+    for (i = 0; i < cork_array_size(&group->subprocesses); i++) {
+        struct cork_subprocess  *sub = cork_array_at(&group->subprocesses, i);
+        rii_check(cork_subprocess_drain_(sub, progress));
+    }
+    return 0;
+}
+
+bool
+cork_subprocess_group_drain(struct cork_subprocess_group *group)
+{
+    bool  progress = false;
+    cork_subprocess_group_drain_(group, &progress);
+    return progress;
 }
 
 int
 cork_subprocess_group_wait(struct cork_subprocess_group *group)
 {
-    if (current_group == NULL) {
-        /* Nothing is running; immediately return. */
-        return 0;
-    }
-
-    assert(current_group == group);
+    unsigned int  spin_count = 0;
+    bool  progress;
     DEBUG("Waiting for subprocess group to finish\n");
-    while (group->still_running > 0) {
-        rii_check(cork_subprocess_group_drain(group));
+    while (!cork_subprocess_group_is_finished(group)) {
+        progress = false;
+        rii_check(cork_subprocess_group_drain_(group, &progress));
+        if (!progress) {
+            cork_subprocess_yield(&spin_count);
+        }
     }
     return 0;
 }

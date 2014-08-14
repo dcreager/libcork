@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -17,19 +16,6 @@
 #include <libcork/core/api.h>
 #include <libcork/core/error.h>
 #include <libcork/core/types.h>
-
-
-/*-----------------------------------------------------------------------
- * Error handling
- */
-
-/* hash of "libcork/core/net-addresses.h" */
-#define CORK_NET_ADDRESS_ERROR  0x1f76fedf
-
-enum cork_net_address_error {
-    /* A parse error while parsing a network address. */
-    CORK_NET_ADDRESS_PARSE_ERROR
-};
 
 
 /*-----------------------------------------------------------------------

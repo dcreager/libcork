@@ -35,34 +35,33 @@ Basic interface
    the same size; this size is provided when you initialize the memory
    pool.
 
-.. function:: void cork_mempool_init_size(struct cork_mempool \*mp, size_t element_size)
-              void cork_mempool_init(struct cork_mempool \*mp, TYPE type)
+.. function:: struct cork_mempool \*cork_mempool_new_size(size_t element_size)
+              struct cork_mempool \*cork_mempool_new(TYPE type)
 
-   Initialize a new memory pool.  The size of the objects allocated by
+   Allocate a new memory pool.  The size of the objects allocated by
    the memory pool is given either as an explicit *element_size*, or by
    giving the *type* of the objects.  The blocks allocated by the memory
    pool will be of a default size (currently 4Kb).
 
-.. function:: void cork_mempool_init_size_ex(struct cork_mempool \*mp, size_t element_size, size_t block_size)
-              void cork_mempool_init_ex(struct cork_mempool \*mp, TYPE type, size_t block_size)
+.. function:: struct cork_mempool \*cork_mempool_new_size_ex(size_t element_size, size_t block_size)
+              struct cork_mempool \*cork_mempool_new_ex(TYPE type, size_t block_size)
 
-   Initialize a new memory pool.  The size of the objects allocated by
+   Allocate a new memory pool.  The size of the objects allocated by
    the memory pool is given either as an explicit *element_size*, or by
    giving the *type* of the objects.  The blocks allocated by the memory
    pool will be *block_size* bytes large.
 
-.. function:: void cork_mempool_done(struct cork_mempool \*mp)
+.. function:: void cork_mempool_free(struct cork_mempool \*mp)
 
-   Finalize a memory pool.  You **must** have already freed all of the
+   Free a memory pool.  You **must** have already freed all of the
    objects allocated by the pool; if you haven't, then this function
    will cause the current process to abort.
 
-.. function:: void \*cork_mempool_new(struct cork_mempool \*mp)
+.. function:: void \*cork_mempool_new_object(struct cork_mempool \*mp)
 
-   Allocate a new object from the memory pool.  Returns ``NULL`` if we
-   cannot allocate a new object.
+   Allocate a new object from the memory pool.
 
-.. function:: void cork_mempool_free(struct cork_mempool \*mp, void \*ptr)
+.. function:: void cork_mempool_free_object(struct cork_mempool \*mp, void \*ptr)
 
    Free an object that was allocated from the memory pool.
 
@@ -90,13 +89,13 @@ to allocate via a memory pool::
 
 Our first attempt at a constructor and destructor would then be::
 
-    static cork_mempool  pool;
-    cork_mempool_init(&pool, sizeof(struct my_data));
+    static cork_mempool  *pool;
+    pool = cork_mempool_new(struct my_data);
 
     struct my_data *
     my_data_new(void)
     {
-        struct my_data  *self = cork_mempool_new(&pool);
+        struct my_data  *self = cork_mempool_new_object(pool);
         if (self == NULL) {
             return NULL;
         }
@@ -109,7 +108,7 @@ Our first attempt at a constructor and destructor would then be::
     my_data_free(struct my_data *self)
     {
         cork_buffer_done(&self->scratch_space);
-        cork_mempool_free(&pool, self);
+        cork_mempool_free_object(pool, self);
     }
 
 What's interesting about this example is that the ``scratch_space``
@@ -117,29 +116,27 @@ field, being a :c:type:`cork_buffer`, allocates some space internally to
 hold whatever data we're building up in the buffer.  When we call
 :c:func:`cork_buffer_done` in our destructor, that memory is returned to
 the system.  Later on, when we allocate a new ``my_data``, the
-:c:func:`cork_mempool_new` call in our constructor might get this same
+:c:func:`cork_mempool_new_object` call in our constructor might get this same
 physical instance back.  We'll then proceed to re-initialize the
 ``scratch_space`` buffer, which will then reallocate its internal buffer
 space as we use the type.
 
 Since we're using a memory pool to reuse the memory for the ``my_data``
 instance, we might as well try to reuse the memory for the
-``scratch_space`` field, as well.  To do this, you set the
-``init_object`` and ``done_object`` function pointers in your memory
-pool:
+``scratch_space`` field, as well.  To do this, you provide initialization and
+finalization callbacks:
 
-.. member:: int (\*cork_mempool.init_object)(void \*obj)
-            void (\*cork_mempool.done_object)(void \*obj)
+.. function:: void cork_mempool_set_callbacks(struct cork_mempool \*mp, void \*user_data, cork_free_f free_user_data, cork_init_f init_object, cork_done_f done_object)
 
-   Functions that will be used to initialize and finalize each object
-   that's managed by the memory pool.
+   Provide callback functions that will be used to initialize and finalize each
+   object created by the memory pool.
 
 So, instead of putting the initialization logic into our constructor, we
 put it into the ``init_object`` function.  Similarly, the finalization
 logic goes into ``done_object``, and not our destructor::
 
-    static int
-    my_data_init(void *vself)
+    static void
+    my_data_init(void *user_data, void *vself)
     {
         struct my_data  *self = vself;
         cork_buffer_init(&self->scratch_space);
@@ -147,27 +144,26 @@ logic goes into ``done_object``, and not our destructor::
     }
 
     static void
-    my_data_done(void *vself)
+    my_data_done(void *user_data, void *vself)
     {
         struct my_data  *self = vself;
         cork_buffer_done(&self->scratch_space);
     }
 
-    static cork_mempool  pool;
-    cork_mempool_init(&pool, sizeof(struct my_data));
-    pool.init_object = my_data_init;
-    pool.done_object = my_data_done;
+    static cork_mempool  *pool;
+    pool = cork_mempool_new(pool, struct my_data);
+    cork_mempool_set_callbacks(pool, NULL, NULL, my_data_init, my_data_done);
 
     struct my_data *
     my_data_new(void)
     {
-        return cork_mempool_new(&pool);
+        return cork_mempool_new_object(pool);
     }
 
     void
     my_data_free(struct my_data *self)
     {
-        cork_mempool_free(&pool, self);
+        cork_mempool_free_object(pool, self);
     }
 
 In this implementation, the ``scratch_space`` buffer is initialized when
@@ -186,11 +182,7 @@ constructor object::
     struct my_data *
     my_data_new(void)
     {
-        struct my_data  *self = cork_mempool_new(&pool);
-        if (self == NULL) {
-            return NULL;
-        }
-
+        struct my_data  *self = cork_mempool_new_object(pool);
         cork_buffer_clear(&self->scratch_space);
         return self;
     }

@@ -39,6 +39,7 @@ struct cork_exec {
     struct cork_string_array  params;
     struct cork_env  *env;
     const char  *cwd;
+    struct cork_buffer  description;
 };
 
 struct cork_exec *
@@ -49,6 +50,8 @@ cork_exec_new(const char *program)
     cork_string_array_init(&exec->params);
     exec->env = NULL;
     exec->cwd = NULL;
+    cork_buffer_init(&exec->description);
+    cork_buffer_set_string(&exec->description, program);
     return exec;
 }
 
@@ -90,7 +93,14 @@ cork_exec_free(struct cork_exec *exec)
     if (exec->cwd != NULL) {
         cork_strfree(exec->cwd);
     }
+    cork_buffer_done(&exec->description);
     free(exec);
+}
+
+const char *
+cork_exec_description(struct cork_exec *exec)
+{
+    return exec->description.buf;
 }
 
 const char *
@@ -114,6 +124,12 @@ cork_exec_param(struct cork_exec *exec, size_t index)
 void
 cork_exec_add_param(struct cork_exec *exec, const char *param)
 {
+    /* Don't add the first parameter to the description; that's a copy of the
+     * program name, which we've already added. */
+    if (!cork_array_is_empty(&exec->params)) {
+        cork_buffer_append(&exec->description, " ", 1);
+        cork_buffer_append_string(&exec->description, param);
+    }
     cork_array_append(&exec->params, cork_strdup(param));
 }
 

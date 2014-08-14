@@ -1,16 +1,17 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
 #ifndef LIBCORK_CORE_ERROR_H
 #define LIBCORK_CORE_ERROR_H
 
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,48 +20,75 @@
 #include <libcork/core/types.h>
 
 
-/* Should be a hash of a string representing the error class. */
-typedef uint32_t  cork_error_class;
+/* Should be a hash of a string representing the error code. */
+typedef uint32_t  cork_error;
 
-/* An error class that represents “no error”. */
-#define CORK_ERROR_NONE  ((cork_error_class) 0)
-
-typedef unsigned int  cork_error_code;
+/* An error code that represents “no error”. */
+#define CORK_ERROR_NONE  ((cork_error) 0)
 
 CORK_API bool
 cork_error_occurred(void);
 
-CORK_API cork_error_class
-cork_error_get_class(void);
-
-CORK_API cork_error_code
-cork_error_get_code(void);
+CORK_API cork_error
+cork_error_code(void);
 
 CORK_API const char *
 cork_error_message(void);
 
-CORK_API void
-cork_error_set(cork_error_class error_class, cork_error_code error_code,
-               const char *format, ...)
-    CORK_ATTR_PRINTF(3,4);
 
 CORK_API void
 cork_error_clear(void);
+
+CORK_API void
+cork_error_set_printf(cork_error code, const char *format, ...)
+    CORK_ATTR_PRINTF(2,3);
+
+CORK_API void
+cork_error_set_string(cork_error code, const char *str);
+
+CORK_API void
+cork_error_set_vprintf(cork_error code, const char *format, va_list args)
+    CORK_ATTR_PRINTF(2,0);
+
+CORK_API void
+cork_error_prefix_printf(const char *format, ...)
+    CORK_ATTR_PRINTF(1,2);
+
+CORK_API void
+cork_error_prefix_string(const char *str);
+
+CORK_API void
+cork_error_prefix_vprintf(const char *format, va_list arg)
+    CORK_ATTR_PRINTF(1,0);
+
+
+/* deprecated */
+CORK_API void
+cork_error_set(uint32_t error_class, unsigned int error_code,
+               const char *format, ...)
+    CORK_ATTR_PRINTF(3,4);
+
+/* deprecated */
+CORK_API void
+cork_error_prefix(const char *format, ...)
+    CORK_ATTR_PRINTF(1,2);
 
 
 /*-----------------------------------------------------------------------
  * Built-in errors
  */
 
-/* hash of "libcork/core/error.h" */
-#define CORK_BUILTIN_ERROR  0xd178dde5
+#define CORK_PARSE_ERROR               0x95dfd3c8
+#define CORK_REDEFINED                 0x171629cb
+#define CORK_UNDEFINED                 0xedc3d7d9
+#define CORK_UNKNOWN_ERROR             0x8cb0880d
 
-enum cork_builtin_error {
-    /* An error reported by the C library's errno mechanism */
-    CORK_SYSTEM_ERROR,
-    /* An unknown error */
-    CORK_UNKNOWN_ERROR
-};
+#define cork_parse_error(...) \
+    cork_error_set_printf(CORK_PARSE_ERROR, __VA_ARGS__)
+#define cork_redefined(...) \
+    cork_error_set_printf(CORK_REDEFINED, __VA_ARGS__)
+#define cork_undefined(...) \
+    cork_error_set_printf(CORK_UNDEFINED, __VA_ARGS__)
 
 CORK_API void
 cork_system_error_set(void);

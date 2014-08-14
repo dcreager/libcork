@@ -74,21 +74,29 @@ cork_buffer_equal(const struct cork_buffer *buffer1,
 }
 
 
-void
-cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size)
+static void
+cork_buffer_ensure_size_int(struct cork_buffer *buffer, size_t desired_size)
 {
-    if (buffer->allocated_size >= desired_size) {
+    size_t  new_size;
+
+    if (CORK_LIKELY(buffer->allocated_size >= desired_size)) {
         return;
     }
 
     /* Make sure we at least double the old size when reallocating. */
-    size_t  new_size = buffer->allocated_size * 2;
+    new_size = buffer->allocated_size * 2;
     if (desired_size > new_size) {
         new_size = desired_size;
     }
 
     buffer->buf = cork_realloc(buffer->buf, new_size);
     buffer->allocated_size = new_size;
+}
+
+void
+cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size)
+{
+    cork_buffer_ensure_size_int(buffer, desired_size);
 }
 
 
@@ -120,7 +128,7 @@ cork_buffer_truncate(struct cork_buffer *buffer, size_t length)
 void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length)
 {
-    cork_buffer_ensure_size(buffer, length+1);
+    cork_buffer_ensure_size_int(buffer, length+1);
     memcpy(buffer->buf, src, length);
     ((char *) buffer->buf)[length] = '\0';
     buffer->size = length;
@@ -130,7 +138,7 @@ cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length)
 void
 cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length)
 {
-    cork_buffer_ensure_size(buffer, buffer->size + length + 1);
+    cork_buffer_ensure_size_int(buffer, buffer->size + length + 1);
     memcpy(buffer->buf + buffer->size, src, length);
     buffer->size += length;
     ((char *) buffer->buf)[buffer->size] = '\0';
@@ -155,16 +163,28 @@ void
 cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
                            va_list args)
 {
-    size_t  new_size;
+    size_t  format_size;
     va_list  args1;
+
     va_copy(args1, args);
-    size_t  formatted_length = vsnprintf(NULL, 0, format, args1);
+    format_size = vsnprintf(buffer->buf + buffer->size,
+                            buffer->allocated_size - buffer->size,
+                            format, args1);
     va_end(args1);
 
-    new_size = buffer->size + formatted_length;
-    cork_buffer_ensure_size(buffer, new_size+1);
-    vsnprintf(buffer->buf + buffer->size, formatted_length+1, format, args);
-    buffer->size = new_size;
+    /* If the first call works, then set buffer->size and return. */
+    if (format_size < (buffer->allocated_size - buffer->size)) {
+        buffer->size += format_size;
+        return;
+    }
+
+    /* If the first call fails, resize buffer and try again. */
+    cork_buffer_ensure_size_int
+        (buffer, buffer->allocated_size + format_size + 1);
+    format_size = vsnprintf(buffer->buf + buffer->size,
+                            buffer->allocated_size - buffer->size,
+                            format, args);
+    buffer->size += format_size;
 }
 
 
@@ -194,6 +214,166 @@ cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
     va_start(args, format);
     cork_buffer_vprintf(buffer, format, args);
     va_end(args);
+}
+
+
+void
+cork_buffer_append_indent(struct cork_buffer *buffer, size_t indent)
+{
+    cork_buffer_ensure_size_int(buffer, buffer->size + indent + 1);
+    memset(buffer->buf + buffer->size, ' ', indent);
+    buffer->size += indent;
+    ((char *) buffer->buf)[buffer->size] = '\0';
+}
+
+/* including space */
+#define is_sprint(ch)  ((ch) >= 0x20 && (ch) <= 0x7e)
+
+/* not including space */
+#define is_print(ch)  ((ch) > 0x20 && (ch) <= 0x7e)
+
+#define is_space(ch) \
+    ((ch) == ' ' || \
+     (ch) == '\f' || \
+     (ch) == '\n' || \
+     (ch) == '\r' || \
+     (ch) == '\t' || \
+     (ch) == '\v')
+
+#define to_hex(nybble) \
+    ((nybble) < 10? '0' + (nybble): 'a' - 10 + (nybble))
+
+void
+cork_buffer_append_c_string(struct cork_buffer *dest,
+                            const char *chars, size_t length)
+{
+    size_t  i;
+    cork_buffer_append(dest, "\"", 1);
+    for (i = 0; i < length; i++) {
+        char  ch = chars[i];
+        switch (ch) {
+            case '\"':
+                cork_buffer_append_literal(dest, "\\\"");
+                break;
+            case '\\':
+                cork_buffer_append_literal(dest, "\\\\");
+                break;
+            case '\f':
+                cork_buffer_append_literal(dest, "\\f");
+                break;
+            case '\n':
+                cork_buffer_append_literal(dest, "\\n");
+                break;
+            case '\r':
+                cork_buffer_append_literal(dest, "\\r");
+                break;
+            case '\t':
+                cork_buffer_append_literal(dest, "\\t");
+                break;
+            case '\v':
+                cork_buffer_append_literal(dest, "\\v");
+                break;
+            default:
+                if (is_sprint(ch)) {
+                    cork_buffer_append(dest, &chars[i], 1);
+                } else {
+                    uint8_t  byte = ch;
+                    cork_buffer_append_printf(dest, "\\x%02" PRIx8, byte);
+                }
+                break;
+        }
+    }
+    cork_buffer_append(dest, "\"", 1);
+}
+
+void
+cork_buffer_append_hex_dump(struct cork_buffer *dest, size_t indent,
+                            const char *chars, size_t length)
+{
+    char  hex[3 * 16];
+    char  print[16];
+    char  *curr_hex = hex;
+    char  *curr_print = print;
+    size_t  i;
+    size_t  column = 0;
+    for (i = 0; i < length; i++) {
+        char  ch = chars[i];
+        uint8_t  u8 = ch;
+        *curr_hex++ = to_hex(u8 >> 4);
+        *curr_hex++ = to_hex(u8 & 0x0f);
+        *curr_hex++ = ' ';
+        *curr_print++ = is_sprint(ch)? ch: '.';
+        if (column == 0 && i != 0) {
+            cork_buffer_append_literal(dest, "\n");
+            cork_buffer_append_indent(dest, indent);
+            column++;
+        } else if (column == 15) {
+            cork_buffer_append_printf
+                (dest, "%-48.*s", (int) (curr_hex - hex), hex);
+            cork_buffer_append_literal(dest, " |");
+            cork_buffer_append(dest, print, curr_print - print);
+            cork_buffer_append_literal(dest, "|");
+            curr_hex = hex;
+            curr_print = print;
+            column = 0;
+        } else {
+            column++;
+        }
+    }
+
+    if (column > 0) {
+        cork_buffer_append_printf(dest, "%-48.*s", (int) (curr_hex - hex), hex);
+        cork_buffer_append_literal(dest, " |");
+        cork_buffer_append(dest, print, curr_print - print);
+        cork_buffer_append_literal(dest, "|");
+    }
+}
+
+void
+cork_buffer_append_multiline(struct cork_buffer *dest, size_t indent,
+                             const char *chars, size_t length)
+{
+    size_t  i;
+    for (i = 0; i < length; i++) {
+        char  ch = chars[i];
+        if (ch == '\n') {
+            cork_buffer_append_literal(dest, "\n");
+            cork_buffer_append_indent(dest, indent);
+        } else {
+            cork_buffer_append(dest, &chars[i], 1);
+        }
+    }
+}
+
+void
+cork_buffer_append_binary(struct cork_buffer *dest, size_t indent,
+                          const char *chars, size_t length)
+{
+    size_t  i;
+    bool  newline = false;
+
+    /* If there are any non-printable characters, print out a hex dump */
+    for (i = 0; i < length; i++) {
+        if (!is_print(chars[i]) && !is_space(chars[i])) {
+            cork_buffer_append_literal(dest, "(hex)\n");
+            cork_buffer_append_indent(dest, indent);
+            cork_buffer_append_hex_dump(dest, indent, chars, length);
+            return;
+        } else if (chars[i] == '\n') {
+            newline = true;
+            /* Don't immediately use the multiline format, since there might be
+             * a non-printable character later on that kicks us over to the hex
+             * dump format. */
+        }
+    }
+
+    if (newline) {
+        cork_buffer_append_literal(dest, "(multiline)\n");
+        cork_buffer_append_indent(dest, indent);
+        cork_buffer_append_multiline(dest, indent, chars, length);
+    } else {
+        cork_buffer_append(dest, chars, length);
+    }
 }
 
 

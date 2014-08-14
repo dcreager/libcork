@@ -83,7 +83,7 @@ automatically resizing the underlying buffer when necessary.
 
    Compare two buffers for equality.
 
-.. function:: int cork_buffer_ensure_size(struct cork_buffer \*buffer, size_t desired_size)
+.. function:: void cork_buffer_ensure_size(struct cork_buffer \*buffer, size_t desired_size)
 
    Ensure that a buffer has allocated enough space to store at least
    *desired_size* bytes.  We won't shrink the size of the buffer's
@@ -131,25 +131,30 @@ terminators.
    clears the buffer first, while the ``_append`` variant adds *src* to whatever
    content is already there.
 
-.. function:: int cork_buffer_set(struct cork_buffer \*buffer, const void \*src, size_t length)
-              int cork_buffer_append(struct cork_buffer \*buffer, const void \*src, size_t length)
+.. function:: void cork_buffer_set(struct cork_buffer \*buffer, const void \*src, size_t length)
+              void cork_buffer_append(struct cork_buffer \*buffer, const void \*src, size_t length)
 
    Copy the contents of *src* into a buffer.  The ``_set`` variant
    clears the buffer first, while the ``_append`` variant adds *src* to
    whatever content is already there.
 
-.. function:: int cork_buffer_set_string(struct cork_buffer \*buffer, const char \*str)
-              int cork_buffer_append_string(struct cork_buffer \*buffer, const char \*str)
+.. function:: void cork_buffer_set_string(struct cork_buffer \*buffer, const char \*str)
+              void cork_buffer_append_string(struct cork_buffer \*buffer, const char \*str)
+              void cork_buffer_set_literal(struct cork_buffer \*buffer, const char \*str)
+              void cork_buffer_append_literal(struct cork_buffer \*buffer, const char \*str)
 
    Copy the contents of *str* (which must be a ``NUL``\ -terminated C
-   string) into a buffer.  The ``_set`` variant clears the buffer first,
-   while the ``_append`` variant adds *str* to whatever content is
-   already there.
+   string) into a buffer.  The ``_set`` variants clears the buffer first,
+   while the ``_append`` variants adds *str* to whatever content is
+   already there.  The ``_literal`` variants only work when *str* is a C string
+   literal; we use the ``sizeof`` operator to determine the length of the string
+   at compile time.  The ``_string`` variants work with any C string; we use the
+   builtin ``strlen`` function to determine the length of the string.
 
-.. function:: int cork_buffer_printf(struct cork_buffer \*buffer, const char \*format, ...)
-              int cork_buffer_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
-              int cork_buffer_append_printf(struct cork_buffer \*buffer, const char \*format, ...)
-              int cork_buffer_append_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
+.. function:: void cork_buffer_printf(struct cork_buffer \*buffer, const char \*format, ...)
+              void cork_buffer_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
+              void cork_buffer_append_printf(struct cork_buffer \*buffer, const char \*format, ...)
+              void cork_buffer_append_vprintf(struct cork_buffer \*buffer, const char \*format, va_list args)
 
    Format data according to a ``printf`` format string, placing the
    result into a buffer.  The ``_append`` variants add the formatted
@@ -159,6 +164,52 @@ terminators.
    as direct parameters.  The ``_vprintf`` variants can be used within
    another vararg function, and let you pass in the format string's data
    as a C99-standard ``va_list`` instance.
+
+
+Pretty-printing
+---------------
+
+We also provide several helper functions for adding pretty-printed content to a
+``cork_buffer``.
+
+.. function:: void cork_buffer_append_indent(struct cork_buffer \*buffer, size_t indent)
+
+   Append *indent* spaces to *buffer*.
+
+.. function:: void cork_buffer_append_c_string(struct cork_buffer \*buffer, const char \*str, size_t length)
+
+   Append the C string literal representation of *str* to *buffer*.  This will
+   include opening and closing double quotes, and any non-printable characters
+   will be escaped.  (We will use the standard letter-based escapes where
+   possible, and fall back on ``"\xXX"`` hexadecimal escapes for other
+   non-printable characters.)  The result is guaranteed to stay on a single
+   line, since any embedded newlines will be converted to a ``\n`` escape
+   sequence.
+
+.. function:: void cork_buffer_append_hex_dump(struct cork_buffer \*buffer, size_t indent, const char \*str, size_t length)
+              void cork_buffer_append_multiline(struct cork_buffer \*buffer, size_t indent, const char \*str, size_t length)
+              void cork_buffer_append_binary(struct cork_buffer \*buffer, size_t indent, const char \*str, size_t length)
+
+   Append a pretty-printed representation of *str* to *buffer*.  All of these
+   functions can produce multiple lines of output.  All lines except for the
+   first will be prefaced with *indent* space characters.  The final line will
+   **not** have a trailing newline.
+
+   The ``hex_dump`` variant will output a hex-dump representation of *str*.
+   This will include the hexadecimal representation of each byte, and the actual
+   character of any printable byte.
+
+   The ``multiline`` variant appends the raw content of *str* to the buffer,
+   without making any attempt to sanitize non-printable characters.  (That means
+   you should only call this variant if you know that *str* contains only
+   printable characters.)  If *str* itself spans multiple lines, then we'll
+   insert indentation to make sure that we satisfy the indentation rules
+   described above.
+
+   The ``binary`` variant autodetects how to best render *str*.  If it contains
+   any non-printable characters, then we'll use the ``hex_dump`` representation.
+   If it spans multiple lines, we'll use the ``multiline`` representation.
+   Otherwise, we'll append the content directly without any modification.
 
 
 Other binary data structures

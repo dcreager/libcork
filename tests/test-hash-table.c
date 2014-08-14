@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -17,6 +17,7 @@
 #include "libcork/core/allocator.h"
 #include "libcork/core/hash.h"
 #include "libcork/core/types.h"
+#include "libcork/ds/buffer.h"
 #include "libcork/ds/hash-table.h"
 
 #include "helpers.h"
@@ -26,7 +27,7 @@
  */
 
 static bool
-uint64_equals(const void *va, const void *vb)
+uint64_equals(void *user_data, const void *va, const void *vb)
 {
     const uint64_t  *a = va;
     const uint64_t  *b = vb;
@@ -38,7 +39,7 @@ uint64_equals(const void *va, const void *vb)
 }
 
 static cork_hash
-uint64_hash(const void *velement)
+uint64_hash(void *user_data, const void *velement)
 {
     const uint64_t  *element = velement;
 #if 0
@@ -48,7 +49,7 @@ uint64_hash(const void *velement)
 }
 
 static enum cork_hash_table_map_result
-uint64_sum(struct cork_hash_table_entry *entry, void *vsum)
+uint64_sum(void *vsum, struct cork_hash_table_entry *entry)
 {
     uint64_t  *sum = vsum;
     uint64_t  *value = entry->value;
@@ -56,19 +57,11 @@ uint64_sum(struct cork_hash_table_entry *entry, void *vsum)
     return CORK_HASH_TABLE_MAP_CONTINUE;
 }
 
-static enum cork_hash_table_map_result
-uint64_map_free(struct cork_hash_table_entry *entry, void *ud)
-{
-    free(entry->key);
-    free(entry->value);
-    return CORK_HASH_TABLE_MAP_DELETE;
-}
-
 static void
 test_map_sum(struct cork_hash_table *table, uint64_t expected)
 {
     uint64_t  sum = 0;
-    cork_hash_table_map(table, uint64_sum, &sum);
+    cork_hash_table_map(table, &sum, uint64_sum);
     fail_unless(sum == expected,
                 "Unexpected map sum, got %" PRIu64
                 ", expected %" PRIu64,
@@ -92,18 +85,65 @@ test_iterator_sum(struct cork_hash_table *table, uint64_t expected)
                 sum, expected);
 }
 
+static enum cork_hash_table_map_result
+uint64_to_string(void *vdest, struct cork_hash_table_entry *entry)
+{
+    struct cork_buffer  *dest = vdest;
+    uint64_t  *key = entry->key;
+    uint64_t  *value = entry->value;
+    if (dest->size > 1) {
+        cork_buffer_append(dest, ", ", 2);
+    }
+    cork_buffer_append_printf(dest, "%" PRIu64 ":%" PRIu64, *key, *value);
+    return CORK_HASH_TABLE_MAP_CONTINUE;
+}
+
+static void
+test_map_to_string(struct cork_hash_table *table, const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    cork_buffer_set(&buf, "[", 1);
+    cork_hash_table_map(table, &buf, uint64_to_string);
+    cork_buffer_append(&buf, "]", 1);
+    fail_unless_streq("Integer arrays", expected, buf.buf);
+    cork_buffer_done(&buf);
+}
+
+static void
+test_iterator_to_string(struct cork_hash_table *table, const char *expected)
+{
+    struct cork_buffer  buf = CORK_BUFFER_INIT();
+    struct cork_hash_table_iterator  iterator;
+    struct cork_hash_table_entry  *entry;
+    cork_buffer_set(&buf, "[", 1);
+    cork_hash_table_iterator_init(table, &iterator);
+    while ((entry = cork_hash_table_iterator_next(&iterator)) != NULL) {
+        uint64_t  *key = entry->key;
+        uint64_t  *value = entry->value;
+        if (buf.size > 1) {
+            cork_buffer_append(&buf, ", ", 2);
+        }
+        cork_buffer_append_printf(&buf, "%" PRIu64 ":%" PRIu64, *key, *value);
+    }
+    cork_buffer_append(&buf, "]", 1);
+    fail_unless_streq("Integer arrays", expected, buf.buf);
+    cork_buffer_done(&buf);
+}
+
 START_TEST(test_uint64_hash_table)
 {
     struct cork_hash_table  *table;
-    fail_if_error(table = cork_hash_table_new
-                  (0, uint64_hash, uint64_equals));
-
     uint64_t  key, *key_ptr, *old_key;
     void  *v_key, *v_value;
     uint64_t  *value_ptr, *old_value;
     bool  is_new;
     struct cork_hash_table_entry  *entry;
 
+    table = cork_hash_table_new(0, 0);
+    cork_hash_table_set_hash(table, uint64_hash);
+    cork_hash_table_set_equals(table, uint64_equals);
+    cork_hash_table_set_free_key(table, free);
+    cork_hash_table_set_free_value(table, free);
     fail_unless(cork_hash_table_size(table) == 0,
                 "Hash table should start empty");
 
@@ -112,7 +152,9 @@ START_TEST(test_uint64_hash_table)
                 "Shouldn't get value pointer from empty hash table");
 
     test_map_sum(table, 0);
+    test_map_to_string(table, "[]");
     test_iterator_sum(table, 0);
+    test_iterator_to_string(table, "[]");
 
     key_ptr = cork_new(uint64_t);
     *key_ptr = 0;
@@ -158,31 +200,25 @@ START_TEST(test_uint64_hash_table)
                 "Unexpected size after adding {1=>2}");
 
     test_map_sum(table, 34);
+    test_map_to_string(table, "[0:32, 1:2]");
     test_iterator_sum(table, 34);
+    test_iterator_to_string(table, "[0:32, 1:2]");
 
     key = 0;
-    fail_unless(cork_hash_table_delete(table, &key, &v_key, &v_value),
+    fail_unless(cork_hash_table_delete(table, &key, NULL, NULL),
                 "Couldn't delete {0=>32}");
-    old_key = v_key;
-    old_value = v_value;
-    free(old_key);
-    free(old_value);
 
     fail_unless(cork_hash_table_size(table) == 1,
                 "Unexpected size after deleting entry");
+
+    test_map_to_string(table, "[1:2]");
+    test_iterator_to_string(table, "[1:2]");
 
     key = 3;
     fail_if(cork_hash_table_delete(table, &key, NULL, NULL),
             "Shouldn't be able to delete nonexistent {3=>X}");
 
-    key = 1;
-    fail_unless(cork_hash_table_delete
-                (table, &key, &v_key, &v_value),
-                "Couldn't delete {1=>2}");
-    old_key = v_key;
-    old_value = v_value;
-    free(old_key);
-    free(old_value);
+    cork_hash_table_delete_entry(table, entry);
 
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
@@ -214,14 +250,11 @@ START_TEST(test_uint64_hash_table)
     old_key = v_key;
     old_value = v_value;
 
-    cork_hash_table_map(table, uint64_map_free, NULL);
+    cork_hash_table_clear(table);
     fail_unless(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting entries using map");
 
-    /*
-     * And we're done, so let's free everything.
-     */
-
+    /* And we're done, so let's free everything. */
     cork_hash_table_free(table);
 }
 END_TEST
@@ -237,7 +270,7 @@ START_TEST(test_string_hash_table)
     char  key[256];
     void  *value;
 
-    fail_if_error(table = cork_string_hash_table_new(0));
+    table = cork_string_hash_table_new(0, 0);
 
     fail_if_error(cork_hash_table_put
                   (table, "key1", (void *) (uintptr_t) 1, NULL, NULL, NULL));
@@ -271,7 +304,7 @@ START_TEST(test_pointer_hash_table)
     int  key2;
     void  *value;
 
-    fail_if_error(table = cork_pointer_hash_table_new(0));
+    table = cork_pointer_hash_table_new(0, 0);
 
     fail_if_error(cork_hash_table_put
                   (table, &key1, (void *) (uintptr_t) 1, NULL, NULL, NULL));

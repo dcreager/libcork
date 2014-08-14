@@ -1,5 +1,5 @@
 name: libcork
 build_dependencies:
   - pkg-config
-  - check
+  - check >= 0.9.4
 license: BSD

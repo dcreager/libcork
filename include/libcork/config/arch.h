@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -28,7 +28,14 @@
 #define CORK_CONFIG_ARCH_X64  0
 #endif
 
-#if defined(__ppc__) || defined(_M_PPC)
+#if defined(__powerpc__) || defined(__ppc__)
+/* GCC-ish compiler */
+#define CORK_CONFIG_ARCH_PPC  1
+#elif defined(_M_PPC)
+/* VS-ish compiler */
+#define CORK_CONFIG_ARCH_PPC  1
+#elif defined(_ARCH_PPC)
+/* Something called XL C/C++? */
 #define CORK_CONFIG_ARCH_PPC  1
 #else
 #define CORK_CONFIG_ARCH_PPC  0

@@ -1,16 +1,16 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2013, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
 #include <assert.h>
 #include <stdlib.h>
 
+#include "libcork/core/callbacks.h"
 #include "libcork/core/mempool.h"
 #include "libcork/core/types.h"
 #include "libcork/helpers/errors.h"
@@ -29,26 +29,59 @@
 
 
 
+struct cork_mempool {
+    size_t  element_size;
+    size_t  block_size;
+    struct cork_mempool_object  *free_list;
+    /* The number of objects that have been given out by
+     * cork_mempool_new but not returned via cork_mempool_free. */
+    size_t  allocated_count;
+    struct cork_mempool_block  *blocks;
+
+    void  *user_data;
+    cork_free_f  free_user_data;
+    cork_init_f  init_object;
+    cork_done_f  done_object;
+};
+
+struct cork_mempool_object {
+    /* When this object is unclaimed, it will be in the cork_mempool
+     * object's free_list using this pointer. */
+    struct cork_mempool_object  *next_free;
+};
+
 struct cork_mempool_block {
     struct cork_mempool_block  *next_block;
 };
 
+#define cork_mempool_object_size(mp) \
+    (sizeof(struct cork_mempool_object) + (mp)->element_size)
 
-void
-cork_mempool_init_size_ex(struct cork_mempool *mp, size_t element_size,
-                          size_t block_size)
+#define cork_mempool_get_header(obj) \
+    (((struct cork_mempool_object *) (obj)) - 1)
+
+#define cork_mempool_get_object(hdr) \
+    ((void *) (((struct cork_mempool_object *) (hdr)) + 1))
+
+
+struct cork_mempool *
+cork_mempool_new_size_ex(size_t element_size, size_t block_size)
 {
+    struct cork_mempool  *mp = cork_new(struct cork_mempool);
     mp->element_size = element_size;
     mp->block_size = block_size;
     mp->free_list = NULL;
     mp->allocated_count = 0;
     mp->blocks = NULL;
+    mp->user_data = NULL;
+    mp->free_user_data = NULL;
     mp->init_object = NULL;
     mp->done_object = NULL;
+    return mp;
 }
 
 void
-cork_mempool_done(struct cork_mempool *mp)
+cork_mempool_free(struct cork_mempool *mp)
 {
     struct cork_mempool_block  *curr;
     assert(mp->allocated_count == 0);
@@ -56,7 +89,8 @@ cork_mempool_done(struct cork_mempool *mp)
     if (mp->done_object != NULL) {
         struct cork_mempool_object  *obj;
         for (obj = mp->free_list; obj != NULL; obj = obj->next_free) {
-            mp->done_object(cork_mempool_get_object(obj));
+            mp->done_object
+                (mp->user_data, cork_mempool_get_object(obj));
         }
     }
 
@@ -67,12 +101,29 @@ cork_mempool_done(struct cork_mempool *mp)
          * accessing the just-freed block. */
         curr = next;
     }
+
+    cork_free_user_data(mp);
+    free(mp);
+}
+
+
+void
+cork_mempool_set_callbacks(struct cork_mempool *mp,
+                           void *user_data, cork_free_f free_user_data,
+                           cork_init_f init_object,
+                           cork_done_f done_object)
+{
+    cork_free_user_data(mp);
+    mp->user_data = user_data;
+    mp->free_user_data = free_user_data;
+    mp->init_object = init_object;
+    mp->done_object = done_object;
 }
 
 
 /* If this function succeeds, then we guarantee that there will be at
  * least one object in mp->free_list. */
-void
+static void
 cork_mempool_new_block(struct cork_mempool *mp)
 {
     /* Allocate the new block and add it to mp's block list. */
@@ -92,15 +143,33 @@ cork_mempool_new_block(struct cork_mempool *mp)
         struct cork_mempool_object  *obj = vblock + index;
         DEBUG("  New object at %p[%p]\n", cork_mempool_get_object(obj), obj);
         if (mp->init_object != NULL) {
-            mp->init_object(cork_mempool_get_object(obj));
+            mp->init_object
+                (mp->user_data, cork_mempool_get_object(obj));
         }
         obj->next_free = mp->free_list;
         mp->free_list = obj;
     }
 }
 
+void *
+cork_mempool_new_object(struct cork_mempool *mp)
+{
+    struct cork_mempool_object  *obj;
+    void  *ptr;
+
+    if (CORK_UNLIKELY(mp->free_list == NULL)) {
+        cork_mempool_new_block(mp);
+    }
+
+    obj = mp->free_list;
+    mp->free_list = obj->next_free;
+    mp->allocated_count++;
+    ptr = cork_mempool_get_object(obj);
+    return ptr;
+}
+
 void
-cork_mempool_free(struct cork_mempool *mp, void *ptr)
+cork_mempool_free_object(struct cork_mempool *mp, void *ptr)
 {
     struct cork_mempool_object  *obj = cork_mempool_get_header(ptr);
     DEBUG("Returning %p[%p] to memory pool\n", ptr, obj);

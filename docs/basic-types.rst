@@ -22,6 +22,7 @@ addition, libcork defines some useful low-level types:
    net-addresses
    timestamps
    hash-values
+   unique-ids
 
 Integral types
 ==============
