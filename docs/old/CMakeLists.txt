@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
+# Copyright © 2011-2014, RedJack, LLC.
 # All rights reserved.
 #
-# Please see the COPYING file in this distribution for license
-# details.
+# Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
 find_program(
@@ -65,7 +64,7 @@ if (GENERATE_DOC)
   file(COPY _static DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY _templates DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-  add_custom_target(doc ALL
+  add_custom_target(old-doc ALL
     ${SPHINX_EXECUTABLE}
       -b html
       -d "${SPHINX_CACHE_DIR}"
