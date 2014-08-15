@@ -8,6 +8,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 set(PROJECT_NAME libcork)
+set(RELEASE_DATE 2014-08-14)
 project(${PROJECT_NAME})
 enable_testing()
 
@@ -80,6 +81,8 @@ set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wall -Werror)
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    add_definitions(-Wall -Werror)
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
