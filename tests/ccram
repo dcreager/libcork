@@ -1,11 +1,19 @@
 #!/bin/sh
 
-if [ "$1" = "--cram" ]; then
+if [ "$1" = "--python" ]; then
     shift
-    CRAM="$1"
+    PYTHON="$1"
     shift
 else
-    CRAM=cram
+    PYTHON=python
+fi
+
+if [ "$1" = "--root" ]; then
+    shift
+    ROOT="$1"
+    shift
+else
+    ROOT=$(dirname $PWD)
 fi
 
 if [ "$1" = "--tests" ]; then
@@ -16,5 +24,8 @@ else
     TESTS=../tests
 fi
 
+export ROOT
+
+LD_LIBRARY_PATH="$PWD/src:$LD_LIBRARY_PATH" \
 PATH="$PWD/src:$PATH" \
-  "$CRAM" "$@" "$TESTS"
+  "$PYTHON" "$ROOT/tests/cram.py" "$@" "$TESTS"
