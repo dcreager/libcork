@@ -192,14 +192,15 @@ START_TEST(test_buffer_stream)
     static char  SRC2[] = "efg";
     size_t  SRC2_LEN = 3;
 
-    static char  EXPECTED[] = "abcdefg";
-    static size_t  EXPECTED_SIZE = 7;
+    static char  EXPECTED[] = "000abcdefg";
+    static size_t  EXPECTED_SIZE = 10;
 
     struct cork_buffer  buffer1;
     struct cork_buffer  buffer2;
     struct cork_stream_consumer  *consumer;
 
     cork_buffer_init(&buffer1);
+    cork_buffer_append_string(&buffer1, "000");
     fail_if_error(consumer =
                   cork_buffer_to_stream_consumer(&buffer1));
 
