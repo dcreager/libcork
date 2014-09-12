@@ -440,11 +440,6 @@ cork_buffer_stream_consumer_data(struct cork_stream_consumer *consumer,
 {
     struct cork_buffer__stream_consumer  *bconsumer = cork_container_of
         (consumer, struct cork_buffer__stream_consumer, consumer);
-
-    if (is_first_chunk) {
-        cork_buffer_clear(bconsumer->buffer);
-    }
-
     cork_buffer_append(bconsumer->buffer, buf, size);
     return 0;
 }
