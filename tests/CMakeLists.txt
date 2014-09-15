@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2012, RedJack, LLC.
+# Copyright © 2011-2014, RedJack, LLC.
 # All rights reserved.
 #
-# Please see the COPYING file in this distribution for license
-# details.
+# Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
 include_directories(../include)
@@ -63,23 +62,22 @@ if(TILERA)
     configure_file(tile-test ${CMAKE_BINARY_DIR}/tile-test COPYONLY)
 endif(TILERA)
 
-find_program(
-    CRAM_EXECUTABLE
-    NAMES cram
-    HINTS ENV CRAM_DIR
-    PATH_SUFFIXES bin
-    DOC "Cram test harness"
-)
+find_package(PythonInterp)
 
-if (CRAM_EXECUTABLE)
+if (PYTHON_EXECUTABLE)
     configure_file(ccram ${CMAKE_BINARY_DIR}/ccram COPYONLY)
-    add_test(
-        cram-tests
-        ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}
-        ${CMAKE_BINARY_DIR}/ccram
-            --cram ${CRAM_EXECUTABLE}
-            --tests ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-else (CRAM_EXECUTABLE)
-    message(WARNING "Unable to find cram test harness; skipping tests.")
-endif (CRAM_EXECUTABLE)
+    file(GLOB_RECURSE TESTS "${CMAKE_CURRENT_SOURCE_DIR}/*.t")
+    foreach(TEST ${TESTS})
+        get_filename_component(TEST_NAME "${TEST}" NAME_WE)
+        add_test(
+            ${TEST_NAME}
+            ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}
+            ${CMAKE_BINARY_DIR}/ccram
+                --python ${PYTHON_EXECUTABLE}
+                --root ${CMAKE_SOURCE_DIR}
+                --tests ${TEST}
+        )
+    endforeach(TEST)
+else (PYTHON_EXECUTABLE)
+    message(WARNING "Unable to find Python; skipping cram tests.")
+endif (PYTHON_EXECUTABLE)
