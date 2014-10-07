@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2013, RedJack, LLC.
+ * Copyright © 2013-2014, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license details.
@@ -94,7 +94,7 @@ cork_thread_free_private(struct cork_thread *self)
     cork_strfree(self->name);
     cork_free_user_data(self);
     cork_buffer_done(&self->error_message);
-    free(self);
+    cork_delete(struct cork_thread, self);
 }
 
 void

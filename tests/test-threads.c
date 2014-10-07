@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -179,7 +178,7 @@ static void
 cork_test_thread__free(void *vself)
 {
     struct cork_test_thread  *self = vself;
-    free(self);
+    cork_delete(struct cork_test_thread, self);
 }
 
 static struct cork_thread *
@@ -324,6 +323,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

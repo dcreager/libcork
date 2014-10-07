@@ -170,7 +170,7 @@ cork_once_barrier(NAME##__tls_barrier); \
 static void \
 NAME##__tls_destroy(void *vself) \
 { \
-    free(vself); \
+    cork_cfree(vself, 1, sizeof(TYPE)); \
 } \
 \
 static void \

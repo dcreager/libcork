@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011-2013, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -198,8 +197,8 @@ cork_hash_table_free(struct cork_hash_table *table)
 {
     cork_hash_table_clear(table);
     cork_mempool_free(table->pool);
-    free(table->bins);
-    free(table);
+    cork_cfree(table->bins, table->bin_count, sizeof(struct cork_dllist));
+    cork_delete(struct cork_hash_table, table);
 }
 
 size_t
@@ -270,7 +269,7 @@ cork_hash_table_ensure_size(struct cork_hash_table *table, size_t desired_count)
                 }
             }
 
-            free(old_bins);
+            cork_cfree(old_bins, old_bin_count, sizeof(struct cork_dllist));
         }
     }
 }

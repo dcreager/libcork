@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -18,8 +17,7 @@
 #include "libcork/core/mempool.h"
 #include "libcork/core/types.h"
 
-#define DESCRIBE_TEST \
-    fprintf(stderr, "--- %s\n", __func__);
+#include "helpers.h"
 
 
 /*-----------------------------------------------------------------------
@@ -163,6 +161,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011-2013, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -26,8 +25,15 @@
  * Integer hash tables
  */
 
+static void
+uint64__free(void *vi)
+{
+    uint64_t  *i = vi;
+    cork_delete(uint64_t, i);
+}
+
 static bool
-uint64_equals(void *user_data, const void *va, const void *vb)
+uint64__equals(void *user_data, const void *va, const void *vb)
 {
     const uint64_t  *a = va;
     const uint64_t  *b = vb;
@@ -39,7 +45,7 @@ uint64_equals(void *user_data, const void *va, const void *vb)
 }
 
 static cork_hash
-uint64_hash(void *user_data, const void *velement)
+uint64__hash(void *user_data, const void *velement)
 {
     const uint64_t  *element = velement;
 #if 0
@@ -140,10 +146,10 @@ START_TEST(test_uint64_hash_table)
     struct cork_hash_table_entry  *entry;
 
     table = cork_hash_table_new(0, 0);
-    cork_hash_table_set_hash(table, uint64_hash);
-    cork_hash_table_set_equals(table, uint64_equals);
-    cork_hash_table_set_free_key(table, free);
-    cork_hash_table_set_free_value(table, free);
+    cork_hash_table_set_hash(table, uint64__hash);
+    cork_hash_table_set_equals(table, uint64__equals);
+    cork_hash_table_set_free_key(table, uint64__free);
+    cork_hash_table_set_free_value(table, uint64__free);
     fail_unless(cork_hash_table_size(table) == 0,
                 "Hash table should start empty");
 
@@ -351,6 +357,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

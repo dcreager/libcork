@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011-2012, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -71,7 +70,7 @@ verify_consumer__free(struct cork_stream_consumer *vself)
     cork_buffer_done(&self->buf);
     cork_strfree(self->name);
     cork_strfree(self->expected);
-    free(self);
+    cork_delete(struct verify_consumer, self);
 }
 
 struct cork_stream_consumer *
@@ -271,6 +270,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);
