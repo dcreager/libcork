@@ -23,6 +23,11 @@
  * Allocator interface
  */
 
+struct cork_alloc_priv {
+    struct cork_alloc  public;
+    struct cork_alloc_priv  *next;
+};
+
 static void *
 cork_alloc__default_calloc(const struct cork_alloc *alloc,
                            size_t count, size_t size)
@@ -82,7 +87,7 @@ cork_alloc__default_xrealloc(const struct cork_alloc *alloc, void *ptr,
     if (CORK_LIKELY(result != NULL) && ptr != NULL) {
         size_t  min_size = (new_size < old_size)? new_size: old_size;
         memcpy(result, ptr, min_size);
-        cork_alloc_xfree(alloc, ptr, old_size);
+        cork_alloc_free(alloc, ptr, old_size);
     }
     return result;
 }
@@ -93,29 +98,62 @@ cork_alloc__default_free(const struct cork_alloc *alloc, void *ptr, size_t size)
     cork_abort("%s isn't defined", "cork_alloc:free");
 }
 
-struct cork_alloc *
-cork_alloc_new(const struct cork_alloc *parent)
+static bool  cleanup_registered = false;
+static struct cork_alloc_priv  *all_allocs = NULL;
+
+static void
+cork_alloc_free_alloc(struct cork_alloc_priv *alloc)
 {
-    struct cork_alloc  *alloc =
-        cork_alloc_malloc(parent, sizeof(struct cork_alloc));
-    alloc->parent = parent;
-    alloc->user_data = NULL;
-    alloc->free_user_data = NULL;
-    alloc->calloc = cork_alloc__default_calloc;
-    alloc->malloc = cork_alloc__default_malloc;
-    alloc->realloc = cork_alloc__default_realloc;
-    alloc->xcalloc = cork_alloc__default_xcalloc;
-    alloc->xmalloc = cork_alloc__default_xmalloc;
-    alloc->xrealloc = cork_alloc__default_xrealloc;
-    alloc->free = cork_alloc__default_free;
-    return alloc;
+    cork_free_user_data(&alloc->public);
+    cork_alloc_delete(alloc->public.parent, struct cork_alloc_priv, alloc);
 }
 
-void
-cork_alloc_free(struct cork_alloc *alloc)
+static void
+cork_alloc_free_all(void)
 {
-    cork_free_user_data(alloc);
-    cork_alloc_xfree(alloc->parent, alloc, sizeof(struct cork_alloc));
+    struct cork_alloc_priv  *curr;
+    struct cork_alloc_priv  *next;
+    for (curr = all_allocs; curr != NULL; curr = next) {
+        next = curr->next;
+        cork_alloc_free_alloc(curr);
+    }
+}
+
+static void
+cork_alloc_register_cleanup(void)
+{
+    if (CORK_UNLIKELY(!cleanup_registered)) {
+        /* We don't use cork_cleanup because that requires the allocators to
+         * have already been set up!  (atexit calls its functions in reverse
+         * order, and this one will be registered before cork_cleanup's, which
+         * makes it safe for cork_cleanup functions to still use the allocator,
+         * since the allocator atexit function will be called last.) */
+        atexit(cork_alloc_free_all);
+        cleanup_registered = true;
+    }
+}
+
+struct cork_alloc *
+cork_alloc_new_alloc(const struct cork_alloc *parent)
+{
+    struct cork_alloc_priv  *alloc =
+        cork_alloc_new(parent, struct cork_alloc_priv);
+    alloc->public.parent = parent;
+    alloc->public.user_data = NULL;
+    alloc->public.free_user_data = NULL;
+    alloc->public.calloc = cork_alloc__default_calloc;
+    alloc->public.malloc = cork_alloc__default_malloc;
+    alloc->public.realloc = cork_alloc__default_realloc;
+    alloc->public.xcalloc = cork_alloc__default_xcalloc;
+    alloc->public.xmalloc = cork_alloc__default_xmalloc;
+    alloc->public.xrealloc = cork_alloc__default_xrealloc;
+    alloc->public.free = cork_alloc__default_free;
+
+    cork_alloc_register_cleanup();
+    alloc->next = all_allocs;
+    all_allocs = alloc;
+
+    return &alloc->public;
 }
 
 
@@ -191,14 +229,14 @@ strndup_internal(const struct cork_alloc *alloc,
 }
 
 const char *
-cork_strdup_(const struct cork_alloc *alloc, const char *str)
+cork_alloc_strdup(const struct cork_alloc *alloc, const char *str)
 {
     return strndup_internal(alloc, str, strlen(str));
 }
 
 const char *
-cork_strndup_(const struct cork_alloc *alloc,
-              const char *str, size_t size)
+cork_alloc_strndup(const struct cork_alloc *alloc,
+                   const char *str, size_t size)
 {
     return strndup_internal(alloc, str, size);
 }
@@ -222,23 +260,23 @@ xstrndup_internal(const struct cork_alloc *alloc,
 }
 
 const char *
-cork_xstrdup_(const struct cork_alloc *alloc, const char *str)
+cork_alloc_xstrdup(const struct cork_alloc *alloc, const char *str)
 {
     return xstrndup_internal(alloc, str, strlen(str));
 }
 
 const char *
-cork_xstrndup_(const struct cork_alloc *alloc,
-               const char *str, size_t size)
+cork_alloc_xstrndup(const struct cork_alloc *alloc,
+                    const char *str, size_t size)
 {
     return xstrndup_internal(alloc, str, size);
 }
 
 void
-cork_strfree_(const struct cork_alloc *alloc, const char *str)
+cork_alloc_strfree(const struct cork_alloc *alloc, const char *str)
 {
     size_t  *base = ((size_t *) str) - 1;
-    cork_alloc_xfree(alloc, base, *base);
+    cork_alloc_free(alloc, base, *base);
 }
 
 
@@ -338,18 +376,10 @@ static const struct cork_alloc  default_allocator = {
 
 const struct cork_alloc  *cork_allocator = &default_allocator;
 
-static void
-cork_allocator_destroy(void)
-{
-    struct cork_alloc  *alloc = (struct cork_alloc *) cork_allocator;
-    cork_alloc_free(alloc);
-}
-
 void
 cork_set_allocator(const struct cork_alloc *alloc)
 {
     cork_allocator = alloc;
-    cork_cleanup_at_exit(INT_MAX, cork_allocator_destroy);
 }
 
 
@@ -374,13 +404,13 @@ cork_debug_alloc__free(const struct cork_alloc *alloc, void *ptr,
     size_t  actual_size = *base;
     size_t  real_size = actual_size + sizeof(size_t);
     assert(actual_size == expected_size);
-    cork_alloc_xfree(alloc->parent, base, real_size);
+    cork_alloc_free(alloc->parent, base, real_size);
 }
 
 struct cork_alloc *
 cork_debug_alloc_new(const struct cork_alloc *parent)
 {
-    struct cork_alloc  *debug = cork_alloc_new(parent);
+    struct cork_alloc  *debug = cork_alloc_new_alloc(parent);
     cork_alloc_set_xmalloc(debug, cork_debug_alloc__xmalloc);
     cork_alloc_set_free(debug, cork_debug_alloc__free);
     return debug;

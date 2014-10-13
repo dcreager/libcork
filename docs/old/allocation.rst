@@ -232,9 +232,10 @@ and then use :c:func:`cork_set_allocator` to register it with libcork.
 
    You can only call this function at most once.  This function is **not**
    thread-safe; it's only safe to call before you've called **any** other
-   libcork function (or any function from any other library that uses libcork),
-   with the exception of the :ref:`functions <allocators>` used to create a new
-   allocator.
+   libcork function (or any function from any other library that uses libcork.
+   (The only exceptions are libcork functions that take in a
+   :c:type:`cork_alloc` parameter or return a :c:type:`cork_alloc` result; these
+   functions are safe to call before calling ``cork_set_allocator``.)
 
 .. var:: const struct cork_alloc \*cork_allocator
 
@@ -258,19 +259,33 @@ Writing a custom allocator
    appropriate.
 
 
-.. function:: struct cork_alloc \*cork_alloc_new(const struct cork_alloc \*parent)
-              void cork_alloc_free(struct cork_alloc \*alloc)
+.. function:: struct cork_alloc \*cork_alloc_new_alloc(const struct cork_alloc \*parent)
 
    ``cork_alloc_new`` creates a new allocator instance.  The new instance will
    itself be allocated using *parent*.  You must provide implementations of at
    least the ``xmalloc`` and ``free`` methods.  You can also override our
    default implementations of any of the other methods.
 
-   ``cork_alloc_free`` frees an allocator instance, using the *parent* allocator
-   that was used to create it.  (This means you must ensure that *alloc* is
-   freed before its *parent*.)  If you registered a *user_data* pointer for your
-   allocation methods (via :c:func:`cork_alloc_set_user_data`), it will be freed
-   using the *free_user_data* method you provided.
+   This function is **not** thread-safe; it's only safe to call before you've
+   called **any** other libcork function (or any function from any other library
+   that uses libcork.  (The only exceptions are libcork functions that take in a
+   :c:type:`cork_alloc` parameter or return a :c:type:`cork_alloc` result; these
+   functions are safe to call before calling ``cork_set_allocator``.)
+
+   The new allocator instance will automatically be freed when the process
+   exits.  If you registered a *user_data* pointer for your allocation methods
+   (via :c:func:`cork_alloc_set_user_data`), it will be freed using the
+   *free_user_data* method you provided.  If you create more than one
+   ``cork_alloc`` instance in the process, they will be freed in the reverse
+   order that they were created.
+
+   .. note::
+
+      In your allocator implementation, you cannot assume that the rest of the
+      libcork allocation framework has been set up yet.  So if your allocator
+      needs to allocate, you must not use the usual :c:func:`cork_malloc` family
+      of functions; instead you should use the ``cork_alloc_malloc`` variants to
+      explicitly allocate memory using your new allocator's *parent*.
 
 
 .. function:: void cork_alloc_set_user_data(struct cork_alloc \*alloc, void \*user_data, cork_free_f free_user_data)
