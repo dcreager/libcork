@@ -157,20 +157,23 @@ NAME##_get(void) \
     return &NAME##__tls; \
 }
 
+#define cork_tls_with_alloc(TYPE, NAME, allocate, deallocate) \
+    cork_tls(TYPE, NAME)
+
 #elif CORK_HAVE_PTHREADS
 #include <stdlib.h>
 #include <pthread.h>
 
 #include <libcork/core/allocator.h>
 
-#define cork_tls(TYPE, NAME) \
+#define cork_tls_with_alloc(TYPE, NAME, allocate, deallocate) \
 static pthread_key_t  NAME##__tls_key; \
 cork_once_barrier(NAME##__tls_barrier); \
 \
 static void \
-NAME##__tls_destroy(void *vself) \
+NAME##__tls_destroy(void *self) \
 { \
-    cork_cfree(vself, 1, sizeof(TYPE)); \
+    deallocate(self); \
 } \
 \
 static void \
@@ -188,11 +191,27 @@ NAME##_get(void) \
     cork_once(NAME##__tls_barrier, NAME##__create_key()); \
     self = pthread_getspecific(NAME##__tls_key); \
     if (CORK_UNLIKELY(self == NULL)) { \
-        self = cork_calloc(1, sizeof(TYPE)); \
+        self = allocate(); \
         pthread_setspecific(NAME##__tls_key, self); \
     } \
     return self; \
 }
+
+#define cork_tls(TYPE, NAME) \
+\
+static TYPE * \
+NAME##__tls_allocate(void) \
+{ \
+    return cork_calloc(1, sizeof(TYPE)); \
+} \
+\
+static void \
+NAME##__tls_deallocate(void *vself) \
+{ \
+    cork_cfree(vself, 1, sizeof(TYPE)); \
+} \
+\
+cork_tls_with_alloc(TYPE, NAME, NAME##__tls_allocate, NAME##__tls_deallocate);
 
 #else
 #error "No thread-local storage implementation!"
