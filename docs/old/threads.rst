@@ -167,14 +167,16 @@ atomic operations.
 Addition
 ~~~~~~~~
 
-.. function:: void cork_int_atomic_add(volatile int_t \*var, int_t delta)
-              void cork_uint_atomic_add(volatile uint_t \*var, uint_t delta)
+.. function:: int cork_int_atomic_add(volatile int \*var, int delta)
+              unsigned int cork_uint_atomic_add(volatile unsigned int \*var, unsigned int delta)
+              size_t cork_size_atomic_add(volatile size_t \*var, size_t delta)
 
    Atomically add *delta* to the variable pointed to by *var*, returning
    the result of the addition.
 
-.. function:: void cork_int_atomic_pre_add(volatile int_t \*var, int_t delta)
-              void cork_uint_atomic_pre_add(volatile uint_t \*var, uint_t delta)
+.. function:: int cork_int_atomic_pre_add(volatile int \*var, int delta)
+              unsigned int cork_uint_atomic_pre_add(volatile unsigned int \*var, unsigned int delta)
+              size_t cork_size_atomic_pre_add(volatile size_t \*var, size_t delta)
 
    Atomically add *delta* to the variable pointed to by *var*, returning
    the value from before the addition.
@@ -183,14 +185,16 @@ Addition
 Subtraction
 ~~~~~~~~~~~
 
-.. function:: void cork_int_atomic_sub(volatile int_t \*var, int_t delta)
-              void cork_uint_atomic_sub(volatile uint_t \*var, uint_t delta)
+.. function:: int cork_int_atomic_sub(volatile int \*var, int delta)
+              unsigned int cork_uint_atomic_sub(volatile unsigned int \*var, unsigned int delta)
+              size_t cork_size_atomic_sub(volatile size_t \*var, size_t delta)
 
    Atomically subtract *delta* from the variable pointed to by *var*,
    returning the result of the subtraction.
 
-.. function:: void cork_int_atomic_pre_sub(volatile int_t \*var, int_t delta)
-              void cork_uint_atomic_pre_sub(volatile uint_t \*var, uint_t delta)
+.. function:: int cork_int_atomic_pre_sub(volatile int \*var, int delta)
+              unsigned int cork_uint_atomic_pre_sub(volatile unsigned int \*var, unsigned int delta)
+              size_t cork_size_atomic_pre_sub(volatile size_t \*var, size_t delta)
 
    Atomically subtract *delta* from the variable pointed to by *var*,
    returning the value from before the subtraction.
@@ -199,8 +203,9 @@ Subtraction
 Compare-and-swap
 ~~~~~~~~~~~~~~~~
 
-.. function:: int_t cork_int_cas(volatile int_t \*var, int_t old_value, int_t new_value)
-              uint_t cork_uint_cas(volatile uint_t \*var, uint_t old_value, uint_t new_value)
+.. function:: int cork_int_cas(volatile int_t \*var, int old_value, int new_value)
+              unsigned int cork_uint_cas(volatile uint_t \*var, unsigned int old_value, unsigned int new_value)
+              size_t cork_size_cas(volatile size_t \*var, size_t old_value, size_t new_value)
               TYPE \*cork_ptr_cas(TYPE \* volatile \*var, TYPE \*old_value, TYPE \*new_value)
 
    Atomically check whether the variable pointed to by *var* contains
