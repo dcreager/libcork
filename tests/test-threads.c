@@ -63,8 +63,9 @@ START_TEST(test_atomic_##name) \
 } \
 END_TEST
 
-test_atomic(int,   int,   "%d");
-test_atomic(uint,   unsigned int,   "%u");
+test_atomic(int,  int,          "%d");
+test_atomic(uint, unsigned int, "%u");
+test_atomic(size, size_t,       "%zu");
 
 START_TEST(test_atomic_ptr)
 {
@@ -294,6 +295,7 @@ test_suite()
     TCase  *tc_atomic = tcase_create("atomic");
     tcase_add_test(tc_atomic, test_atomic_int);
     tcase_add_test(tc_atomic, test_atomic_uint);
+    tcase_add_test(tc_atomic, test_atomic_size);
     tcase_add_test(tc_atomic, test_atomic_ptr);
     suite_add_tcase(s, tc_atomic);
 
