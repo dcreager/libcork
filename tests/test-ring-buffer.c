@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -16,6 +15,8 @@
 
 #include "libcork/core/types.h"
 #include "libcork/ds/ring-buffer.h"
+
+#include "helpers.h"
 
 
 /*-----------------------------------------------------------------------
@@ -111,6 +112,8 @@ START_TEST(test_ring_buffer_2)
     cork_ring_buffer_free(buf);
 }
 END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -136,6 +139,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

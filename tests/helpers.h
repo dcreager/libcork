@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license
@@ -11,7 +11,40 @@
 #ifndef TESTS_HELPERS_H
 #define TESTS_HELPERS_H
 
+#include "libcork/core/allocator.h"
 #include "libcork/core/error.h"
+
+
+/*-----------------------------------------------------------------------
+ * Allocators
+ */
+
+/* For the "embedded" tests, use a custom allocator that debugs every
+ * allocation.  For the "shared" tests, use the default allocator. */
+
+#if CORK_EMBEDDED_TEST
+
+static void
+setup_allocator(void)
+{
+    struct cork_alloc  *debug = cork_debug_alloc_new(cork_allocator);
+    cork_set_allocator(debug);
+}
+
+#else /* !CORK_EMBEDDED_TEST */
+
+static void
+setup_allocator(void)
+{
+    /* do nothing */
+}
+
+#endif
+
+
+/*-----------------------------------------------------------------------
+ * Error reporting
+ */
 
 #if !defined(PRINT_EXPECTED_FAILURES)
 #define PRINT_EXPECTED_FAILURES  1

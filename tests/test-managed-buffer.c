@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2009-2012, RedJack, LLC.
+ * Copyright © 2009-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -37,7 +36,7 @@ set_flag_on_free(struct cork_managed_buffer *mbuf)
     struct flag_buffer  *fbuf =
         cork_container_of(mbuf, struct flag_buffer, parent);
     *fbuf->flag = true;
-    free(fbuf);
+    cork_delete(struct flag_buffer, fbuf);
 }
 
 static struct cork_managed_buffer_iface  FLAG__MANAGED_BUFFER = {
@@ -331,6 +330,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);
