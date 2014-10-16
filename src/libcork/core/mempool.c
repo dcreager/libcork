@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012-2013, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license details.
@@ -96,14 +96,14 @@ cork_mempool_free(struct cork_mempool *mp)
 
     for (curr = mp->blocks; curr != NULL; ) {
         struct cork_mempool_block  *next = curr->next_block;
-        free(curr);
+        cork_free(curr, mp->block_size);
         /* Do this here instead of in the for statement to avoid
          * accessing the just-freed block. */
         curr = next;
     }
 
     cork_free_user_data(mp);
-    free(mp);
+    cork_delete(struct cork_mempool, mp);
 }
 
 

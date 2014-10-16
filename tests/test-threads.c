@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -63,8 +62,9 @@ START_TEST(test_atomic_##name) \
 } \
 END_TEST
 
-test_atomic(int,   int,   "%d");
-test_atomic(uint,   unsigned int,   "%u");
+test_atomic(int,  int,          "%d");
+test_atomic(uint, unsigned int, "%u");
+test_atomic(size, size_t,       "%zu");
 
 START_TEST(test_atomic_ptr)
 {
@@ -178,7 +178,7 @@ static void
 cork_test_thread__free(void *vself)
 {
     struct cork_test_thread  *self = vself;
-    free(self);
+    cork_delete(struct cork_test_thread, self);
 }
 
 static struct cork_thread *
@@ -294,6 +294,7 @@ test_suite()
     TCase  *tc_atomic = tcase_create("atomic");
     tcase_add_test(tc_atomic, test_atomic_int);
     tcase_add_test(tc_atomic, test_atomic_uint);
+    tcase_add_test(tc_atomic, test_atomic_size);
     tcase_add_test(tc_atomic, test_atomic_ptr);
     suite_add_tcase(s, tc_atomic);
 
@@ -322,6 +323,7 @@ main(int argc, const char **argv)
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
 
+    setup_allocator();
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);

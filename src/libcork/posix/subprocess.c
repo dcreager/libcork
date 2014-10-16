@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012-2013, RedJack, LLC.
+ * Copyright © 2012-2014, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -60,7 +59,7 @@ void
 cork_subprocess_group_free(struct cork_subprocess_group *group)
 {
     cork_array_done(&group->subprocesses);
-    free(group);
+    cork_delete(struct cork_subprocess_group, group);
 }
 
 void
@@ -345,7 +344,7 @@ cork_subprocess_free(struct cork_subprocess *self)
     cork_write_pipe_done(&self->stdin_pipe);
     cork_read_pipe_done(&self->stdout_pipe);
     cork_read_pipe_done(&self->stderr_pipe);
-    free(self);
+    cork_delete(struct cork_subprocess, self);
 }
 
 struct cork_stream_consumer *

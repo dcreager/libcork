@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2011-2013, RedJack, LLC.
+ * Copyright © 2011-2014, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license details.
@@ -1106,6 +1106,8 @@ main(int argc, const char **argv)
     int  number_failed;
     Suite  *suite = test_suite();
     SRunner  *runner = srunner_create(suite);
+
+    setup_allocator();
 
     /* Before anything starts, override the TZ environment variable so that we
      * get consistent test results. */
