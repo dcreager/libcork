@@ -107,6 +107,39 @@ END_TEST
 
 
 /*-----------------------------------------------------------------------
+ * Strings
+ */
+
+static void
+test_strndup(const char *string, size_t size)
+{
+    const char  *copy;
+
+    copy = cork_strndup(string, size);
+    if (memcmp(string, copy, size) != 0) {
+        fail("cork_strndup failed");
+    }
+    cork_strfree(copy);
+
+    copy = cork_xstrndup(string, size);
+    fail_if(copy == NULL, "cork_xstrndup couldn't allocate copy");
+    if (memcmp(string, copy, size) != 0) {
+        fail("cork_xstrndup failed");
+    }
+    cork_strfree(copy);
+}
+
+START_TEST(test_string)
+{
+    DESCRIBE_TEST;
+    test_strndup("", 0);
+    test_strndup("abc", 3);
+    test_strndup("abc\x00xyz", 7);
+}
+END_TEST
+
+
+/*-----------------------------------------------------------------------
  * Endianness
  */
 
@@ -1054,6 +1087,10 @@ test_suite()
     tcase_add_test(tc_types, test_int_types);
     tcase_add_test(tc_types, test_int_sizeof);
     suite_add_tcase(s, tc_types);
+
+    TCase  *tc_string = tcase_create("string");
+    tcase_add_test(tc_string, test_string);
+    suite_add_tcase(s, tc_string);
 
     TCase  *tc_endianness = tcase_create("endianness");
     tcase_add_test(tc_endianness, test_endianness);
