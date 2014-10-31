@@ -223,7 +223,7 @@ strndup_internal(const struct cork_alloc *alloc,
     size_t  *new_str = cork_alloc_malloc(alloc, allocated_size);
     *new_str = allocated_size;
     dest = (char *) (void *) (new_str + 1);
-    strncpy(dest, str, len);
+    memcpy(dest, str, len);
     dest[len] = '\0';
     return dest;
 }
@@ -253,7 +253,7 @@ xstrndup_internal(const struct cork_alloc *alloc,
         char  *dest;
         *new_str = allocated_size;
         dest = (char *) (void *) (new_str + 1);
-        strncpy(dest, str, len);
+        memcpy(dest, str, len);
         dest[len] = '\0';
         return dest;
     }
