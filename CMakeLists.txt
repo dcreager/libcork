@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 set(PROJECT_NAME libcork)
-set(RELEASE_DATE 2014-10-16)
+set(RELEASE_DATE 2014-10-31)
 project(${PROJECT_NAME})
 enable_testing()
 
