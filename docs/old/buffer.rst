@@ -69,7 +69,7 @@ automatically resizing the underlying buffer when necessary.
    function should only be used for buffers that you allocated yourself,
    and initialized using :c:func:`cork_buffer_init()` or
    :c:func:`CORK_BUFFER_INIT()`.  You must **not** use this function to
-   free a buffer allocated using :c:func:`cork_buffer_free()`.
+   free a buffer allocated using :c:func:`cork_buffer_new()`.
 
 .. function:: void cork_buffer_free(struct cork_buffer \*buffer)
 
