@@ -614,6 +614,7 @@ cork_hash_table_map(struct cork_hash_table *table, void *user_data,
         } else if (result == CORK_HASH_TABLE_MAP_DELETE) {
             DEBUG("      Delete requested");
             cork_dllist_remove(curr);
+            cork_dllist_remove(&entry->in_bucket);
             table->entry_count--;
             cork_hash_table_free_entry(table, entry);
         }
