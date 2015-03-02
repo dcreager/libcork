@@ -1,13 +1,21 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2013-2014, RedJack, LLC.
+ * Copyright © 2013-2015, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
+#if defined(__linux)
+/* This is needed on Linux to get the pthread_setname_np function. */
+#if !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
+#endif
+
 #include <assert.h>
+#include <string.h>
 
 #include <pthread.h>
 
@@ -116,16 +124,29 @@ cork_thread_get_id(struct cork_thread *self)
     return self->id;
 }
 
+#define PTHREADS_MAX_THREAD_NAME_LENGTH  16
+
 static void *
 cork_thread_pthread_run(void *vself)
 {
     int  rc;
     struct cork_thread  *self = vself;
     struct cork_thread_descriptor  *desc = cork_thread_descriptor_get();
+#if defined(__APPLE__) && defined(__MACH__)
+    char  thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH];
+#endif
 
     desc->current_thread = self;
     desc->id = self->id;
     rc = self->run(self->user_data);
+
+#if defined(__APPLE__) && defined(__MACH__)
+    /* On Mac OS X, we set the name of the current thread, not of an arbitrary
+     * thread of our choosing. */
+    strncpy(thread_name, self->name, PTHREADS_MAX_THREAD_NAME_LENGTH);
+    thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH - 1] = '\0';
+    pthread_setname_np(thread_name);
+#endif
 
     /* If an error occurred in the body of the thread, save the error into the
      * cork_thread object so that we can propagate that error when some calls
@@ -148,6 +169,9 @@ cork_thread_start(struct cork_thread *self)
 {
     int  rc;
     pthread_t  thread_id;
+#if defined(__linux)
+    char  thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH];
+#endif
 
     assert(!self->started);
 
@@ -156,6 +180,13 @@ cork_thread_start(struct cork_thread *self)
         cork_system_error_set_explicit(rc);
         return -1;
     }
+
+#if defined(__linux)
+    /* On Linux we choose which thread to name via an explicit thread ID. */
+    strncpy(thread_name, self->name, PTHREADS_MAX_THREAD_NAME_LENGTH);
+    thread_name[PTHREADS_MAX_THREAD_NAME_LENGTH - 1] = '\0';
+    pthread_setname_np(thread_id, thread_name);
+#endif
 
     self->thread_id = thread_id;
     self->started = true;
