@@ -5,6 +5,9 @@ compiler:
 env:
   - ARCH=i386
   - ARCH=amd64
+os:
+  - linux
+  - osx
 install: .travis/install
 script: .travis/test
 
