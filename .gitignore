@@ -10,3 +10,6 @@ RELEASE-VERSION
 *.os
 *.so
 *.dylib
+
+!.travis.yml
+!.travis/
