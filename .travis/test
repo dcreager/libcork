@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+mkdir .build
+cd .build
+
+if [ "$ARCH" = i386 ]; then
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 -m32"
+else
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3"
+fi
+
+make
+make test

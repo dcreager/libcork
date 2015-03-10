@@ -1,5 +1,7 @@
 # libcork
 
+[![Build Status](https://img.shields.io/travis/redjack/libcork/develop.svg)](https://travis-ci.org/redjack/libcork)
+
 So what is libcork, exactly?  It's a “simple, easily embeddable,
 cross-platform C library”.  It falls roughly into the same category as
 [glib](http://library.gnome.org/devel/glib/) or
