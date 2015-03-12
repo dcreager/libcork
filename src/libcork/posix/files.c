@@ -131,8 +131,8 @@ cork_path_set_absolute(struct cork_path *path)
     struct cork_buffer  buf;
 
     if (path->given.size > 0 &&
-        cork_buffer_char(&path->given, path->given.size - 1) == '/') {
-        /* The path is already absolute */
+        cork_buffer_char(&path->given, 0) == '/') {
+        /* The path is already absolute. */
         return 0;
     }
 
@@ -172,8 +172,8 @@ cork_path_append(struct cork_path *path, const char *more)
     }
 
     if (more[0] == '/') {
-        /* If more starts with a "/", then its absolute, and should replace the
-         * contents of the current path. */
+        /* If more starts with a "/", then it's absolute, and should replace
+         * the contents of the current path. */
         cork_buffer_set_string(&path->given, more);
     } else {
         /* Otherwise, more is relative, and should be appended to the current

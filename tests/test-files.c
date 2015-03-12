@@ -251,6 +251,52 @@ START_TEST(test_path_relative_child_01)
 END_TEST
 
 
+void
+test_set_absolute(const char *p, const char *expected)
+{
+    struct cork_path  *actual;
+
+    fprintf(stderr, "set_absolute(\"%s\") ?= \"%s\"\n",
+            (p == NULL)? "": p,
+            expected);
+
+    actual = cork_path_new(p);
+    cork_path_set_absolute(actual);
+    if ((p != NULL) && (p[0] == '/')) {
+        /* If the first char in p is a '/', then we want to
+         * test that already have an absolute path string. */
+        verify_path_content(actual, expected);
+    } else {
+        /* Otherwise, we have to construct a new expected path
+         * string using cork_path_cwd since the prepended $ROOT
+         * path is unknown. */
+        struct cork_path  *root_path;
+        struct cork_buffer  *expected_path = cork_buffer_new();
+        root_path = cork_path_cwd();
+        cork_buffer_append_printf
+            (expected_path, "%s/%s", cork_path_get(root_path), expected);
+        verify_path_content(actual, (char *) expected_path->buf);
+        cork_path_free(root_path);
+        cork_buffer_free(expected_path);
+    }
+    cork_path_free(actual);
+}
+
+START_TEST(test_path_set_absolute_01)
+{
+    /* We test that an absolute path really is so. */
+    DESCRIBE_TEST
+    test_set_absolute("", "");
+    test_set_absolute("/", "/");
+    test_set_absolute("/a", "/a");
+    test_set_absolute("/a/b", "/a/b");
+    test_set_absolute("/a/b/", "/a/b/");
+    test_set_absolute("c/d", "c/d");
+    test_set_absolute("c/d/", "c/d/");
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Lists of paths
  */
@@ -341,6 +387,7 @@ test_suite()
     tcase_add_test(tc_path, test_path_basename_01);
     tcase_add_test(tc_path, test_path_dirname_01);
     tcase_add_test(tc_path, test_path_relative_child_01);
+    tcase_add_test(tc_path, test_path_set_absolute_01);
     suite_add_tcase(s, tc_path);
 
     TCase  *tc_path_list = tcase_create("path-list");

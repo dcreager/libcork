@@ -1,0 +1,18 @@
+language: c
+compiler:
+  - clang
+  - gcc
+env:
+  - ARCH=i386
+  - ARCH=amd64
+os:
+  - linux
+  - osx
+install: .travis/install
+script: .travis/test
+
+# In addition to pull requests, always build these branches
+branches:
+  only:
+    - master
+    - develop
