@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2014, RedJack, LLC.
+# Copyright © 2011-2015, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the COPYING file in this distribution for license details.
@@ -70,7 +70,7 @@ target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(libcork PROPERTIES
     OUTPUT_NAME cork
     COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 15.2.0
+    VERSION 15.3.0
     SOVERSION 15)
 
 #-----------------------------------------------------------------------
