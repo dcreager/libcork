@@ -14,6 +14,7 @@
 #include <libcork/core/callbacks.h>
 #include <libcork/core/hash.h>
 #include <libcork/core/mempool.h>
+#include <libcork/core/timestamp.h>
 #include <libcork/core/types.h>
 #include <libcork/ds/dllist.h>
 
@@ -112,6 +113,16 @@ CORK_API bool
 cork_hash_table_delete_hash(struct cork_hash_table *table,
                             cork_hash hash, const void *key,
                             void **deleted_key, void **deleted_value);
+
+typedef void
+(*cork_hash_table_resized_f)(void *user_data, const size_t prev_bin_count,
+                             const size_t new_bin_count,
+                             const cork_timestamp resize_time);
+
+CORK_API void
+cork_hash_table_set_resized_callback(struct cork_hash_table *table,
+                                     void *user_data,
+                                     cork_hash_table_resized_f f);
 
 
 enum cork_hash_table_map_result {

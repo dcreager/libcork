@@ -12,6 +12,7 @@
 
 #include "libcork/core/callbacks.h"
 #include "libcork/core/hash.h"
+#include "libcork/core/timestamp.h"
 #include "libcork/core/types.h"
 #include "libcork/ds/dllist.h"
 #include "libcork/ds/hash-table.h"
@@ -55,6 +56,10 @@ struct cork_hash_table {
     cork_equals_f  equals;
     cork_free_f  free_key;
     cork_free_f  free_value;
+    struct corh_hash_table_resized {
+        cork_hash_table_resized_f  f;
+        void  *ud;
+    }  resized;
 };
 
 static cork_hash
@@ -153,6 +158,8 @@ cork_hash_table_new(size_t initial_size, unsigned int flags)
     table->equals = cork_hash_table__default_equals;
     table->free_key = NULL;
     table->free_value = NULL;
+    table->resized.f = NULL;
+    table->resized.ud = NULL;
     cork_dllist_init(&table->insertion_order);
     if (initial_size < CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE) {
         initial_size = CORK_HASH_TABLE_DEFAULT_INITIAL_SIZE;
@@ -242,9 +249,12 @@ cork_hash_table_ensure_size(struct cork_hash_table *table, size_t desired_count)
     if (desired_count > table->bin_count) {
         struct cork_dllist  *old_bins = table->bins;
         size_t  old_bin_count = table->bin_count;
+        cork_timestamp  start;
+        cork_timestamp  end;
+
+        cork_timestamp_init_now(&start);
 
         cork_hash_table_allocate_bins(table, desired_count);
-
         if (old_bins != NULL) {
             size_t  i;
             for (i = 0; i < old_bin_count; i++) {
@@ -266,6 +276,15 @@ cork_hash_table_ensure_size(struct cork_hash_table *table, size_t desired_count)
             }
 
             cork_cfree(old_bins, old_bin_count, sizeof(struct cork_dllist));
+        }
+
+        cork_timestamp_init_now(&end);
+
+        if (table->resized.f != NULL) {
+            /* Call our resized callback with the old and new bin counts. */
+            table->resized.f
+                (table->resized.ud, old_bin_count, table->bin_count,
+                 end - start);
         }
     }
 }
@@ -581,6 +600,7 @@ cork_hash_table_delete_hash(struct cork_hash_table *table,
     return false;
 }
 
+
 bool
 cork_hash_table_delete(struct cork_hash_table *table, const void *key,
                        void **deleted_key, void **deleted_value)
@@ -588,6 +608,18 @@ cork_hash_table_delete(struct cork_hash_table *table, const void *key,
     cork_hash  hash = table->hash(table->user_data, key);
     return cork_hash_table_delete_hash
         (table, hash, key, deleted_key, deleted_value);
+}
+
+
+void
+cork_hash_table_set_resized_callback(struct cork_hash_table *table,
+                                     void *user_data,
+                                     cork_hash_table_resized_f f)
+{
+    if (f != NULL) {
+        table->resized.f = f;
+        table->resized.ud = user_data;
+    }
 }
 
 
