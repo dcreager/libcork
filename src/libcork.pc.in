@@ -9,5 +9,6 @@ Name: libcork
 Description: A simple, easily embeddable cross-platform C library
 Version: @VERSION@
 URL: http://github.com/redjack/libcork
-Libs: -L${libdir} -lcork @CMAKE_THREAD_LIBS_INIT@
+Libs: -L${libdir} -lcork
+Libs.private: @CMAKE_THREAD_LIBS_INIT@
 Cflags: -I${includedir}

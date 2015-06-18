@@ -29,17 +29,21 @@ link_directories(${CHECK_LIBRARY_DIRS})
 # macro.
 
 macro(make_test test_name)
-    add_executable(shared-${test_name} ${test_name}.c)
-    target_link_libraries(shared-${test_name} ${CHECK_LIBRARIES}
-        libcork)
-    add_test(shared-${test_name} shared-${test_name})
+    if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+        add_executable(shared-${test_name} ${test_name}.c)
+        target_link_libraries(shared-${test_name} ${CHECK_LIBRARIES}
+            libcork)
+        add_test(shared-${test_name} shared-${test_name})
+    endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
 
-    add_executable(embedded-${test_name} ${test_name}.c)
-    set_target_properties(embedded-${test_name} PROPERTIES
-        COMPILE_DEFINITIONS CORK_EMBEDDED_TEST=1)
-    target_link_libraries(embedded-${test_name} ${CHECK_LIBRARIES}
-        embedded_libcork)
-    add_test(embedded-${test_name} embedded-${test_name})
+    if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+        add_executable(embedded-${test_name} ${test_name}.c)
+        set_target_properties(embedded-${test_name} PROPERTIES
+            COMPILE_DEFINITIONS CORK_EMBEDDED_TEST=1)
+        target_link_libraries(embedded-${test_name} ${CHECK_LIBRARIES}
+            libcork-static)
+        add_test(embedded-${test_name} embedded-${test_name})
+    endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
 endmacro(make_test)
 
 make_test(test-array)

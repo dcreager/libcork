@@ -56,11 +56,6 @@ if(DEFINED ENV{TILERA_ROOT})
 endif()
 
 #-----------------------------------------------------------------------
-# Check for prerequisite libraries
-
-find_package(Threads)
-
-#-----------------------------------------------------------------------
 # Set some options
 
 if(APPLE)
@@ -75,6 +70,11 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+set(ENABLE_SHARED YES CACHE BOOL "Whether to build a shared library")
+set(ENABLE_SHARED_EXECUTABLES NO CACHE BOOL
+    "Whether to link executables using shared libraries")
+set(ENABLE_STATIC YES CACHE BOOL "Whether to build a static library")
+
 set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
     "The base name of the installation directory for libraries")
 
@@ -85,6 +85,11 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+
+#-----------------------------------------------------------------------
+# Check for prerequisite libraries
+
+find_package(Threads)
 
 #-----------------------------------------------------------------------
 # Include our subdirectories

@@ -65,30 +65,53 @@ set(LIBCORK_SRC
 #
 # [1] http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
 
-add_library(libcork SHARED ${LIBCORK_SRC})
-target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(libcork PROPERTIES
-    OUTPUT_NAME cork
-    COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 15.3.0
-    SOVERSION 15)
+if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+    add_library(libcork SHARED ${LIBCORK_SRC})
+    target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
+    set_target_properties(libcork PROPERTIES
+        OUTPUT_NAME cork
+        COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
+        CLEAN_DIRECT_OUTPUT 1
+        VERSION 15.3.0
+        SOVERSION 15
+    )
+
+    # We have to install the shared library if the user asked us to, or if the
+    # user asked us to link our programs with the shared library.
+    install(TARGETS libcork LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
 
 #-----------------------------------------------------------------------
 # Build a static library to simulate embedding libcork
 
-add_library(embedded_libcork STATIC ${LIBCORK_SRC})
-target_link_libraries(embedded_libcork ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(embedded_libcork PROPERTIES
-    OUTPUT_NAME cork-embedded
-    COMPILE_DEFINITIONS CORK_API=CORK_LOCAL
-)
+if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+    add_library(libcork-static STATIC ${LIBCORK_SRC})
+    target_link_libraries(libcork-static ${CMAKE_THREAD_LIBS_INIT})
+    set_target_properties(libcork-static PROPERTIES
+        OUTPUT_NAME cork
+        COMPILE_DEFINITIONS CORK_API=CORK_LOCAL
+        CLEAN_DIRECT_OUTPUT 1
+    )
+endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+
+if (ENABLE_STATIC)
+    # We DON'T have to install the static library if the user asked us to link
+    # our programs statically.
+    install(TARGETS libcork-static ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif (ENABLE_STATIC)
 
 #-----------------------------------------------------------------------
 # Utility commands
 
 set(CORK_HASH_SRC cork-hash/cork-hash.c)
 add_executable(cork-hash ${CORK_HASH_SRC})
-target_link_libraries(cork-hash embedded_libcork)
+if (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-hash libcork)
+else (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-hash libcork-static)
+endif (ENABLE_SHARED_EXECUTABLES)
+
+install(TARGETS cork-hash RUNTIME DESTINATION bin)
 
 set(CORK_INITIALIZER_SRC
     cork-initializer/init1.c
@@ -96,19 +119,19 @@ set(CORK_INITIALIZER_SRC
     cork-initializer/main.c
 )
 add_executable(cork-initializer ${CORK_INITIALIZER_SRC})
-target_link_libraries(cork-initializer embedded_libcork)
+if (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-initializer libcork)
+else (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-initializer libcork-static)
+endif (ENABLE_SHARED_EXECUTABLES)
 
 set(CORK_TEST_SRC cork-test/cork-test.c)
 add_executable(cork-test ${CORK_TEST_SRC})
-target_link_libraries(cork-test embedded_libcork)
-
-#-----------------------------------------------------------------------
-# Install everything
-
-# Note that we don't install cork-test; that's just for our test cases!
-install(TARGETS libcork cork-hash
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-test libcork)
+else (ENABLE_SHARED_EXECUTABLES)
+    target_link_libraries(cork-test libcork-static)
+endif (ENABLE_SHARED_EXECUTABLES)
 
 #-----------------------------------------------------------------------
 # Generate the pkg-config file
