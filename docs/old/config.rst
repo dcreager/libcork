@@ -44,6 +44,24 @@ autodetection logic.  Other libcork modules will use the values of these
 macros to choose among the possible implementations.
 
 
+.. macro:: CORK_CONFIG_VERSION_MAJOR
+           CORK_CONFIG_VERSION_MINOR
+           CORK_CONFIG_VERSION_PATCH
+
+   The libcork library version, with each part of the version number separated
+   out into separate macros.
+
+
+.. macro:: CORK_CONFIG_VERSION_STRING
+
+   The libcork library version, encoded as a single string.
+
+
+.. macro:: CORK_CONFIG_REVISION
+
+   The git SHA-1 commit identifier of the libcork version that you're using.
+
+
 .. macro:: CORK_CONFIG_ARCH_X86
            CORK_CONFIG_ARCH_X64
            CORK_CONFIG_ARCH_PPC

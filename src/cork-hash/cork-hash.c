@@ -1,10 +1,9 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012, RedJack, LLC.
+ * Copyright © 2012-2015, RedJack, LLC.
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
@@ -24,10 +23,13 @@ enum cork_hash_type {
 static enum cork_hash_type  type = CORK_HASH_STABLE;
 static const char  *string = NULL;
 
+#define OPT_VERSION 1000
+
 static struct option  opts[] = {
     { "big", no_argument, NULL, 'b' },
     { "fastest", no_argument, NULL, 'f' },
     { "stable", no_argument, NULL, 's' },
+    { "version", no_argument, NULL, OPT_VERSION },
     { NULL, 0, NULL, 0 }
 };
 
@@ -41,6 +43,18 @@ usage(void)
             "  -b, --big\n"
             "  -f, --fastest\n"
             "  -s, --stable\n");
+}
+
+static void
+print_version(void)
+{
+    const char  *version = cork_version_string();
+    const char  *revision = cork_revision_string();
+
+    printf("cork-hash %s\n", version);
+    if (strcmp(version, revision) != 0) {
+        printf("Revision %s\n", revision);
+    }
 }
 
 static void
@@ -58,6 +72,9 @@ parse_options(int argc, char **argv)
             case 's':
                 type = CORK_HASH_STABLE;
                 break;
+            case OPT_VERSION:
+                print_version();
+                exit(EXIT_SUCCESS);
             default:
                 usage();
                 exit(EXIT_FAILURE);

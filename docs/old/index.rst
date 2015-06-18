@@ -35,6 +35,7 @@ Contents
    :maxdepth: 2
 
    config
+   versions
    visibility
    basic-types
    byte-order
