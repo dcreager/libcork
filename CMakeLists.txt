@@ -12,6 +12,11 @@ set(RELEASE_DATE 2013-06-01)
 project(${PROJECT_NAME})
 enable_testing()
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+find_package(ParseArguments)
+find_package(Prereqs)
+find_package(CTargets)
+
 #-----------------------------------------------------------------------
 # Retrieve the current version number
 
@@ -49,8 +54,6 @@ if(GIT_SHA1_RESULT)
             "Cannot determine git commit: " ${GIT_SHA1_RESULT})
 endif(GIT_SHA1_RESULT)
 
-find_package(PkgConfig)
-
 #-----------------------------------------------------------------------
 # Check for building on Tilera
 # If the Tilera environment is installed, then $TILERA_ROOT is defined
@@ -74,13 +77,6 @@ if(DEFINED ENV{TILERA_ROOT})
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif()
-
-#-----------------------------------------------------------------------
-# Check for prerequisite libraries
-
-pkg_check_modules(CORK REQUIRED libcork)
-include_directories(${CORK_INCLUDE_DIRS})
-link_directories(${CORK_LIBRARY_DIRS})
 
 #-----------------------------------------------------------------------
 # Set some options
@@ -107,6 +103,11 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+
+#-----------------------------------------------------------------------
+# Check for prerequisite libraries
+
+pkgconfig_prereq(libcork>=0.14.0)
 
 #-----------------------------------------------------------------------
 # Include our subdirectories
