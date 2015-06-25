@@ -6,7 +6,8 @@
 # Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
-include_directories(../include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_BINARY_DIR}/include)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
 
 #-----------------------------------------------------------------------

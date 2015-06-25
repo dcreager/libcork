@@ -6,7 +6,8 @@
 # Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
-include_directories(../include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_BINARY_DIR}/include)
 
 #-----------------------------------------------------------------------
 # Build the library
@@ -21,6 +22,7 @@ set(LIBCORK_SRC
     libcork/core/mempool.c
     libcork/core/timestamp.c
     libcork/core/u128.c
+    libcork/core/version.c
     libcork/ds/array.c
     libcork/ds/bitset.c
     libcork/ds/buffer.c
