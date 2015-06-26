@@ -70,7 +70,7 @@ function(add_c_library __TARGET_NAME)
     set_property(GLOBAL PROPERTY ALL_LOCAL_LIBRARIES "${ALL_LOCAL_LIBRARIES}")
 
     if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
-        add_library(${__TARGET_NAME}-shared SHARED "${__SOURCES}")
+        add_library(${__TARGET_NAME}-shared SHARED ${__SOURCES})
         set_target_properties(
             ${__TARGET_NAME}-shared PROPERTIES
             OUTPUT_NAME ${__OUTPUT_NAME}
@@ -79,11 +79,18 @@ function(add_c_library __TARGET_NAME)
             SOVERSION ${__SOVERSION}
         )
 
-        target_include_directories(
-            ${__TARGET_NAME}-shared PUBLIC
-            ${CMAKE_SOURCE_DIR}/include
-            ${CMAKE_BINARY_DIR}/include
-        )
+        if (CMAKE_VERSION VERSION_GREATER "2.8.11")
+            target_include_directories(
+                ${__TARGET_NAME}-shared PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+                ${CMAKE_BINARY_DIR}/include
+            )
+        else (CMAKE_VERSION VERSION_GREATER "2.8.11")
+            include_directories(
+                ${CMAKE_SOURCE_DIR}/include
+                ${CMAKE_BINARY_DIR}/include
+            )
+        endif (CMAKE_VERSION VERSION_GREATER "2.8.11")
 
         target_add_shared_libraries(
             ${__TARGET_NAME}-shared
@@ -98,18 +105,25 @@ function(add_c_library __TARGET_NAME)
     endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
 
     if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
-        add_library(${__TARGET_NAME}-static STATIC "${__SOURCES}")
+        add_library(${__TARGET_NAME}-static STATIC ${__SOURCES})
         set_target_properties(
             ${__TARGET_NAME}-static PROPERTIES
             OUTPUT_NAME ${__OUTPUT_NAME}
             CLEAN_DIRECT_OUTPUT 1
         )
 
-        target_include_directories(
-            ${__TARGET_NAME}-static PUBLIC
-            ${CMAKE_SOURCE_DIR}/include
-            ${CMAKE_BINARY_DIR}/include
-        )
+        if (CMAKE_VERSION VERSION_GREATER "2.8.11")
+            target_include_directories(
+                ${__TARGET_NAME}-static PUBLIC
+                ${CMAKE_SOURCE_DIR}/include
+                ${CMAKE_BINARY_DIR}/include
+            )
+        else (CMAKE_VERSION VERSION_GREATER "2.8.11")
+            include_directories(
+                ${CMAKE_SOURCE_DIR}/include
+                ${CMAKE_BINARY_DIR}/include
+            )
+        endif (CMAKE_VERSION VERSION_GREATER "2.8.11")
 
         target_add_static_libraries(
             ${__TARGET_NAME}-static
@@ -149,11 +163,18 @@ function(add_c_executable __TARGET_NAME)
 
     add_executable(${__TARGET_NAME} ${__SOURCES})
 
-    target_include_directories(
-        ${__TARGET_NAME} PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_BINARY_DIR}/include
-    )
+    if (CMAKE_VERSION VERSION_GREATER "2.8.11")
+        target_include_directories(
+            ${__TARGET_NAME} PUBLIC
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_BINARY_DIR}/include
+        )
+    else (CMAKE_VERSION VERSION_GREATER "2.8.11")
+        include_directories(
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_BINARY_DIR}/include
+        )
+    endif (CMAKE_VERSION VERSION_GREATER "2.8.11")
 
     if (ENABLE_SHARED_EXECUTABLES)
         target_add_shared_libraries(

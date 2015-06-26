@@ -44,4 +44,8 @@ MACRO(CMAKE_PARSE_ARGUMENTS prefix arg_names option_names)
   SET(${prefix}_${current_arg_name} ${current_arg_list})
 ENDMACRO(CMAKE_PARSE_ARGUMENTS)
 
+else (CMAKE_VERSION VERSION_LESS "2.8.4")
+
+    include(CMakeParseArguments)
+
 endif (CMAKE_VERSION VERSION_LESS "2.8.4")
