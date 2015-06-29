@@ -1,7 +1,6 @@
 /build/
 /.build/
 
-RELEASE-VERSION
 APPNAME.pc
 
 /APPNAME*.tar.gz

@@ -20,17 +20,18 @@ find_package(CTargets)
 #-----------------------------------------------------------------------
 # Retrieve the current version number
 
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version.sh
+execute_process(
+    COMMAND git describe
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE VERSION_RESULT
     OUTPUT_VARIABLE VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 if(VERSION_RESULT)
     message(FATAL_ERROR
             "Cannot determine version number: " ${VERSION_RESULT})
 endif(VERSION_RESULT)
-# This causes an annoying extra prompt in ccmake.
-# message("Current version: " ${VERSION})
+message(STATUS "Current version: " ${VERSION})
 
 string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
 
@@ -53,6 +54,7 @@ if(GIT_SHA1_RESULT)
     message(FATAL_ERROR
             "Cannot determine git commit: " ${GIT_SHA1_RESULT})
 endif(GIT_SHA1_RESULT)
+message(STATUS "Current revision: " ${GIT_SHA1})
 
 #-----------------------------------------------------------------------
 # Check for building on Tilera
