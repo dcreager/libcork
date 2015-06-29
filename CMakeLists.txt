@@ -12,6 +12,11 @@ set(RELEASE_DATE 2015-03-12)
 project(${PROJECT_NAME})
 enable_testing()
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+find_package(ParseArguments)
+find_package(Prereqs)
+find_package(CTargets)
+
 #-----------------------------------------------------------------------
 # Retrieve the current version number
 
@@ -48,8 +53,6 @@ if(GIT_SHA1_RESULT)
     message(FATAL_ERROR
             "Cannot determine git commit: " ${GIT_SHA1_RESULT})
 endif(GIT_SHA1_RESULT)
-
-find_package(PkgConfig)
 
 #-----------------------------------------------------------------------
 # Check for building on Tilera
@@ -110,6 +113,8 @@ endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 # Check for prerequisite libraries
 
 find_package(Threads)
+set(THREADS_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
+set(THREADS_STATIC_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
 
 #-----------------------------------------------------------------------
 # Include our subdirectories
