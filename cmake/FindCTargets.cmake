@@ -25,7 +25,7 @@ function(target_add_shared_libraries TARGET_NAME LIBRARIES LOCAL_LIBRARIES)
         string(TOUPPER ${lib} upperlib)
         target_link_libraries(
             ${TARGET_NAME}
-            ${${upperlib}_LIBRARIES}
+            ${${upperlib}_LDFLAGS}
         )
     endforeach(lib)
     foreach(lib ${LOCAL_LIBRARIES})
@@ -39,7 +39,7 @@ function(target_add_static_libraries TARGET_NAME LIBRARIES LOCAL_LIBRARIES)
         string(TOUPPER ${lib} upperlib)
         target_link_libraries(
             ${TARGET_NAME}
-            ${${upperlib}_STATIC_LIBRARIES}
+            ${${upperlib}_STATIC_LDFLAGS}
         )
     endforeach(lib)
     foreach(lib ${LOCAL_LIBRARIES})
