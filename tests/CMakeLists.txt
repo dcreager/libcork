@@ -1,23 +1,15 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011-2014, RedJack, LLC.
+# Copyright © 2011-2015, RedJack, LLC.
 # All rights reserved.
 #
 # Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(${CMAKE_BINARY_DIR}/include)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
-
-#-----------------------------------------------------------------------
-# Check for prerequisite libraries
-
-find_package(PkgConfig)
-
-pkg_check_modules(CHECK REQUIRED check)
-include_directories(${CHECK_INCLUDE_DIRS})
-link_directories(${CHECK_LIBRARY_DIRS})
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}/include
+)
 
 #-----------------------------------------------------------------------
 # Build the test cases
@@ -33,7 +25,7 @@ macro(make_test test_name)
     if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
         add_executable(shared-${test_name} ${test_name}.c)
         target_link_libraries(shared-${test_name} ${CHECK_LIBRARIES}
-            libcork)
+            libcork-shared)
         add_test(shared-${test_name} shared-${test_name})
     endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
 
