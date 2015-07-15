@@ -70,7 +70,7 @@ function(library_prereq LIB_NAME)
         include_directories(${${UPPER_SHORT_NAME}_INCLUDE_DIRS})
         link_directories(${${UPPER_SHORT_NAME}_LIBRARY_DIRS})
     else (USE_CUSTOM_${UPPER_SHORT_NAME})
-        find_library(${UPPER_SHORT_NAME}_LIBRARIES ${LIB_NAME})
+        find_library(${UPPER_SHORT_NAME}_LDFLAGS ${LIB_NAME})
     endif (USE_CUSTOM_${UPPER_SHORT_NAME})
 
 endfunction(library_prereq)
