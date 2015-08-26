@@ -126,7 +126,9 @@ instance, we might as well try to reuse the memory for the
 ``scratch_space`` field, as well.  To do this, you provide initialization and
 finalization callbacks:
 
-.. function:: void cork_mempool_set_callbacks(struct cork_mempool \*mp, void \*user_data, cork_free_f free_user_data, cork_init_f init_object, cork_done_f done_object)
+.. function:: void cork_mempool_set_user_data(struct cork_mempool \*mp, void \*user_data, cork_free_f free_user_data)
+              void cork_mempool_set_init_object(struct cork_mempool \*mp, cork_init_f init_object)
+              void cork_mempool_set_done_object(struct cork_mempool \*mp, cork_done_f done_object)
 
    Provide callback functions that will be used to initialize and finalize each
    object created by the memory pool.
@@ -152,7 +154,8 @@ logic goes into ``done_object``, and not our destructor::
 
     static cork_mempool  *pool;
     pool = cork_mempool_new(pool, struct my_data);
-    cork_mempool_set_callbacks(pool, NULL, NULL, my_data_init, my_data_done);
+    cork_mempool_set_init_object(pool, my_data_init);
+    cork_mempool_set_done_object(pool, my_data_done);
 
     struct my_data *
     my_data_new(void)
