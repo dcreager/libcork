@@ -37,7 +37,7 @@ add_c_library(
     libcork
     OUTPUT_NAME cork
     PKGCONFIG_NAME libcork
-    VERSION 15.3.0
+    VERSION 16.0.1
     SOURCES
         libcork/cli/commands.c
         libcork/core/allocator.c
