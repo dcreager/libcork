@@ -403,7 +403,11 @@ cork_debug_alloc__free(const struct cork_alloc *alloc, void *ptr,
     size_t  *base = ((size_t *) ptr) - 1;
     size_t  actual_size = *base;
     size_t  real_size = actual_size + sizeof(size_t);
-    assert(actual_size == expected_size);
+    if (CORK_UNLIKELY(actual_size != expected_size)) {
+        cork_abort
+            ("Incorrect size when freeing pointer (got %zu, expected %zu)",
+             expected_size, actual_size);
+    }
     cork_alloc_free(alloc->parent, base, real_size);
 }
 

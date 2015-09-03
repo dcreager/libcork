@@ -1,6 +1,6 @@
 /* -*- coding: utf-8 -*-
  * ----------------------------------------------------------------------
- * Copyright © 2012-2014, RedJack, LLC.
+ * Copyright © 2012-2015, RedJack, LLC.
  * All rights reserved.
  *
  * Please see the COPYING file in this distribution for license details.
@@ -100,8 +100,9 @@ START_TEST(test_mempool_reuse_01)
     size_t  done_call_count = 0;
     struct cork_mempool  *mp;
     mp = cork_mempool_new_ex(int64_t, BLOCK_SIZE);
-    cork_mempool_set_callbacks
-        (mp, &done_call_count, NULL, int64_init, int64_done);
+    cork_mempool_set_user_data(mp, &done_call_count, NULL);
+    cork_mempool_set_init_object(mp, int64_init);
+    cork_mempool_set_done_object(mp, int64_done);
 
     int64_t  *obj;
     fail_if((obj = cork_mempool_new_object(mp)) == NULL,

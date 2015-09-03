@@ -8,9 +8,14 @@
 
 cmake_minimum_required(VERSION 2.6)
 set(PROJECT_NAME libcork)
-set(RELEASE_DATE 2015-03-12)
+set(RELEASE_DATE 2015-09-03)
 project(${PROJECT_NAME})
 enable_testing()
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+find_package(ParseArguments)
+find_package(Prereqs)
+find_package(CTargets)
 
 #-----------------------------------------------------------------------
 # Retrieve the current version number
@@ -29,7 +34,25 @@ endif(VERSION_RESULT)
 
 string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
 
-find_package(PkgConfig)
+if(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+    set(VERSION_MAJOR "${CMAKE_MATCH_1}")
+    set(VERSION_MINOR "${CMAKE_MATCH_2}")
+    set(VERSION_PATCH "${CMAKE_MATCH_3}")
+else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+    message(FATAL_ERROR "Invalid version number: ${VERSION}")
+endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE GIT_SHA1_RESULT
+    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(GIT_SHA1_RESULT)
+    message(FATAL_ERROR
+            "Cannot determine git commit: " ${GIT_SHA1_RESULT})
+endif(GIT_SHA1_RESULT)
 
 #-----------------------------------------------------------------------
 # Check for building on Tilera
@@ -56,11 +79,6 @@ if(DEFINED ENV{TILERA_ROOT})
 endif()
 
 #-----------------------------------------------------------------------
-# Check for prerequisite libraries
-
-find_package(Threads)
-
-#-----------------------------------------------------------------------
 # Set some options
 
 if(APPLE)
@@ -75,6 +93,11 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+set(ENABLE_SHARED YES CACHE BOOL "Whether to build a shared library")
+set(ENABLE_SHARED_EXECUTABLES NO CACHE BOOL
+    "Whether to link executables using shared libraries")
+set(ENABLE_STATIC YES CACHE BOOL "Whether to build a static library")
+
 set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
     "The base name of the installation directory for libraries")
 
@@ -85,6 +108,13 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+
+#-----------------------------------------------------------------------
+# Check for prerequisite libraries
+
+find_package(Threads)
+set(THREADS_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
+set(THREADS_STATIC_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
 
 #-----------------------------------------------------------------------
 # Include our subdirectories

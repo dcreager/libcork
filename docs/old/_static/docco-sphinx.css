@@ -187,6 +187,11 @@ div.seealso {
     border: 1px solid #ff6;
 }
 
+div.tip {
+    background-color: #e4e4ff;
+    border: 1px solid #ccc;
+}
+
 div.topic {
     background-color: #eee;
 }

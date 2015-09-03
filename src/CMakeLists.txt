@@ -6,41 +6,11 @@
 # Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
-include_directories(../include)
-
 #-----------------------------------------------------------------------
-# Build the library
+# libcork
 
-set(LIBCORK_SRC
-    libcork/cli/commands.c
-    libcork/core/allocator.c
-    libcork/core/error.c
-    libcork/core/gc.c
-    libcork/core/hash.c
-    libcork/core/ip-address.c
-    libcork/core/mempool.c
-    libcork/core/timestamp.c
-    libcork/core/u128.c
-    libcork/ds/array.c
-    libcork/ds/bitset.c
-    libcork/ds/buffer.c
-    libcork/ds/dllist.c
-    libcork/ds/file-stream.c
-    libcork/ds/hash-table.c
-    libcork/ds/managed-buffer.c
-    libcork/ds/ring-buffer.c
-    libcork/ds/slice.c
-    libcork/posix/directory-walker.c
-    libcork/posix/env.c
-    libcork/posix/exec.c
-    libcork/posix/files.c
-    libcork/posix/process.c
-    libcork/posix/subprocess.c
-    libcork/pthreads/thread.c
-)
-
-# Update the VERSION and SOVERSION properties below according to the following
-# rules (taken from [1]):
+# Update the VERSION property below according to the following rules (taken from
+# [1]):
 #
 # VERSION = current.revision.age
 #
@@ -57,63 +27,89 @@ set(LIBCORK_SRC
 #   6. If any interfaces have been removed or changed since the last public
 #      release, then set `age` to 0.
 #
-# SOVERSION should always equal `current-age`.
-#
 # Note that changing `current` means that you are releasing a new
 # backwards-incompatible version of the library.  This has implications on
-# packaging, so once an API has stabilized, these should be a rare occurrence.
+# packaging, so once an API has stabilized, this should be a rare occurrence.
 #
 # [1] http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
 
-add_library(libcork SHARED ${LIBCORK_SRC})
-target_link_libraries(libcork ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(libcork PROPERTIES
+add_c_library(
+    libcork
     OUTPUT_NAME cork
-    COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
-    VERSION 15.3.0
-    SOVERSION 15)
-
-#-----------------------------------------------------------------------
-# Build a static library to simulate embedding libcork
-
-add_library(embedded_libcork STATIC ${LIBCORK_SRC})
-target_link_libraries(embedded_libcork ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(embedded_libcork PROPERTIES
-    OUTPUT_NAME cork-embedded
-    COMPILE_DEFINITIONS CORK_API=CORK_LOCAL
+    PKGCONFIG_NAME libcork
+    VERSION 16.0.1
+    SOURCES
+        libcork/cli/commands.c
+        libcork/core/allocator.c
+        libcork/core/error.c
+        libcork/core/gc.c
+        libcork/core/hash.c
+        libcork/core/ip-address.c
+        libcork/core/mempool.c
+        libcork/core/timestamp.c
+        libcork/core/u128.c
+        libcork/core/version.c
+        libcork/ds/array.c
+        libcork/ds/bitset.c
+        libcork/ds/buffer.c
+        libcork/ds/dllist.c
+        libcork/ds/file-stream.c
+        libcork/ds/hash-table.c
+        libcork/ds/managed-buffer.c
+        libcork/ds/ring-buffer.c
+        libcork/ds/slice.c
+        libcork/posix/directory-walker.c
+        libcork/posix/env.c
+        libcork/posix/exec.c
+        libcork/posix/files.c
+        libcork/posix/process.c
+        libcork/posix/subprocess.c
+        libcork/pthreads/thread.c
+    LIBRARIES
+        threads
 )
+
+if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+    set_target_properties(libcork-shared PROPERTIES
+        COMPILE_DEFINITIONS CORK_API=CORK_EXPORT
+    )
+endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+
+if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+    set_target_properties(libcork-static PROPERTIES
+        COMPILE_DEFINITIONS CORK_API=CORK_LOCAL
+    )
+endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+
 
 #-----------------------------------------------------------------------
 # Utility commands
 
-set(CORK_HASH_SRC cork-hash/cork-hash.c)
-add_executable(cork-hash ${CORK_HASH_SRC})
-target_link_libraries(cork-hash embedded_libcork)
-
-set(CORK_INITIALIZER_SRC
-    cork-initializer/init1.c
-    cork-initializer/init2.c
-    cork-initializer/main.c
+add_c_executable(
+    cork-hash
+    OUTPUT_NAME cork-hash
+    SOURCES cork-hash/cork-hash.c
+    LOCAL_LIBRARIES
+        libcork
 )
-add_executable(cork-initializer ${CORK_INITIALIZER_SRC})
-target_link_libraries(cork-initializer embedded_libcork)
 
-set(CORK_TEST_SRC cork-test/cork-test.c)
-add_executable(cork-test ${CORK_TEST_SRC})
-target_link_libraries(cork-test embedded_libcork)
+add_c_executable(
+    cork-initializer
+    SKIP_INSTALL
+    OUTPUT_NAME cork-initializer
+    SOURCES
+        cork-initializer/init1.c
+        cork-initializer/init2.c
+        cork-initializer/main.c
+    LOCAL_LIBRARIES
+        libcork
+)
 
-#-----------------------------------------------------------------------
-# Install everything
-
-# Note that we don't install cork-test; that's just for our test cases!
-install(TARGETS libcork cork-hash
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-#-----------------------------------------------------------------------
-# Generate the pkg-config file
-
-set(prefix ${CMAKE_INSTALL_PREFIX})
-configure_file(libcork.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork.pc
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+add_c_executable(
+    cork-test
+    SKIP_INSTALL
+    OUTPUT_NAME cork-test
+    SOURCES cork-test/cork-test.c
+    LOCAL_LIBRARIES
+        libcork
+)
