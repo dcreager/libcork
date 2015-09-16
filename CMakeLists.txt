@@ -57,30 +57,6 @@ endif(GIT_SHA1_RESULT)
 message(STATUS "Current revision: " ${GIT_SHA1})
 
 #-----------------------------------------------------------------------
-# Check for building on Tilera
-# If the Tilera environment is installed, then $TILERA_ROOT is defined
-# as the path to the active MDE.
-
-if(DEFINED ENV{TILERA_ROOT})
-    set(TILERA TRUE)
-    set(TILERA_ROOT $ENV{TILERA_ROOT})
-    message("-- Configuring for Tilera MDE ${TILERA_ROOT}")
-    set(ENV{PKG_CONFIG_PATH}
-        "${TILERA_ROOT}/tile/usr/lib/pkgconfig:${TILERA_ROOT}/tile/usr/local/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}"
-    )
-    set(CMAKE_SYSTEM_NAME "Tilera")
-    set(CMAKE_SYSTEM_PROCESSOR "tilegx")
-    set(CMAKE_C_COMPILER "${TILERA_ROOT}/bin/tile-gcc")
-    set(CMAKE_LINKER "${TILERA_ROOT}/bin/tile-ld")
-    set(TILERA_MONITOR "${TILERA_ROOT}/bin/tile-monitor")
-    #add_definitions(-std=gnu99)
-    set(CMAKE_FIND_ROOT_PATH "${TILERA_ROOT}/tile")
-    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
-    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-endif()
-
-#-----------------------------------------------------------------------
 # Set some options
 
 if(APPLE)
