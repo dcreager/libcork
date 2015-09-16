@@ -12,7 +12,6 @@ To build LIBRARY_NAME, you need the following libraries installed on
 your system:
 
   * pkg-config
-  * libcork (https://github.com/redjack/libcork)
   * check (http://check.sourceforge.net)
   * [ADD OTHERS AS NEEDED]
 
