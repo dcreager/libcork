@@ -28,14 +28,29 @@ bitset to exhaust the available memory.
       you the number of bits in total, on or off.)
 
 
+.. function:: void cork_bitset_init(struct cork_bitset \*set)
+
+   Initialize a new bitset instance that you've allocated yourself
+   (usually on the stack).  All bits will be initialized to ``0``.
+
 .. function:: struct cork_bitset \*cork_bitset_new(size_t bit_count)
 
-   Create a new bitset with enough space to store the given number of bits.  All
-   bits will be initialized to ``0``.
+   Create a new bitset with enough space to store the given number of bits.
+   All bits will be initialized to ``0``.
+
+.. function:: void cork_bitset_done(struct cork_bitset \*set)
+
+   Finalize a bitset, freeing any set content that it contains.  This
+   function should only be used for bitsets that you allocated yourself,
+   and initialized using :c:func:`cork_bitset_init()`.  You must **not** use
+   this function to free a bitset allocated using :c:func:`cork_bitset_new()`.
 
 .. function:: void cork_bitset_free(struct cork_bitset \*set)
 
-   Free a bitset.
+   Finalize and deallocate a bitset, freeing any set content that it
+   contains.  This function should only be used for bitsets allocated
+   using :c:func:`cork_bitset_new()`.  You must **not** use this
+   function to free a bitset initialized using :c:func:`cork_bitset_init()`.
 
 .. function:: bool cork_bitset_get(struct cork_bitset \*set, size_t index)
 
