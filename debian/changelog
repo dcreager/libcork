@@ -1,0 +1,5 @@
+libcork (0.15.0+ds-1) unstable; urgency=medium
+
+  * Initial release (Closes: #825206)
+
+ -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 19 May 2016 02:00:36 +0900

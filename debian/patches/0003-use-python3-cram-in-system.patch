@@ -1,0 +1,18 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Wed, 25 May 2016 00:26:34 +0900
+Subject: use python3-cram in system
+
+---
+ tests/ccram | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/ccram b/tests/ccram
+index 5842600..88ada7e 100755
+--- a/tests/ccram
++++ b/tests/ccram
+@@ -28,4 +28,4 @@ export ROOT
+ 
+ LD_LIBRARY_PATH="$PWD/src:$LD_LIBRARY_PATH" \
+ PATH="$PWD/src:$PATH" \
+-  "$PYTHON" "$ROOT/tests/cram.py" "$@" "$TESTS"
++  cram3 "$@" "$TESTS"

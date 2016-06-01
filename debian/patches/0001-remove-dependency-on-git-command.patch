@@ -1,0 +1,46 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Thu, 19 May 2016 22:43:54 +0900
+Subject: remove dependency on git command
+
+Get version from debian/changelog, instead of "git describe" command
+---
+ CMakeLists.txt | 12 ------------
+ version.sh     |  2 +-
+ 2 files changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1e236f9..8a0c14c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,18 +42,6 @@ else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+     message(FATAL_ERROR "Invalid version number: ${VERSION}")
+ endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+ 
+-execute_process(
+-    COMMAND git rev-parse HEAD
+-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-    RESULT_VARIABLE GIT_SHA1_RESULT
+-    OUTPUT_VARIABLE GIT_SHA1
+-    OUTPUT_STRIP_TRAILING_WHITESPACE
+-)
+-if(GIT_SHA1_RESULT)
+-    message(FATAL_ERROR
+-            "Cannot determine git commit: " ${GIT_SHA1_RESULT})
+-endif(GIT_SHA1_RESULT)
+-
+ #-----------------------------------------------------------------------
+ # Check for building on Tilera
+ # If the Tilera environment is installed, then $TILERA_ROOT is defined
+diff --git a/version.sh b/version.sh
+index 40e8d05..decb963 100755
+--- a/version.sh
++++ b/version.sh
+@@ -17,7 +17,7 @@
+ # Note that the RELEASE-VERSION file should *not* be checked into git;
+ # please add it to your top-level .gitignore file.
+ 
+-version=$(git describe)
++version=$(dpkg-parsechangelog --show-field Version|cut -d- -f1)
+ if [ -n ${version} ]; then
+     # If we got something from git-describe, write the version to the
+     # output file.

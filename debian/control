@@ -1,0 +1,59 @@
+Source: libcork
+Priority: optional
+Maintainer: Roger Shimizu <rogershimizu@gmail.com>
+Build-Depends: debhelper (>=9), check, pkg-config, cmake, python3-sphinx, python3-cram
+Standards-Version: 3.9.8
+Section: libs
+Homepage: http://libcork.readthedocs.io
+Vcs-Git: https://github.com/rogers0/libcork.git
+Vcs-Browser: https://github.com/rogers0/libcork
+
+Package: libcork-dev
+Section: libdevel
+Architecture: any
+Depends: libcork15 (= ${binary:Version}), ${misc:Depends}
+Description: simple, easily embeddable, cross-platform C library (development files)
+ It falls roughly into the same category as glib or APR in the C world;
+ the STL, POCO, or QtCore in the C++ world; or the standard libraries of any
+ decent dynamic language.
+ .
+ So if libcork has all of these comparables, why a new library? Well, none of
+ the C++ options are really applicable here. And none of the C options work,
+ because one of the main goals is to have the library be highly modular,
+ and useful in resource-constrained systems. You’ll hopefully see how this
+ fits into an interesting niche of its own.
+ .
+ This package provides C header files for the libraries.
+
+Package: libcork15
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: simple, easily embeddable, cross-platform C library
+ It falls roughly into the same category as glib or APR in the C world;
+ the STL, POCO, or QtCore in the C++ world; or the standard libraries of any
+ decent dynamic language.
+ .
+ So if libcork has all of these comparables, why a new library? Well, none of
+ the C++ options are really applicable here. And none of the C options work,
+ because one of the main goals is to have the library be highly modular,
+ and useful in resource-constrained systems. You’ll hopefully see how this
+ fits into an interesting niche of its own.
+ .
+ This package provides shared libraries.
+
+Package: libcork-doc
+Section: doc
+Architecture: all
+Depends: libjs-mathjax, ${misc:Depends}
+Description: simple, easily embeddable, cross-platform C library (documentation files)
+ It falls roughly into the same category as glib or APR in the C world;
+ the STL, POCO, or QtCore in the C++ world; or the standard libraries of any
+ decent dynamic language.
+ .
+ So if libcork has all of these comparables, why a new library? Well, none of
+ the C++ options are really applicable here. And none of the C options work,
+ because one of the main goals is to have the library be highly modular,
+ and useful in resource-constrained systems. You’ll hopefully see how this
+ fits into an interesting niche of its own.
+ .
+ This package provides documentation in HTML for the libraries.
