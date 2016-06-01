@@ -11,6 +11,7 @@ Vcs-Browser: https://github.com/rogers0/libcork
 Package: libcork-dev
 Section: libdevel
 Architecture: any
+Suggests: libcork-doc
 Depends: libcork15 (= ${binary:Version}), ${misc:Depends}
 Description: simple, easily embeddable, cross-platform C library (development files)
  It falls roughly into the same category as glib or APR in the C world;
