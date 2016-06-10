@@ -1,7 +1,8 @@
 libcork (0.15.0+ds-2) UNRELEASED; urgency=medium
 
   * debian/control:
-    Add "Suggests" to libcork-dev. Thanks to Gianfranco Costamagna.
+    Add "Suggests" to libcork-dev. Thanks to Gianfranco Costamagna,
+    and Ben Finney. (Closes: #826835)
 
  -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 02 Jun 2016 00:51:36 +0900
 
