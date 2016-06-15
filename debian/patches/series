@@ -2,3 +2,4 @@
 0002-remove-failing-tests-on-armel.patch
 0003-use-python3-cram-in-system.patch
 0004-add-support-for-debian-version.patch
+0005-Use-long-long-s-in-tests-to-support-building-on-32-b.patch
