@@ -4,3 +4,4 @@
 0004-add-support-for-debian-version.patch
 0005-Use-long-long-s-in-tests-to-support-building-on-32-b.patch
 0006-add-library-multi-arch-support.patch
+0007-add-build-support-for-kFreeBSD-and-GNU-Hurd.patch
