@@ -109,6 +109,8 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
+include(GNUInstallDirs)
+
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
 
