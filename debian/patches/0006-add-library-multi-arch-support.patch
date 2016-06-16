@@ -1,0 +1,52 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Thu, 16 Jun 2016 20:29:24 +0900
+Subject: add library multi-arch support
+
+Followed the instruction:
+  https://wiki.debian.org/Multiarch/Implementation#CMake
+---
+ CMakeLists.txt         | 2 ++
+ include/CMakeLists.txt | 2 +-
+ src/libcork.pc.in      | 4 ++--
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 293bb58..920d9e9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -97,6 +97,8 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
+     add_definitions(-Wall -Werror)
+ endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+ 
++include(GNUInstallDirs)
++
+ #-----------------------------------------------------------------------
+ # Check for prerequisite libraries
+ 
+diff --git a/include/CMakeLists.txt b/include/CMakeLists.txt
+index 1f95078..fc46b44 100644
+--- a/include/CMakeLists.txt
++++ b/include/CMakeLists.txt
+@@ -13,7 +13,7 @@ configure_file(
+ )
+ 
+ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+-    DESTINATION include
++    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+     FILES_MATCHING PATTERN "*.h")
+ 
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork/config/version.h
+diff --git a/src/libcork.pc.in b/src/libcork.pc.in
+index a72c6a0..12c9c73 100644
+--- a/src/libcork.pc.in
++++ b/src/libcork.pc.in
+@@ -1,7 +1,7 @@
+ prefix=@prefix@
+ exec_prefix=${prefix}
+-libdir=${exec_prefix}/lib
+-includedir=${prefix}/include
++libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
++includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+ sharedir=${prefix}/share
+ sphinxdir=${sharedir}/doc/libcork/html
+ 

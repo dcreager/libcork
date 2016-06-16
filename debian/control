@@ -1,7 +1,7 @@
 Source: libcork
 Priority: optional
 Maintainer: Roger Shimizu <rogershimizu@gmail.com>
-Build-Depends: debhelper (>=9), check, pkg-config, cmake, python3-sphinx, python3-cram
+Build-Depends: debhelper (>=9), dh-exec (>=0.3), check, pkg-config, cmake, python3-sphinx, python3-cram
 Standards-Version: 3.9.8
 Section: libs
 Homepage: http://libcork.readthedocs.io
