@@ -1,4 +1,4 @@
-libcork (0.15.0+ds-2) UNRELEASED; urgency=medium
+libcork (0.15.0+ds-2) unstable; urgency=medium
 
   * debian/control:
     - Add "Suggests" to libcork-dev. Thanks to Gianfranco Costamagna,
@@ -10,7 +10,7 @@ libcork (0.15.0+ds-2) UNRELEASED; urgency=medium
     - Add a patch from upstream's develop branch to fix build on 32-bit system
     - Add a patch to support multi-arch library
 
- -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 02 Jun 2016 00:51:36 +0900
+ -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 16 Jun 2016 22:18:43 +0900
 
 libcork (0.15.0+ds-1) unstable; urgency=medium
 
