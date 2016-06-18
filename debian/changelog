@@ -1,7 +1,8 @@
 libcork (0.15.0+ds-3) UNRELEASED; urgency=medium
 
   * debian/patches:
-    - Add build support for kFreeBSD and GNU/Hurd
+    - Add build support for kFreeBSD and GNU/Hurd. Thanks to Aaron M. Ucko.
+      (Closes: #826263)
 
  -- Roger Shimizu <rogershimizu@gmail.com>  Fri, 17 Jun 2016 01:49:43 +0900
 
