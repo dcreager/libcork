@@ -497,7 +497,7 @@ cork_subprocess_is_finished(struct cork_subprocess *self)
 #if defined(__APPLE__)
 #include <pthread.h>
 #define THREAD_YIELD   pthread_yield_np
-#elif defined(__linux__) || defined(BSD)
+#elif defined(__linux__) || defined(BSD) || defined(__FreeBSD_kernel__) || defined(__GNU__)
 #include <sched.h>
 #define THREAD_YIELD   sched_yield
 #else
