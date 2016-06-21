@@ -1,16 +1,17 @@
 Source: libcork
 Priority: optional
 Maintainer: Roger Shimizu <rogershimizu@gmail.com>
-Build-Depends: debhelper (>=9), dh-exec (>=0.3), check, pkg-config, cmake, python3-sphinx, python3-cram
+Build-Depends: debhelper (>=9.20160403), check, pkg-config, cmake, python3-sphinx, python3-cram
 Standards-Version: 3.9.8
 Section: libs
-Homepage: http://libcork.readthedocs.io
+Homepage: https://libcork.readthedocs.io
 Vcs-Git: https://github.com/rogers0/libcork.git
 Vcs-Browser: https://github.com/rogers0/libcork
 
 Package: libcork-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Suggests: libcork-doc
 Depends: libcork15 (= ${binary:Version}), ${misc:Depends}
 Description: simple, easily embeddable, cross-platform C library (development files)
@@ -28,6 +29,7 @@ Description: simple, easily embeddable, cross-platform C library (development fi
 
 Package: libcork15
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: simple, easily embeddable, cross-platform C library
  It falls roughly into the same category as glib or APR in the C world;

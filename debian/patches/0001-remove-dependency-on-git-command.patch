@@ -32,7 +32,7 @@ index 1e236f9..8a0c14c 100644
  # Check for building on Tilera
  # If the Tilera environment is installed, then $TILERA_ROOT is defined
 diff --git a/version.sh b/version.sh
-index 40e8d05..decb963 100755
+index 40e8d05..43f1dab 100755
 --- a/version.sh
 +++ b/version.sh
 @@ -17,7 +17,7 @@
@@ -40,7 +40,7 @@ index 40e8d05..decb963 100755
  # please add it to your top-level .gitignore file.
  
 -version=$(git describe)
-+version=$(dpkg-parsechangelog --show-field Version|cut -d- -f1)
++version=$(dpkg-parsechangelog --show-field Version)
  if [ -n ${version} ]; then
      # If we got something from git-describe, write the version to the
      # output file.

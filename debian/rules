@@ -6,12 +6,9 @@
 # Security Hardening
 export DEB_BUILD_MAINT_OPTIONS = hardening=-pie,+all
 
-DPKG_EXPORT_BUILDFLAGS = 1
-include /usr/share/dpkg/buildflags.mk
-
 override_dh_auto_install:
 	sed -i s%https://cdn.mathjax.org/mathjax/latest/MathJax.js%file:///usr/share/javascript/mathjax/MathJax.js% build/docs/old/html/*.html
 	dh_auto_install --builddirectory=build
 
 %:
-	dh $@ --buildsystem=cmake --builddirectory=build
+	dh $@ --builddirectory=build

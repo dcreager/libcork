@@ -1,0 +1,27 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Tue, 21 Jun 2016 22:20:06 +0900
+Subject: fix a bit on library pkg-config file
+
+---
+ src/libcork.pc.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/libcork.pc.in b/src/libcork.pc.in
+index 12c9c73..186af0f 100644
+--- a/src/libcork.pc.in
++++ b/src/libcork.pc.in
+@@ -3,12 +3,12 @@ exec_prefix=${prefix}
+ libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+ sharedir=${prefix}/share
+-sphinxdir=${sharedir}/doc/libcork/html
++sphinxdir=${sharedir}/doc/libcork-doc/html
+ 
+ Name: libcork
+ Description: A simple, easily embeddable cross-platform C library
+ Version: @VERSION@
+-URL: http://github.com/redjack/libcork
++URL: https://github.com/redjack/libcork
+ Libs: -L${libdir} -lcork
+ Libs.private: @CMAKE_THREAD_LIBS_INIT@
+ Cflags: -I${includedir}

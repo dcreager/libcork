@@ -1,10 +1,22 @@
 libcork (0.15.0+ds-4) UNRELEASED; urgency=medium
 
   * debian/patches:
+    - Update 0001 patch, to use full debian version from changelog
     - Remove 0002 patch, re-order rest of patches
+    - Update 0005 patch, to fix multi-arch support
+    - Add a patch to fix a bit on library pkg-config file
   * debian/rules:
     - Set hardening from "+all" to "-pie,+all" to avoid building issue
       on armel
+    - Cleanup
+  * debian/compat:
+    - Upgrade from 9 to 10
+  * debian/control:
+    - Update multi-arch support. Sorry for the missing in previous release
+    - Raise build-dependency debhelper >= 9.20160403 to support compat 10
+    - Remove build-dependency on dh-exec
+  * debian/*.install:
+    - Remove dh-exec hack on multi-arch
 
  -- Roger Shimizu <rogershimizu@gmail.com>  Sun, 19 Jun 2016 19:01:25 +0900
 
