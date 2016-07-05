@@ -45,6 +45,7 @@ Description: simple, easily embeddable, cross-platform C library
  This package provides shared libraries.
 
 Package: libcork-doc
+Priority: extra
 Section: doc
 Architecture: all
 Depends: libjs-mathjax, ${misc:Depends}
