@@ -1,0 +1,65 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Thu, 7 Jul 2016 01:30:02 +0200
+Subject: update hash test result for big endian 64bit
+
+---
+ tests/test-core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/tests/test-core.c b/tests/test-core.c
+index b65fa89..899ea57 100644
+--- a/tests/test-core.c
++++ b/tests/test-core.c
+@@ -338,7 +338,7 @@ START_TEST(test_hash)
+       /* little 32 */ 0xba6bd213,
+       /*    big 32 */ 0x29d175e5,
+       /* little 64 */ 0xac7d28cc,
+-      /*    big 64 */ 0x74bde19d);
++      /*    big 64 */ 0xac7d28cc);
+     test_big_hash_buf(BUF, LEN-1,
+       /* little 32 */ 0x6f02ef30550c7d68LL, 0x550c7d68550c7d68LL,
+       /*    big 32 */ 0x6f02ef30550c7d68LL, 0x550c7d68550c7d68LL,
+@@ -351,7 +351,7 @@ START_TEST(test_hash)
+       /* little 32 */ 0x586fce33,
+       /*    big 32 */ 0xe31d1ce0,
+       /* little 64 */ 0xc3812fdf,
+-      /*    big 64 */ 0x4d18f852);
++      /*    big 64 */ 0xc3812fdf);
+     test_big_hash_buf(BUF, LEN,
+       /* little 32 */ 0x98c2b52b29ab177cLL, 0x29ab177c29ab177cLL,
+       /*    big 32 */ 0x98c2b52b29ab177cLL, 0x29ab177c29ab177cLL,
+@@ -364,7 +364,7 @@ START_TEST(test_hash)
+       /* little 32 */ 0x5caacc30,
+       /*    big 32 */ 0x88f94165,
+       /* little 64 */ 0xcbdc2092,
+-      /*    big 64 */ 0x03578c96);
++      /*    big 64 */ 0x5935f90a);
+     test_big_hash_buf(LONG_BUF, LONG_LEN-1,
+       /* little 32 */ 0x4240d5134fb7793cLL, 0xee7e281c799f335aLL,
+       /*    big 32 */ 0xab564a5e029c92a4LL, 0x0bd80c741093400fLL,
+@@ -377,7 +377,7 @@ START_TEST(test_hash)
+       /* little 32 */ 0x5e37d33d,
+       /*    big 32 */ 0x4977421a,
+       /* little 64 */ 0xe89ec005,
+-      /*    big 64 */ 0x8c919559);
++      /*    big 64 */ 0xf00a12ab);
+     test_big_hash_buf(LONG_BUF, LONG_LEN,
+       /* little 32 */ 0x63bcdcd0c2615146LL, 0x8e7fd7aaece3cab6LL,
+       /*    big 32 */ 0x250b47cda3fc07fdLL, 0x840c4bb606aafbd0LL,
+@@ -389,14 +389,14 @@ START_TEST(test_hash)
+       /* little 32 */ 0x6bb65380,
+       /*    big 32 */ 0x6bb65380,
+       /* little 64 */ 0x061fecc8,
+-      /*    big 64 */ 0x7e1b3998);
++      /*    big 64 */ 0x5b3f7a70);
+ 
+     test_stable_hash_var(stable_val64, 0x4d5c4063);
+     test_hash_var(val64,
+       /* little 32 */ 0x4d5c4063,
+       /*    big 32 */ 0xbaeee6e9,
+       /* little 64 */ 0xb119ee69,
+-      /*    big 64 */ 0x267305fb);
++      /*    big 64 */ 0x2304b12d);
+ }
+ END_TEST
+ 

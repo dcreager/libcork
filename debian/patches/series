@@ -6,3 +6,4 @@
 0006-add-build-support-for-kFreeBSD-and-GNU-Hurd.patch
 0007-fix-of-PATH_MAX-for-GNU-Hurd.patch
 0008-fix-a-bit-on-library-pkg-config-file.patch
+0009-update-hash-test-result-for-big-endian-64bit.patch
