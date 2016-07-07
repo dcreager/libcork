@@ -1,0 +1,9 @@
+0001-remove-dependency-on-git-command.patch
+0002-use-python3-cram-in-system.patch
+0003-add-support-for-debian-version.patch
+0004-Use-long-long-s-in-tests-to-support-building-on-32-b.patch
+0005-add-library-multi-arch-support.patch
+0006-add-build-support-for-kFreeBSD-and-GNU-Hurd.patch
+0007-fix-of-PATH_MAX-for-GNU-Hurd.patch
+0008-fix-a-bit-on-library-pkg-config-file.patch
+0009-update-hash-test-result-for-big-endian-64bit.patch

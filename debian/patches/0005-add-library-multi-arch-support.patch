@@ -1,0 +1,61 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Thu, 16 Jun 2016 20:29:24 +0900
+Subject: add library multi-arch support
+
+Followed the instruction:
+  https://wiki.debian.org/Multiarch/Implementation#CMake
+---
+ CMakeLists.txt         | 4 +++-
+ include/CMakeLists.txt | 2 +-
+ src/libcork.pc.in      | 4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 293bb58..afcb947 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,6 +42,8 @@ else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?(\\+.*)?(-.*)?$
+     message(FATAL_ERROR "Invalid version number: ${VERSION}")
+ endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?(\\+.*)?(-.*)?$")
+ 
++include(GNUInstallDirs)
++
+ #-----------------------------------------------------------------------
+ # Check for building on Tilera
+ # If the Tilera environment is installed, then $TILERA_ROOT is defined
+@@ -86,7 +88,7 @@ set(ENABLE_SHARED_EXECUTABLES NO CACHE BOOL
+     "Whether to link executables using shared libraries")
+ set(ENABLE_STATIC YES CACHE BOOL "Whether to build a static library")
+ 
+-set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
++set(CMAKE_INSTALL_LIBDIR lib${LIB_SUFFIX} CACHE STRING
+     "The base name of the installation directory for libraries")
+ 
+ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+diff --git a/include/CMakeLists.txt b/include/CMakeLists.txt
+index 1f95078..fc46b44 100644
+--- a/include/CMakeLists.txt
++++ b/include/CMakeLists.txt
+@@ -13,7 +13,7 @@ configure_file(
+ )
+ 
+ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+-    DESTINATION include
++    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+     FILES_MATCHING PATTERN "*.h")
+ 
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcork/config/version.h
+diff --git a/src/libcork.pc.in b/src/libcork.pc.in
+index a72c6a0..12c9c73 100644
+--- a/src/libcork.pc.in
++++ b/src/libcork.pc.in
+@@ -1,7 +1,7 @@
+ prefix=@prefix@
+ exec_prefix=${prefix}
+-libdir=${exec_prefix}/lib
+-includedir=${prefix}/include
++libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
++includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+ sharedir=${prefix}/share
+ sphinxdir=${sharedir}/doc/libcork/html
+ 

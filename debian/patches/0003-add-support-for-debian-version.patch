@@ -1,0 +1,29 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Wed, 25 May 2016 21:06:36 +0900
+Subject: add support for debian version
+
+---
+ CMakeLists.txt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8a0c14c..293bb58 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -34,13 +34,13 @@ endif(VERSION_RESULT)
+ 
+ string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
+ 
+-if(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
++if(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?(\\+.*)?(-.*)?$")
+     set(VERSION_MAJOR "${CMAKE_MATCH_1}")
+     set(VERSION_MINOR "${CMAKE_MATCH_2}")
+     set(VERSION_PATCH "${CMAKE_MATCH_3}")
+-else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
++else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?(\\+.*)?(-.*)?$")
+     message(FATAL_ERROR "Invalid version number: ${VERSION}")
+-endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
++endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?(\\+.*)?(-.*)?$")
+ 
+ #-----------------------------------------------------------------------
+ # Check for building on Tilera
