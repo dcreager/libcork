@@ -91,7 +91,7 @@ test_suite()
     Suite  *s = suite_create("bits");
 
     TCase  *tc_ds = tcase_create("bits");
-    tcase_set_timeout(tc_ds, 20.0);
+    tcase_set_timeout(tc_ds, 120.0);
     tcase_add_test(tc_ds, test_bitset);
     suite_add_tcase(s, tc_ds);
 
