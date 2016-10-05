@@ -63,7 +63,7 @@ function(add_c_library __TARGET_NAME)
         message(FATAL_ERROR "Invalid library version number: ${__VERSION}")
     endif (__VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
 
-    math(EXPR __SOVERSION "${__VERSION_CURRENT} - ${__VERSION_AGE}")
+    set(__SOVERSION "${__VERSION_CURRENT}")
 
     get_property(ALL_LOCAL_LIBRARIES GLOBAL PROPERTY ALL_LOCAL_LIBRARIES)
     list(APPEND ALL_LOCAL_LIBRARIES ${__TARGET_NAME})
