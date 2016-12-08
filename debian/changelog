@@ -1,0 +1,34 @@
+libcork (0.15.0+ds-4) UNRELEASED; urgency=medium
+
+  * debian/patches:
+    - Add patch to fix hash test result for big-endian 64bit
+
+ -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 07 Jul 2016 01:34:27 +0200
+
+libcork (0.15.0+ds-3) unstable; urgency=medium
+
+  * debian/patches:
+    - Add build support for kFreeBSD and GNU/Hurd. Thanks to Aaron M. Ucko.
+      (Closes: #826263)
+
+ -- Roger Shimizu <rogershimizu@gmail.com>  Sun, 19 Jun 2016 00:39:27 +0900
+
+libcork (0.15.0+ds-2) unstable; urgency=medium
+
+  * debian/control:
+    - Add "Suggests" to libcork-dev. Thanks to Gianfranco Costamagna,
+      and Ben Finney. (Closes: #826835)
+    - Add dh-exec as build dependency to support multi-arch install
+  * debian/*.install:
+    Use dh-exec to support multi-arch install
+  * debian/patches:
+    - Add a patch from upstream's develop branch to fix build on 32-bit system
+    - Add a patch to support multi-arch library
+
+ -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 16 Jun 2016 22:18:43 +0900
+
+libcork (0.15.0+ds-1) unstable; urgency=medium
+
+  * Initial release (Closes: #825206)
+
+ -- Roger Shimizu <rogershimizu@gmail.com>  Thu, 19 May 2016 02:00:36 +0900

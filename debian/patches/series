@@ -1,0 +1,9 @@
+0001-remove-dependency-on-git-command.patch
+0002-remove-failing-tests-on-armel.patch
+0003-use-python3-cram-in-system.patch
+0004-add-support-for-debian-version.patch
+0005-Use-long-long-s-in-tests-to-support-building-on-32-b.patch
+0006-add-library-multi-arch-support.patch
+0007-add-build-support-for-kFreeBSD-and-GNU-Hurd.patch
+0008-fix-of-PATH_MAX-for-GNU-Hurd.patch
+0009-update-hash-test-result-for-big-endian-64bit.patch

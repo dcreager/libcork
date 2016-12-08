@@ -1,0 +1,51 @@
+From: Roger Shimizu <rogershimizu@gmail.com>
+Date: Fri, 17 Jun 2016 01:48:11 +0900
+Subject: add build support for kFreeBSD and GNU/Hurd
+
+---
+ include/libcork/config/config.h | 4 ++--
+ src/libcork/posix/env.c         | 2 +-
+ src/libcork/posix/subprocess.c  | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/libcork/config/config.h b/include/libcork/config/config.h
+index 1cf8f2f..febd651 100644
+--- a/include/libcork/config/config.h
++++ b/include/libcork/config/config.h
+@@ -44,8 +44,8 @@
+ #include <sys/param.h>
+ #endif
+ 
+-#if defined(__linux)
+-/* Do some Linux-specific autodetection. */
++#if defined(__linux) || defined(__FreeBSD_kernel__) || defined(__GNU__)
++/* Do some Linux, kFreeBSD or GNU/Hurd specific autodetection. */
+ #include <libcork/config/linux.h>
+ 
+ #elif defined(__APPLE__) && defined(__MACH__)
+diff --git a/src/libcork/posix/env.c b/src/libcork/posix/env.c
+index 16b23ef..3beb62d 100644
+--- a/src/libcork/posix/env.c
++++ b/src/libcork/posix/env.c
+@@ -183,7 +183,7 @@ cork_env_set_vars(void *user_data, struct cork_hash_table_entry *entry)
+     return CORK_HASH_TABLE_MAP_CONTINUE;
+ }
+ 
+-#if defined(__APPLE__) || (defined(BSD) && (BSD >= 199103))
++#if (defined(__APPLE__) || (defined(BSD) && (BSD >= 199103))) && !defined(__GNU__)
+ /* A handful of platforms [1] don't provide clearenv(), so we must implement our
+  * own version that clears the environ array directly.
+  *
+diff --git a/src/libcork/posix/subprocess.c b/src/libcork/posix/subprocess.c
+index 50b28d1..8a2e33b 100644
+--- a/src/libcork/posix/subprocess.c
++++ b/src/libcork/posix/subprocess.c
+@@ -497,7 +497,7 @@ cork_subprocess_is_finished(struct cork_subprocess *self)
+ #if defined(__APPLE__)
+ #include <pthread.h>
+ #define THREAD_YIELD   pthread_yield_np
+-#elif defined(__linux__) || defined(BSD)
++#elif defined(__linux__) || defined(BSD) || defined(__FreeBSD_kernel__) || defined(__GNU__)
+ #include <sched.h>
+ #define THREAD_YIELD   sched_yield
+ #else

@@ -1,0 +1,9 @@
+Document: libcork-doc
+Title: libcork documentation
+Author: RedJack, LLC.
+Abstract: This is the documentation for libcork library
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/libcork-doc/html/index.html
+Files: /usr/share/doc/libcork-doc/html/*
