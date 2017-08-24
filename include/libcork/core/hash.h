@@ -94,7 +94,7 @@ cork_stable_hash_buffer(cork_hash seed, const void *src, size_t len)
 
     /* This is exactly the same as cork_murmur_hash_x86_32, but with a byte swap
      * to make sure that we always process the uint32s little-endian. */
-    const unsigned int  nblocks = len / 4;
+    const unsigned int  nblocks = (unsigned int)(len / 4);
     const cork_aliased_uint32_t  *blocks = (const cork_aliased_uint32_t *) src;
     const cork_aliased_uint32_t  *end = blocks + nblocks;
     const cork_aliased_uint32_t  *curr;
@@ -341,11 +341,11 @@ cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 #if CORK_SIZEOF_POINTER == 8
     cork_big_hash  big_seed = {cork_u128_from_32(seed, seed, seed, seed)};
     cork_big_hash  hash;
-    cork_murmur_hash_x64_128(big_seed, src, len, &hash);
+    cork_murmur_hash_x64_128(big_seed, src, (unsigned int)len, &hash);
     return cork_u128_be32(hash.u128, 0);
 #else
     cork_hash  hash = 0;
-    cork_murmur_hash_x86_32(seed, src, len, &hash);
+    cork_murmur_hash_x86_32(seed, src, (unsigned int)len, &hash);
     return hash;
 #endif
 }
@@ -357,9 +357,9 @@ cork_big_hash_buffer(cork_big_hash seed, const void *src, size_t len)
 {
     cork_big_hash  result;
 #if CORK_SIZEOF_POINTER == 8
-    cork_murmur_hash_x64_128(seed, src, len, &result);
+    cork_murmur_hash_x64_128(seed, src, (unsigned int)len, &result);
 #else
-    cork_murmur_hash_x86_128(seed, src, len, &result);
+    cork_murmur_hash_x86_128(seed, src, (unsigned int)len, &result);
 #endif
     return result;
 }
