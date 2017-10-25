@@ -30,9 +30,8 @@ if(VERSION_RESULT)
             "Cannot determine version number: " ${VERSION_RESULT})
 endif(VERSION_RESULT)
 # This causes an annoying extra prompt in ccmake.
-# message("Current version: " ${VERSION})
 
-string(REGEX REPLACE "-dev.*" "-dev" BASE_VERSION "${VERSION}")
+string(REGEX REPLACE "-.*" "-dev" BASE_VERSION "${VERSION}")
 
 if(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
     set(VERSION_MAJOR "${CMAKE_MATCH_1}")
