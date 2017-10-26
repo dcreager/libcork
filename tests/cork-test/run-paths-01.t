@@ -11,11 +11,11 @@
   > XDG_CACHE_HOME= \
   > XDG_RUNTIME_DIR= \
   >     cork-test paths
-  Cannot determine user-specific runtime directory
   Home:    /home/test
   Config:  /home/test/.config:/etc/xdg
   Data:    /home/test/.local/share:/usr/local/share:/usr/share
   Cache:   /home/test/.cache
+  Cannot determine user-specific runtime directory
   [1]
 
   $ HOME=/home/test \
