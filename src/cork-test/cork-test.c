@@ -21,10 +21,14 @@
 
 #define streq(s1, s2)  (strcmp((s1), (s2)) == 0)
 
+/* Note: We print out error messages to stdout, not stderr, to ensure that our
+ * test case output is reproducible.  (It's not defined how stdout and stderr
+ * are interleaved together.) */
+
 #define ri_check_exit(call) \
     do { \
         if ((call) != 0) { \
-            fprintf(stderr, "%s\n", cork_error_message()); \
+            printf("%s\n", cork_error_message()); \
             exit(EXIT_FAILURE); \
         } \
     } while (0)
@@ -32,7 +36,7 @@
 #define rp_check_exit(call) \
     do { \
         if ((call) == NULL) { \
-            fprintf(stderr, "%s\n", cork_error_message()); \
+            printf("%s\n", cork_error_message()); \
             exit(EXIT_FAILURE); \
         } \
     } while (0)
@@ -212,11 +216,18 @@ sub_run(int argc, char **argv)
     struct cork_subprocess_group  *group;
     struct cork_subprocess  *sp;
     struct cork_stream_consumer  *stdin_consumer;
+    struct cork_stream_consumer  *stdout_consumer;
 
     if (argc == 0) {
         cork_command_show_help(&sub, "Missing command");
         exit(EXIT_FAILURE);
     }
+
+    /* Note that we explicitly copy the child's stdout to our stdout using a
+     * cork_stream_consumer, instead of letting the child process inherit our
+     * stdout.  This gives us more control over how our output messages
+     * interleave with the child process's output messages, which is needed if
+     * we want the expected test output to be deterministic. */
 
     rp_check_exit(env = cork_env_clone_current());
     rp_check_exit(exec = cork_exec_new_with_param_array(argv[0], argv));
@@ -224,9 +235,11 @@ sub_run(int argc, char **argv)
     if (sub_cwd != NULL) {
         cork_exec_set_cwd(exec, sub_cwd);
     }
-    fprintf(stderr, "%s\n", cork_exec_description(exec));
+    printf("%s\n", cork_exec_description(exec));
+    rp_check_exit(stdout_consumer = cork_file_consumer_new(stdout));
     rp_check_exit(group = cork_subprocess_group_new());
-    rp_check_exit(sp = cork_subprocess_new_exec(exec, NULL, NULL, NULL));
+    rp_check_exit(sp = cork_subprocess_new_exec(
+                exec, stdout_consumer, stdout_consumer, NULL));
     cork_subprocess_group_add(group, sp);
     ri_check_exit(cork_subprocess_group_start(group));
     stdin_consumer = cork_subprocess_stdin(sp);
@@ -239,6 +252,7 @@ sub_run(int argc, char **argv)
     cork_stream_consumer_eof(stdin_consumer);
     ri_check_exit(cork_subprocess_group_wait(group));
     cork_subprocess_group_free(group);
+    cork_stream_consumer_free(stdout_consumer);
 }
 
 
@@ -530,7 +544,7 @@ dir_options(int argc, char **argv)
         return 2;
     }
 
-    fprintf(stderr, "Invalid usage.\n");
+    printf("Invalid usage.\n");
     exit(EXIT_FAILURE);
 }
 
