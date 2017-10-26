@@ -9,17 +9,17 @@
 #-----------------------------------------------------------------------
 # libcork
 
-# Update the VERSION property below according to the following rules (taken from
-# [1]):
+# Update the VERSION_INFO property below according to the following rules (taken
+# from [1]):
 #
-# VERSION = current.revision.age
+# VERSION_INFO = current:revision:age
 #
-#   1. Start with a VERSION of `0.0.0` for each shared library.
-#   2. Update VERSION only immediately before a public release of your software.
-#      More frequent updates are unnecessary, and only guarantee that the
-#      current interface number gets larger faster.
+#   1. Start with a VERSION of `0:0:0` for each shared library.
+#   2. Update VERSION_INFO only immediately before a public release of your
+#      software.  More frequent updates are unnecessary, and only guarantee that
+#      the current interface number gets larger faster.
 #   3. If the library source code has changed at all since the last update, then
-#      increment `revision` (`c.r.a` becomes `c.r+1.a`).
+#      increment `revision` (`c:r:a` becomes `c:r+1:a`).
 #   4. If any interfaces have been added, removed, or changed since the last
 #      update, increment `current`, and set `revision` to 0.
 #   5. If any interfaces have been added since the last public release, then
@@ -27,9 +27,10 @@
 #   6. If any interfaces have been removed or changed since the last public
 #      release, then set `age` to 0.
 #
-# Note that changing `current` means that you are releasing a new
-# backwards-incompatible version of the library.  This has implications on
-# packaging, so once an API has stabilized, this should be a rare occurrence.
+# Note that changing `current` and setting `age` to 0 means that you are
+# releasing a new backwards-incompatible version of the library.  This has
+# implications on packaging, so once an API has stabilized, this should be a
+# rare occurrence.
 #
 # [1] http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
 
@@ -37,7 +38,7 @@ add_c_library(
     libcork
     OUTPUT_NAME cork
     PKGCONFIG_NAME libcork
-    VERSION 16.0.1
+    VERSION_INFO 16:3:0
     SOURCES
         libcork/cli/commands.c
         libcork/core/allocator.c

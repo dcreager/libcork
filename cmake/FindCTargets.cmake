@@ -51,19 +51,23 @@ set_property(GLOBAL PROPERTY ALL_LOCAL_LIBRARIES "")
 
 function(add_c_library __TARGET_NAME)
     set(options)
-    set(one_args OUTPUT_NAME PKGCONFIG_NAME VERSION)
+    set(one_args OUTPUT_NAME PKGCONFIG_NAME VERSION_INFO)
     set(multi_args LIBRARIES LOCAL_LIBRARIES SOURCES)
     cmake_parse_arguments(_ "${options}" "${one_args}" "${multi_args}" ${ARGN})
 
-    if (__VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+    if (__VERSION_INFO MATCHES "^([0-9]+):([0-9]+):([0-9]+)(-dev)?$")
         set(__VERSION_CURRENT  "${CMAKE_MATCH_1}")
         set(__VERSION_REVISION "${CMAKE_MATCH_2}")
         set(__VERSION_AGE      "${CMAKE_MATCH_3}")
-    else (__VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
-        message(FATAL_ERROR "Invalid library version number: ${__VERSION}")
-    endif (__VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+    else (__VERSION_INFO MATCHES "^([0-9]+):([0-9]+):([0-9]+)(-dev)?$")
+        message(FATAL_ERROR "Invalid library version info: ${__VERSION_INFO}")
+    endif (__VERSION_INFO MATCHES "^([0-9]+):([0-9]+):([0-9]+)(-dev)?$")
 
+    # Mimic libtool's behavior in calculating SONAME and VERSION from
+    # version-info.
+    # http://git.savannah.gnu.org/cgit/libtool.git/tree/build-aux/ltmain.in?id=722b6af0fad19b3d9f21924ae5aa6dfae5957378#n7042
     math(EXPR __SOVERSION "${__VERSION_CURRENT} - ${__VERSION_AGE}")
+    set(__VERSION "${__SOVERSION}.${__VERSION_AGE}.${__VERSION_REVISION}")
 
     get_property(ALL_LOCAL_LIBRARIES GLOBAL PROPERTY ALL_LOCAL_LIBRARIES)
     list(APPEND ALL_LOCAL_LIBRARIES ${__TARGET_NAME})
