@@ -8,6 +8,7 @@ cd .build
 if [ "$TRAVIS_OS_NAME" = linux ]; then
     if [ "$ARCH" = i386 ]; then
         ARCH_FLAGS="-m32"
+        export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
     else
         ARCH_FLAGS=""
     fi

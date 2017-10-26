@@ -9,7 +9,9 @@ env:
   - ARCH=amd64 ENABLE_SHARED_EXECUTABLES=NO
 os:
   - linux
-  - osx
+  # TODO(dcreager): Reenable this once the Travis Mac backlog isn't quite so
+  # horrific.
+  # - osx
 install: .travis/install
 script: .travis/test
 
