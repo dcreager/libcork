@@ -53,6 +53,8 @@ if(GIT_SHA1_RESULT)
             "Cannot determine git commit: " ${GIT_SHA1_RESULT})
 endif(GIT_SHA1_RESULT)
 
+include(GNUInstallDirs)
+
 #-----------------------------------------------------------------------
 # Check for building on Tilera
 # If the Tilera environment is installed, then $TILERA_ROOT is defined
@@ -97,8 +99,10 @@ set(ENABLE_SHARED_EXECUTABLES NO CACHE BOOL
     "Whether to link executables using shared libraries")
 set(ENABLE_STATIC YES CACHE BOOL "Whether to build a static library")
 
-set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
-    "The base name of the installation directory for libraries")
+if(NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR lib CACHE STRING
+        "The base name of the installation directory for libraries")
+endif(NOT CMAKE_INSTALL_LIBDIR)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wall -Werror)
@@ -107,8 +111,6 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     add_definitions(-Wall -Werror)
 endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-
-include(GNUInstallDirs)
 
 #-----------------------------------------------------------------------
 # Check for prerequisite libraries
