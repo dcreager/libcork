@@ -69,8 +69,16 @@ function(library_prereq LIB_NAME)
     if (USE_CUSTOM_${UPPER_SHORT_NAME})
         include_directories(${${UPPER_SHORT_NAME}_INCLUDE_DIRS})
         link_directories(${${UPPER_SHORT_NAME}_LIBRARY_DIRS})
+        if (NOT ${UPPER_SHORT_NAME}_STATIC_LDFLAGS)
+            set(${UPPER_SHORT_NAME}_STATIC_LDFLAGS
+                ${${UPPER_SHORT_NAME}_LDFLAGS}
+                PARENT_SCOPE)
+        endif (NOT ${UPPER_SHORT_NAME}_STATIC_LDFLAGS)
     else (USE_CUSTOM_${UPPER_SHORT_NAME})
-        find_library(${UPPER_SHORT_NAME}_LIBRARIES ${LIB_NAME})
+        find_library(${UPPER_SHORT_NAME}_LDFLAGS ${LIB_NAME})
+        set(${UPPER_SHORT_NAME}_STATIC_LDFLAGS
+            ${${UPPER_SHORT_NAME}_LDFLAGS}
+            PARENT_SCOPE)
     endif (USE_CUSTOM_${UPPER_SHORT_NAME})
 
 endfunction(library_prereq)
