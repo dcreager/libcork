@@ -57,10 +57,6 @@ make_test(test-threads)
 #-----------------------------------------------------------------------
 # Command-line tests
 
-if(TILERA)
-    configure_file(tile-test ${CMAKE_BINARY_DIR}/tile-test COPYONLY)
-endif(TILERA)
-
 find_package(PythonInterp)
 
 if (PYTHON_EXECUTABLE)
