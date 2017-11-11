@@ -3,8 +3,7 @@
  * Copyright © 2011, libcork authors
  * All rights reserved.
  *
- * Please see the COPYING file in this distribution for license
- * details.
+ * Please see the COPYING file in this distribution for license details.
  * ----------------------------------------------------------------------
  */
 
