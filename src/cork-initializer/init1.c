@@ -15,3 +15,8 @@ CORK_INITIALIZER(init)
 {
     printf("Initializer 1\n");
 }
+
+CORK_FINALIZER(done)
+{
+    printf("Finalizer 1\n");
+}

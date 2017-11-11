@@ -101,10 +101,12 @@ common compiler attributes.
 
 
 .. macro:: CORK_INITIALIZER(func_name)
+           CORK_FINALIZER(func_name)
 
    Declare a ``static`` function that will be automatically called at program
-   startup.  If there are multiple initializer functions linked into a program,
-   there is no guarantee about the order in which the functions will be called.
+   startup (for ``CORK_INITIALIZER``) or shutdown (for ``CORK_FINALIZER``).  If
+   there are multiple initializer functions linked into a program, there is no
+   guarantee about the order in which the functions will be called.
 
    ::
 
@@ -116,4 +118,9 @@ common compiler attributes.
      CORK_INITIALIZER(init_array)
      {
         cork_array_init(&array);
+     }
+
+     CORK_FINALIZER(done_array)
+     {
+        cork_array_done(&array);
      }
