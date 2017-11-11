@@ -7,8 +7,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 project_name = u'libcork'
 project_slug = u'libcork'
-company = u'RedJack, LLC'
-copyright_years = u'2011-2012'
+company = u'libcork authors'
+copyright_years = u'2011-2017'
 
 default_role = 'c:func'
 primary_domain = 'c'
@@ -70,11 +70,11 @@ latex_documents = [
 
 man_pages = [
     ('index', 'libcork', u'libcork documentation',
-     [u'RedJack, LLC'], 1)
+     [u'libcork authors'], 1)
 ]
 
 texinfo_documents = [
   ('index', 'libcork', u'libcork documentation',
-   u'RedJack, LLC', 'libcork', 'One line description of project.',
+   u'libcork authors', 'libcork', 'One line description of project.',
    'Miscellaneous'),
 ]

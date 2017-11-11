@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2011, RedJack, LLC.
-# All rights reserved.
-#
-# Please see the COPYING file in this distribution for license
-# details.
+# Copyright © 2011, libcork authors
+# Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
 # Calculates the 32-bit MurmurHash3 hash value [1] for a string provided on the

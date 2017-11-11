@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------
-# Copyright © 2015, RedJack, LLC.
-# All rights reserved.
-#
+# Copyright © 2015, libcork authors
 # Please see the COPYING file in this distribution for license details.
 # ----------------------------------------------------------------------
 
