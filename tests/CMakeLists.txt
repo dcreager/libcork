@@ -9,7 +9,10 @@
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+find_package(PythonInterp)
 
 #-----------------------------------------------------------------------
 # Build the test cases
@@ -53,11 +56,41 @@ make_test(test-ring-buffer)
 make_test(test-slice)
 make_test(test-subprocess)
 make_test(test-threads)
+make_test(test-u128)
+
+#-----------------------------------------------------------------------
+# Test suite for 128-bit integers
+
+# We use Python to generate a LARGE pile of test cases for our 128-bit integer
+# arithmetic functions.
+
+add_custom_target(u128-test-suite)
+if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+    add_dependencies(shared-test-u128 u128-test-suite)
+endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
+if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+    add_dependencies(embedded-test-u128 u128-test-suite)
+endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+
+macro(make_u128_suite op)
+    set(generator "${CMAKE_CURRENT_SOURCE_DIR}/create-u128-test-cases.py")
+    set(test_suite_file "${CMAKE_CURRENT_BINARY_DIR}/u128-tests-${op}.c.in")
+    add_custom_command(
+        OUTPUT "${test_suite_file}"
+        COMMAND
+          "${PYTHON_EXECUTABLE}" "${generator}" "${op}" "${test_suite_file}"
+        COMMENT "Generating u128 ${op} test cases"
+        DEPENDS "${generator}"
+    )
+    add_custom_target(u128-test-${op} DEPENDS "${test_suite_file}")
+    add_dependencies(u128-test-suite u128-test-${op})
+endmacro(make_u128_suite)
+
+make_u128_suite(add)
+make_u128_suite(sub)
 
 #-----------------------------------------------------------------------
 # Command-line tests
-
-find_package(PythonInterp)
 
 if (PYTHON_EXECUTABLE)
     configure_file(ccram ${CMAKE_BINARY_DIR}/ccram COPYONLY)
