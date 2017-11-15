@@ -2,8 +2,7 @@ prefix=@prefix@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-sharedir=${prefix}/share
-sphinxdir=${sharedir}/doc/libcork/html
+sphinxdir=${prefix}/@CMAKE_INSTALL_DOCDIR@
 
 Name: libcork
 Description: A simple, easily embeddable cross-platform C library

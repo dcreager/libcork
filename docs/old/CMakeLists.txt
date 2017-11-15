@@ -14,15 +14,15 @@ find_program(
 
 set(GENERATE_DOC TRUE)
 
-if (TILERA)
-    message(STATUS "Note: We don't build documentation on the Tilera platform")
-    set(GENERATE_DOC FALSE)
-endif (TILERA)
-
 if (NOT SPHINX_EXECUTABLE)
   message(WARNING "Unable to find Sphinx documentation generator")
   set(GENERATE_DOC FALSE)
 endif (NOT SPHINX_EXECUTABLE)
+
+if (NOT CMAKE_INSTALL_DOCDIR)
+    set(CMAKE_INSTALL_DOCDIR "share/doc/${PROJECT_NAME}" CACHE STRING
+        "The base name of the installation directory for documentation")
+endif (NOT CMAKE_INSTALL_DOCDIR)
 
 set(INTERSPHINX_OVERRIDES "")
 
@@ -80,6 +80,6 @@ if (GENERATE_DOC)
 
   install(
     DIRECTORY "${SPHINX_HTML_DIR}"
-    DESTINATION "share/doc/${PROJECT_NAME}"
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
   )
 endif (GENERATE_DOC)
