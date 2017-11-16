@@ -77,6 +77,9 @@ make_u128_suite(shl)
 make_u128_suite(shr)
 make_u128_suite(add)
 make_u128_suite(sub)
+make_u128_suite(mul)
+make_u128_suite(div)
+make_u128_suite(mod)
 
 #-----------------------------------------------------------------------
 # Command-line tests

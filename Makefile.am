@@ -263,7 +263,10 @@ u128_tests = \
     tests/u128-tests-shl.c.in \
     tests/u128-tests-shr.c.in \
     tests/u128-tests-add.c.in \
-    tests/u128-tests-sub.c.in
+    tests/u128-tests-sub.c.in \
+    tests/u128-tests-mul.c.in \
+    tests/u128-tests-div.c.in \
+    tests/u128-tests-mod.c.in
 
 CLEANFILES += $(u128_tests)
 
@@ -287,6 +290,12 @@ tests/u128-tests-add.c.in: tests/create-u128-test-cases.py
 	$(AM_V_GEN) $(PYTHON) $< add $@
 tests/u128-tests-sub.c.in: tests/create-u128-test-cases.py
 	$(AM_V_GEN) $(PYTHON) $< sub $@
+tests/u128-tests-mul.c.in: tests/create-u128-test-cases.py
+	$(AM_V_GEN) $(PYTHON) $< mul $@
+tests/u128-tests-div.c.in: tests/create-u128-test-cases.py
+	$(AM_V_GEN) $(PYTHON) $< div $@
+tests/u128-tests-mod.c.in: tests/create-u128-test-cases.py
+	$(AM_V_GEN) $(PYTHON) $< mod $@
 
 tests/test-u128.c: $(u128_tests)
 

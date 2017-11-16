@@ -124,6 +124,62 @@ def create_one_sub_test_case():
     print("},", sep="")
 
 
+def create_one_mul_test_case():
+    lhs = random_128()
+    rhs = random_128()
+    result = (lhs * rhs) % 2**128
+    print()
+    print("/*    ", dec_128(lhs), sep="")
+    print(" *  * ", dec_128(rhs), sep="")
+    print(" *  = ", dec_128(result), sep="")
+    print(" */")
+    print("{", sep="")
+    print("    ", hex_128(lhs), ",", sep="")
+    print("    ", hex_128(rhs), ",", sep="")
+    print("    ", hex_128(result), sep="")
+    print("},", sep="")
+
+
+def create_one_div_test_case():
+    lhs = random_128()
+    rhs = random_128()
+    if rhs == 0:
+        rhs = 1
+    if lhs < rhs:
+        lhs, rhs = rhs, lhs
+    result = (lhs // rhs) % 2**128
+    print()
+    print("/*    ", dec_128(lhs), sep="")
+    print(" *  / ", dec_128(rhs), sep="")
+    print(" *  = ", dec_128(result), sep="")
+    print(" */")
+    print("{", sep="")
+    print("    ", hex_128(lhs), ",", sep="")
+    print("    ", hex_128(rhs), ",", sep="")
+    print("    ", hex_128(result), sep="")
+    print("},", sep="")
+
+
+def create_one_mod_test_case():
+    lhs = random_128()
+    rhs = random_128()
+    if rhs == 0:
+        rhs = 1
+    if lhs < rhs:
+        lhs, rhs = rhs, lhs
+    result = (lhs % rhs) % 2**128
+    print()
+    print("/*    ", dec_128(lhs), sep="")
+    print(" *  % ", dec_128(rhs), sep="")
+    print(" *  = ", dec_128(result), sep="")
+    print(" */")
+    print("{", sep="")
+    print("    ", hex_128(lhs), ",", sep="")
+    print("    ", hex_128(rhs), ",", sep="")
+    print("    ", hex_128(result), sep="")
+    print("},", sep="")
+
+
 if len(sys.argv) == 1:
     print("Usage: create-u128-test-cases.py [operator]")
     sys.exit(1)
@@ -154,3 +210,9 @@ for i in range(test_count):
         create_one_add_test_case()
     elif sys.argv[1] == "sub":
         create_one_sub_test_case()
+    elif sys.argv[1] == "mul":
+        create_one_mul_test_case()
+    elif sys.argv[1] == "div":
+        create_one_div_test_case()
+    elif sys.argv[1] == "mod":
+        create_one_mod_test_case()
