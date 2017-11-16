@@ -12,7 +12,7 @@ To build libcork, you need the following libraries installed on your
 system:
 
   * pkg-config
-  * check (http://check.sourceforge.net)
+  * check (http://libcheck.github.io/check)
 
 
 Building from source
