@@ -77,6 +77,13 @@ cork_u128_from_64(uint64_t i0, uint64_t i1)
     return value;
 }
 
+CORK_INLINE
+cork_u128
+cork_u128_zero(void)
+{
+    return cork_u128_from_64(0, 0);
+}
+
 
 #if CORK_HOST_ENDIANNESS == CORK_BIG_ENDIAN
 #define cork_u128_be8(val, idx)   ((val)._.u8[(idx)])
@@ -89,37 +96,6 @@ cork_u128_from_64(uint64_t i0, uint64_t i1)
 #define cork_u128_be32(val, idx)  ((val)._.u32[3 - (idx)])
 #define cork_u128_be64(val, idx)  ((val)._.u64[1 - (idx)])
 #endif
-
-
-CORK_INLINE
-cork_u128
-cork_u128_add(cork_u128 a, cork_u128 b)
-{
-    cork_u128  result;
-#if CORK_U128_HAVE_U128
-    result._.u128 = a._.u128 + b._.u128;
-#else
-    result._.be64.lo = a._.be64.lo + b._.be64.lo;
-    result._.be64.hi =
-        a._.be64.hi + b._.be64.hi + (result._.be64.lo < a._.be64.lo);
-#endif
-    return result;
-}
-
-CORK_INLINE
-cork_u128
-cork_u128_sub(cork_u128 a, cork_u128 b)
-{
-    cork_u128  result;
-#if CORK_U128_HAVE_U128
-    result._.u128 = a._.u128 - b._.u128;
-#else
-    result._.be64.lo = a._.be64.lo - b._.be64.lo;
-    result._.be64.hi =
-        a._.be64.hi - b._.be64.hi - (result._.be64.lo > a._.be64.lo);
-#endif
-    return result;
-}
 
 
 CORK_INLINE
@@ -202,6 +178,94 @@ cork_u128_ge(cork_u128 a, cork_u128 b)
         return a._.be64.hi >= b._.be64.hi;
     }
 #endif
+}
+
+
+CORK_INLINE
+cork_u128
+cork_u128_shl(cork_u128 a, unsigned int b)
+{
+#if CORK_U128_HAVE_U128
+    cork_u128  result;
+    result._.u128 = a._.u128 << b;
+    return result;
+#else
+    if (b == 0) {
+        return a;
+    }
+    if (b == 64) {
+        return cork_u128_from_64(a._.be64.lo, 0);
+    }
+    if (b >= 128) {
+        /* This is undefined behavior */
+        return cork_u128_zero();
+    }
+    if (b >= 64) {
+        return cork_u128_from_64(a._.be64.lo << (b - 64), 0);
+    }
+    return cork_u128_from_64(
+        (a._.be64.hi << b) + (a._.be64.lo >> (64 - b)),
+        a._.be64.lo << b);
+#endif
+}
+
+CORK_INLINE
+cork_u128
+cork_u128_shr(cork_u128 a, unsigned int b)
+{
+#if CORK_U128_HAVE_U128
+    cork_u128  result;
+    result._.u128 = a._.u128 >> b;
+    return result;
+#else
+    if (b == 0) {
+        return a;
+    }
+    if (b == 64) {
+        return cork_u128_from_64(0, a._.be64.hi);
+    }
+    if (b >= 128) {
+        /* This is undefined behavior */
+        return cork_u128_zero();
+    }
+    if (b >= 64) {
+        return cork_u128_from_64(0, a._.be64.hi >> (b - 64));
+    }
+    return cork_u128_from_64(
+        a._.be64.hi >> b,
+        (a._.be64.lo >> b) + (a._.be64.hi << (64 - b)));
+#endif
+}
+
+
+CORK_INLINE
+cork_u128
+cork_u128_add(cork_u128 a, cork_u128 b)
+{
+    cork_u128  result;
+#if CORK_U128_HAVE_U128
+    result._.u128 = a._.u128 + b._.u128;
+#else
+    result._.be64.lo = a._.be64.lo + b._.be64.lo;
+    result._.be64.hi =
+        a._.be64.hi + b._.be64.hi + (result._.be64.lo < a._.be64.lo);
+#endif
+    return result;
+}
+
+CORK_INLINE
+cork_u128
+cork_u128_sub(cork_u128 a, cork_u128 b)
+{
+    cork_u128  result;
+#if CORK_U128_HAVE_U128
+    result._.u128 = a._.u128 - b._.u128;
+#else
+    result._.be64.lo = a._.be64.lo - b._.be64.lo;
+    result._.be64.hi =
+        a._.be64.hi - b._.be64.hi - (result._.be64.lo > a._.be64.lo);
+#endif
+    return result;
 }
 
 

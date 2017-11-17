@@ -95,10 +95,7 @@ cork_u128
 cork_u128_from_64(uint64_t i0, uint64_t i1);
 
 cork_u128
-cork_u128_add(cork_u128 a, cork_u128 b);
-
-cork_u128
-cork_u128_sub(cork_u128 a, cork_u128 b);
+cork_u128_zero(void);
 
 bool
 cork_u128_eq(cork_u128 a, cork_u128 b);
@@ -117,3 +114,15 @@ cork_u128_gt(cork_u128 a, cork_u128 b);
 
 bool
 cork_u128_ge(cork_u128 a, cork_u128 b);
+
+cork_u128
+cork_u128_shl(cork_u128 a, unsigned int b);
+
+cork_u128
+cork_u128_shr(cork_u128 a, unsigned int b);
+
+cork_u128
+cork_u128_add(cork_u128 a, cork_u128 b);
+
+cork_u128
+cork_u128_sub(cork_u128 a, cork_u128 b);

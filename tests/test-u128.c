@@ -147,6 +147,81 @@ START_TEST(test_u128_print)
 END_TEST
 
 
+struct shift_test {
+    uint64_t i0;
+    uint64_t i1;
+    unsigned int j;
+    uint64_t res0;
+    uint64_t res1;
+};
+
+static void
+check_shift_test(cork_u128(op)(cork_u128, unsigned int), const char *op_str,
+                 const struct shift_test *test)
+{
+    cork_u128  value1 = cork_u128_from_64(test->i0, test->i1);
+    cork_u128  expected = cork_u128_from_64(test->res0, test->res1);
+    cork_u128  result = op(value1, test->j);
+    if (!cork_u128_eq(result, expected)) {
+        char  buf1[CORK_U128_HEX_LENGTH];
+        char  buf2[CORK_U128_HEX_LENGTH];
+        char  buf3[CORK_U128_HEX_LENGTH];
+        const char  *value1_str = cork_u128_to_hex(buf1, value1);
+        const char  *expected_str = cork_u128_to_hex(buf2, expected);
+        const char  *result_str = cork_u128_to_hex(buf3, result);
+        fprintf(stderr, "#     %40s\n", value1_str);
+        fprintf(stderr, "#  %s %40u\n", op_str, test->j);
+        fprintf(stderr, "#   = %40s\n", expected_str);
+        fprintf(stderr, "# got %40s\n", result_str);
+        fail("Unexpected shift error");
+    }
+}
+
+static void
+check_shift_tests_(cork_u128(op)(cork_u128, unsigned int), const char *op_str,
+                   const struct shift_test *test, size_t count)
+{
+    size_t  i;
+    for (i = 0; i < count; i++) {
+        check_shift_test(op, op_str, test + i);
+    }
+}
+
+#define check_shift_tests(op, op_str, tests) \
+    check_shift_tests_(op, op_str, \
+            (tests), sizeof(tests) / sizeof(tests[0]))
+
+
+static const struct shift_test SHL_TESTS[] = {
+    {0, 1, 1, 0, 2},
+    {0, UINT64_C(0x8000000000000000), 1, 1, 0},
+    {UINT64_C(0x8000000000000000), 0, 1, 0, 0},
+#include "u128-tests-shl.c.in"
+};
+
+START_TEST(test_u128_shl)
+{
+    DESCRIBE_TEST;
+    check_shift_tests(cork_u128_shl, "<<", SHL_TESTS);
+}
+END_TEST
+
+
+static const struct shift_test SHR_TESTS[] = {
+    {0, 1, 1, 0, 0},
+    {0, 2, 1, 0, 1},
+    {1, 0, 1, 0, UINT64_C(0x8000000000000000)},
+#include "u128-tests-shr.c.in"
+};
+
+START_TEST(test_u128_shr)
+{
+    DESCRIBE_TEST;
+    check_shift_tests(cork_u128_shr, ">>", SHR_TESTS);
+}
+END_TEST
+
+
 struct arithmetic_test {
     uint64_t i0;
     uint64_t i1;
@@ -163,8 +238,8 @@ check_arithmetic_test(cork_u128(op)(cork_u128, cork_u128), const char *op_str,
     cork_u128  value1 = cork_u128_from_64(test->i0, test->i1);
     cork_u128  value2 = cork_u128_from_64(test->j0, test->j1);
     cork_u128  expected = cork_u128_from_64(test->res0, test->res1);
-    cork_u128  sum = op(value1, value2);
-    if (!cork_u128_eq(sum, expected)) {
+    cork_u128  result = op(value1, value2);
+    if (!cork_u128_eq(result, expected)) {
         char  buf1[CORK_U128_HEX_LENGTH];
         char  buf2[CORK_U128_HEX_LENGTH];
         char  buf3[CORK_U128_HEX_LENGTH];
@@ -172,11 +247,11 @@ check_arithmetic_test(cork_u128(op)(cork_u128, cork_u128), const char *op_str,
         const char  *value1_str = cork_u128_to_hex(buf1, value1);
         const char  *value2_str = cork_u128_to_hex(buf2, value2);
         const char  *expected_str = cork_u128_to_hex(buf3, expected);
-        const char  *sum_str = cork_u128_to_hex(buf4, sum);
+        const char  *result_str = cork_u128_to_hex(buf4, result);
         fprintf(stderr, "#     %40s\n", value1_str);
         fprintf(stderr, "#   %s %40s\n", op_str, value2_str);
         fprintf(stderr, "#   = %40s\n", expected_str);
-        fprintf(stderr, "# got %40s\n", sum_str);
+        fprintf(stderr, "# got %40s\n", result_str);
         fail("Unexpected arithmetic error");
     }
 }
@@ -375,6 +450,8 @@ test_suite()
 
     TCase  *tc_u128 = tcase_create("u128");
     tcase_add_test(tc_u128, test_u128_print);
+    tcase_add_test(tc_u128, test_u128_shl);
+    tcase_add_test(tc_u128, test_u128_shr);
     tcase_add_test(tc_u128, test_u128_add);
     tcase_add_test(tc_u128, test_u128_sub);
     tcase_add_test(tc_u128, test_u128_eq);

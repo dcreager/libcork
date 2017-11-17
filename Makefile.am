@@ -260,6 +260,8 @@ u128_tests = \
     tests/u128-tests-le.c.in \
     tests/u128-tests-gt.c.in \
     tests/u128-tests-ge.c.in \
+    tests/u128-tests-shl.c.in \
+    tests/u128-tests-shr.c.in \
     tests/u128-tests-add.c.in \
     tests/u128-tests-sub.c.in
 
@@ -277,6 +279,10 @@ tests/u128-tests-gt.c.in: tests/create-u128-test-cases.py
 	$(AM_V_GEN) $(PYTHON) $< gt $@
 tests/u128-tests-ge.c.in: tests/create-u128-test-cases.py
 	$(AM_V_GEN) $(PYTHON) $< ge $@
+tests/u128-tests-shl.c.in: tests/create-u128-test-cases.py
+	$(AM_V_GEN) $(PYTHON) $< shl $@
+tests/u128-tests-shr.c.in: tests/create-u128-test-cases.py
+	$(AM_V_GEN) $(PYTHON) $< shr $@
 tests/u128-tests-add.c.in: tests/create-u128-test-cases.py
 	$(AM_V_GEN) $(PYTHON) $< add $@
 tests/u128-tests-sub.c.in: tests/create-u128-test-cases.py

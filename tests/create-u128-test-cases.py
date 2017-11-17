@@ -17,6 +17,10 @@ import sys
 test_count = 25000
 random.seed()
 
+def random_shift_count():
+    # We want to test values [0, 128)
+    return int(random.random() * 128)
+
 def random_128():
     result = 0
     for i in range(4):
@@ -52,6 +56,38 @@ def create_one_cmp_test_case(op, op_str):
     output_one_cmp_test_case(op, op_str, lhs, lhs)
     output_one_cmp_test_case(op, op_str, lhs, rhs)
     output_one_cmp_test_case(op, op_str, rhs, rhs)
+
+
+def create_one_shl_test_case():
+    lhs = random_128()
+    rhs = random_shift_count()
+    result = (lhs << rhs) % 2**128
+    print()
+    print("/*    ", dec_128(lhs), sep="")
+    print(" * << ", rhs, sep="")
+    print(" *  = ", dec_128(result), sep="")
+    print(" */")
+    print("{", sep="")
+    print("    ", hex_128(lhs), ",", sep="")
+    print("    ", rhs, ",", sep="")
+    print("    ", hex_128(result), sep="")
+    print("},", sep="")
+
+
+def create_one_shr_test_case():
+    lhs = random_128()
+    rhs = random_shift_count()
+    result = (lhs >> rhs) % 2**128
+    print()
+    print("/*    ", dec_128(lhs), sep="")
+    print(" * >> ", rhs, sep="")
+    print(" *  = ", dec_128(result), sep="")
+    print(" */")
+    print("{", sep="")
+    print("    ", hex_128(lhs), ",", sep="")
+    print("    ", rhs, ",", sep="")
+    print("    ", hex_128(result), sep="")
+    print("},", sep="")
 
 
 def create_one_add_test_case():
@@ -110,6 +146,10 @@ for i in range(test_count):
         create_one_cmp_test_case(operator.gt, "> ")
     elif sys.argv[1] == "ge":
         create_one_cmp_test_case(operator.ge, ">=")
+    elif sys.argv[1] == "shl":
+        create_one_shl_test_case()
+    elif sys.argv[1] == "shr":
+        create_one_shr_test_case()
     elif sys.argv[1] == "add":
         create_one_add_test_case()
     elif sys.argv[1] == "sub":
