@@ -229,76 +229,137 @@ START_TEST(test_u128_sub)
 END_TEST
 
 
-#define test_u128_cmp(op, op_str, v1, v2, expected) \
-    do { \
-        bool  actual = cork_u128_##op((v1), (v2)); \
-        fail_unless(actual == (expected), \
-                    "%" PRIu64 ":%" PRIu64 \
-                    " should %sbe " op_str " " \
-                    "%" PRIu64 ":%" PRIu64, \
-                    cork_u128_be64((v1), 0), cork_u128_be64((v1), 1), \
-                    (expected)? "": "not ", \
-                    cork_u128_be64((v2), 0), cork_u128_be64((v2), 1)); \
-    } while (0)
+struct comparison_test {
+    uint64_t i0;
+    uint64_t i1;
+    uint64_t j0;
+    uint64_t j1;
+    bool expected;
+};
 
 static void
-test_one_u128_eq(uint64_t i0, uint64_t i1, uint64_t j0, uint64_t j1,
-                 bool expected)
+check_comparison_test(bool(op)(cork_u128, cork_u128), const char *op_str,
+                      const struct comparison_test *test)
 {
-    cork_u128  value1 = cork_u128_from_64(i0, i1);
-    cork_u128  value2 = cork_u128_from_64(j0, j1);
-    test_u128_cmp(eq, "==", value1, value2, expected);
-    test_u128_cmp(ne, "!=", value1, value2, !expected);
+    cork_u128  value1 = cork_u128_from_64(test->i0, test->i1);
+    cork_u128  value2 = cork_u128_from_64(test->j0, test->j1);
+    bool  actual = op(value1, value2);
+    if (actual != test->expected) {
+        char  buf1[CORK_U128_HEX_LENGTH];
+        char  buf2[CORK_U128_HEX_LENGTH];
+        const char  *value1_str = cork_u128_to_hex(buf1, value1);
+        const char  *value2_str = cork_u128_to_hex(buf2, value2);
+        fprintf(stderr, "#     %40s\n", value1_str);
+        fprintf(stderr, "#  %s %40s\n", op_str, value2_str);
+        fprintf(stderr, "#   = %s\n", test->expected? "true": "false");
+        fprintf(stderr, "# got %s\n", actual? "true": "false");
+        fail("Unexpected comparison error");
+    }
 }
+
+static void
+check_comparison_tests_(bool(op)(cork_u128, cork_u128), const char *op_str,
+                        const struct comparison_test *test, size_t count)
+{
+    size_t  i;
+    for (i = 0; i < count; i++) {
+        check_comparison_test(op, op_str, test + i);
+    }
+}
+
+#define check_comparison_tests(op, op_str, tests) \
+    check_comparison_tests_(op, op_str, \
+            (tests), sizeof(tests) / sizeof(tests[0]))
+
+static const struct comparison_test EQ_TESTS[] = {
+    {0, 0, 0, 0, true},
+    {0, 0, 0, 1, false},
+    {0, 2, 0, 1, false},
+    {0, 1, 0, UINT64_C(0x100000000), false},
+    {0, UINT64_C(0x100000000), 0, UINT64_C(0x100000000), true},
+#include "u128-tests-eq.c.in"
+};
 
 START_TEST(test_u128_eq)
 {
     DESCRIBE_TEST;
-    test_one_u128_eq(0, 0, 0, 0, true);
-    test_one_u128_eq(0, 0, 0, 1, false);
-    test_one_u128_eq(0, 2, 0, 1, false);
-    test_one_u128_eq(0, 1, 0, UINT64_C(0x100000000), false);
-    test_one_u128_eq(0, UINT64_C(0x100000000), 0, UINT64_C(0x100000000), true);
+    check_comparison_tests(cork_u128_eq, "==", EQ_TESTS);
 }
 END_TEST
 
-static void
-test_one_u128_lt(uint64_t i0, uint64_t i1, uint64_t j0, uint64_t j1,
-                 bool expected)
+static const struct comparison_test NE_TESTS[] = {
+    {0, 0, 0, 0, false},
+    {0, 0, 0, 1, true},
+    {0, 2, 0, 1, true},
+    {0, 1, 0, UINT64_C(0x100000000), true},
+    {0, UINT64_C(0x100000000), 0, UINT64_C(0x100000000), false},
+#include "u128-tests-ne.c.in"
+};
+
+START_TEST(test_u128_ne)
 {
-    cork_u128  value1 = cork_u128_from_64(i0, i1);
-    cork_u128  value2 = cork_u128_from_64(j0, j1);
-    test_u128_cmp(lt, "<",  value1, value2, expected);
-    test_u128_cmp(ge, ">=", value1, value2, !expected);
+    DESCRIBE_TEST;
+    check_comparison_tests(cork_u128_ne, "!=", NE_TESTS);
 }
+END_TEST
+
+static const struct comparison_test LT_TESTS[] = {
+    {0, 0, 0, 0, false},
+    {0, 0, 0, 1, true},
+    {0, 2, 0, 1, false},
+    {0, 1, 0, UINT64_C(0x100000000), true},
+#include "u128-tests-lt.c.in"
+};
 
 START_TEST(test_u128_lt)
 {
     DESCRIBE_TEST;
-    test_one_u128_lt(0, 0, 0, 0, false);
-    test_one_u128_lt(0, 0, 0, 1, true);
-    test_one_u128_lt(0, 2, 0, 1, false);
-    test_one_u128_lt(0, 1, 0, UINT64_C(0x100000000), true);
+    check_comparison_tests(cork_u128_lt, "< ", LT_TESTS);
 }
 END_TEST
 
-static void
-test_one_u128_gt(uint64_t i0, uint64_t i1, uint64_t j0, uint64_t j1,
-                 bool expected)
+static const struct comparison_test LE_TESTS[] = {
+    {0, 0, 0, 0, true},
+    {0, 1, 0, 0, false},
+    {0, 1, 0, 2, true},
+    {0, UINT64_C(0x100000000), 0, 1, false},
+#include "u128-tests-le.c.in"
+};
+
+START_TEST(test_u128_le)
 {
-    cork_u128  value1 = cork_u128_from_64(i0, i1);
-    cork_u128  value2 = cork_u128_from_64(j0, j1);
-    test_u128_cmp(gt, ">",  value1, value2, expected);
-    test_u128_cmp(le, "<=", value1, value2, !expected);
+    DESCRIBE_TEST;
+    check_comparison_tests(cork_u128_le, "<=", LE_TESTS);
 }
+END_TEST
+
+static const struct comparison_test GT_TESTS[] = {
+    {0, 0, 0, 0, false},
+    {0, 1, 0, 0, true},
+    {0, 1, 0, 2, false},
+    {0, UINT64_C(0x100000000), 0, 1, true},
+#include "u128-tests-gt.c.in"
+};
 
 START_TEST(test_u128_gt)
 {
     DESCRIBE_TEST;
-    test_one_u128_gt(0, 0, 0, 0, false);
-    test_one_u128_gt(0, 1, 0, 0, true);
-    test_one_u128_gt(0, 1, 0, 2, false);
-    test_one_u128_gt(0, UINT64_C(0x100000000), 0, 1, true);
+    check_comparison_tests(cork_u128_gt, "> ", GT_TESTS);
+}
+END_TEST
+
+static const struct comparison_test GE_TESTS[] = {
+    {0, 0, 0, 0, true},
+    {0, 0, 0, 1, false},
+    {0, 2, 0, 1, true},
+    {0, 1, 0, UINT64_C(0x100000000), false},
+#include "u128-tests-ge.c.in"
+};
+
+START_TEST(test_u128_ge)
+{
+    DESCRIBE_TEST;
+    check_comparison_tests(cork_u128_ge, ">=", GE_TESTS);
 }
 END_TEST
 
@@ -317,8 +378,11 @@ test_suite()
     tcase_add_test(tc_u128, test_u128_add);
     tcase_add_test(tc_u128, test_u128_sub);
     tcase_add_test(tc_u128, test_u128_eq);
+    tcase_add_test(tc_u128, test_u128_ne);
     tcase_add_test(tc_u128, test_u128_lt);
+    tcase_add_test(tc_u128, test_u128_le);
     tcase_add_test(tc_u128, test_u128_gt);
+    tcase_add_test(tc_u128, test_u128_ge);
     suite_add_tcase(s, tc_u128);
 
     return s;

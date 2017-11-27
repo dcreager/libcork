@@ -86,6 +86,12 @@ macro(make_u128_suite op)
     add_dependencies(u128-test-suite u128-test-${op})
 endmacro(make_u128_suite)
 
+make_u128_suite(eq)
+make_u128_suite(ne)
+make_u128_suite(lt)
+make_u128_suite(le)
+make_u128_suite(gt)
+make_u128_suite(ge)
 make_u128_suite(add)
 make_u128_suite(sub)
 
