@@ -86,11 +86,21 @@ macro(make_u128_suite op)
     add_dependencies(u128-test-suite u128-test-${op})
 endmacro(make_u128_suite)
 
+make_u128_suite(eq)
+make_u128_suite(ne)
+make_u128_suite(lt)
+make_u128_suite(le)
+make_u128_suite(gt)
+make_u128_suite(ge)
 make_u128_suite(add)
 make_u128_suite(sub)
 
 #-----------------------------------------------------------------------
 # Command-line tests
+
+if (NOT CRAM_EXECUTABLE)
+    set(CRAM_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/cram.py")
+endif (NOT CRAM_EXECUTABLE)
 
 if (PYTHON_EXECUTABLE)
     configure_file(ccram ${CMAKE_BINARY_DIR}/ccram COPYONLY)
@@ -103,6 +113,7 @@ if (PYTHON_EXECUTABLE)
             ${CMAKE_BINARY_DIR}/ccram
                 --python ${PYTHON_EXECUTABLE}
                 --root ${CMAKE_SOURCE_DIR}
+                --cram ${CRAM_EXECUTABLE}
                 --tests ${TEST}
         )
     endforeach(TEST)
