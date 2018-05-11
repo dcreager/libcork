@@ -98,6 +98,10 @@ make_u128_suite(sub)
 #-----------------------------------------------------------------------
 # Command-line tests
 
+if (NOT CRAM_EXECUTABLE)
+    set(CRAM_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/cram.py")
+endif (NOT CRAM_EXECUTABLE)
+
 if (PYTHON_EXECUTABLE)
     configure_file(ccram ${CMAKE_BINARY_DIR}/ccram COPYONLY)
     file(GLOB_RECURSE TESTS "${CMAKE_CURRENT_SOURCE_DIR}/*.t")
@@ -109,6 +113,7 @@ if (PYTHON_EXECUTABLE)
             ${CMAKE_BINARY_DIR}/ccram
                 --python ${PYTHON_EXECUTABLE}
                 --root ${CMAKE_SOURCE_DIR}
+                --cram ${CRAM_EXECUTABLE}
                 --tests ${TEST}
         )
     endforeach(TEST)
