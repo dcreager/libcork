@@ -1,9 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
 mkdir .build
 cd .build
+
+: ${ENABLE_SHARED_TESTS:=NO}
+: ${FALLBACK_U128:=NO}
 
 if [ "$TRAVIS_OS_NAME" = linux ]; then
     if [ "$ARCH" = i386 ]; then
@@ -28,6 +31,6 @@ fi
 cmake .. \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 $ARCH_FLAGS $EXTRA_FLAGS" \
-    -DENABLE_SHARED_EXECUTABLES="${ENABLE_SHARED_EXECUTABLES}"
+    -DENABLE_SHARED_TESTS="${ENABLE_SHARED_TESTS}"
 make
 make test

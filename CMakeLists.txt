@@ -74,6 +74,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(ENABLE_SHARED YES CACHE BOOL "Whether to build a shared library")
 set(ENABLE_SHARED_EXECUTABLES NO CACHE BOOL
     "Whether to link executables using shared libraries")
+set(ENABLE_SHARED_TESTS NO CACHE BOOL
+    "Whether to link test cases using shared libraries")
 set(ENABLE_STATIC YES CACHE BOOL "Whether to build a static library")
 
 if(NOT CMAKE_INSTALL_LIBDIR)

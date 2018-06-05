@@ -365,7 +365,7 @@ test_file_exists(const char *filename, bool expected)
 START_TEST(test_file_exists_01)
 {
     DESCRIBE_TEST;
-    test_file_exists("embedded-test-files", true);
+    test_file_exists("test-files", true);
     test_file_exists("test-nonexistent", false);
 }
 END_TEST

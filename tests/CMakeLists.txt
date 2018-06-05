@@ -17,29 +17,15 @@ find_package(PythonInterp)
 #-----------------------------------------------------------------------
 # Build the test cases
 
-# For each test cases, we create two executables: one that links with a
-# shared libcork, and the other that simulates embedding libcork into
-# another project.  For the embedded version, we need to know which of
-# the libcork submodules should be included when compiling the test
-# case.  These are provided as additional parameters to the make_test
-# macro.
-
 macro(make_test test_name)
-    if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
-        add_executable(shared-${test_name} ${test_name}.c)
-        target_link_libraries(shared-${test_name} ${CHECK_LIBRARIES}
-            libcork-shared)
-        add_test(shared-${test_name} shared-${test_name})
-    endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
-
-    if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
-        add_executable(embedded-${test_name} ${test_name}.c)
-        set_target_properties(embedded-${test_name} PROPERTIES
-            COMPILE_DEFINITIONS CORK_EMBEDDED_TEST=1)
-        target_link_libraries(embedded-${test_name} ${CHECK_LIBRARIES}
-            libcork-static)
-        add_test(embedded-${test_name} embedded-${test_name})
-    endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+  add_executable(${test_name} ${test_name}.c)
+  add_test(${test_name} ${test_name})
+  if (ENABLE_SHARED_TESTS)
+    target_link_libraries(${test_name} ${CHECK_LIBRARIES} libcork-shared)
+  else (ENABLE_SHARED_TESTS)
+    set_target_properties(${test_name} PROPERTIES COMPILE_DEFINITIONS CORK_EMBEDDED_TEST=1)
+    target_link_libraries(${test_name} ${CHECK_LIBRARIES} libcork-static)
+  endif (ENABLE_SHARED_TESTS)
 endmacro(make_test)
 
 make_test(test-array)
@@ -65,12 +51,7 @@ make_test(test-u128)
 # arithmetic functions.
 
 add_custom_target(u128-test-suite)
-if (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
-    add_dependencies(shared-test-u128 u128-test-suite)
-endif (ENABLE_SHARED OR ENABLE_SHARED_EXECUTABLES)
-if (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
-    add_dependencies(embedded-test-u128 u128-test-suite)
-endif (ENABLE_STATIC OR NOT ENABLE_SHARED_EXECUTABLES)
+add_dependencies(test-u128 u128-test-suite)
 
 macro(make_u128_suite op)
     set(generator "${CMAKE_CURRENT_SOURCE_DIR}/create-u128-test-cases.py")
