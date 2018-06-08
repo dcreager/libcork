@@ -1,13 +1,49 @@
-/build/
-/.build/
+# autotools stuff
+/aclocal.m4
+/autom4te.cache/
+/build-aux/compile
+/build-aux/config.guess
+/build-aux/config.sub
+/build-aux/depcomp
+/build-aux/install-sh
+/build-aux/ltmain.sh
+/build-aux/missing
+/build-aux/test-driver
+/config.h.in
+/configure
+/Makefile.in
+/m4/libtool.m4
+/m4/lt*.m4
 
-/libcork*.tar.gz
-/libcork*.tar.bz2
+# Dist tarballs
+libcork-*.tar.xz
 
-*.[oa]
-*.os
-*.so
-*.dylib
+# In-source build artefacts
+*.a
+*.o
+*.la
+*.lo
+.deps
+.dirstamp
+.libs/
+/config.h
+/config.log
+/config.status
+/cork-*
+/libcork.la
+/libtool
+/Makefile
+/stamp-h1
+test*.log
+test*.trs
+/tests/test-*
+!/tests/test-*.c
 
+# Common out-of-source build locations
+/.build*
+/build*
+!/build-aux
+
+# Some common hidden files that we definitely DON'T want to ignore.
 !.travis.yml
 !.travis/

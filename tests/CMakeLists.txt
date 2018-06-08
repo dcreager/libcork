@@ -94,6 +94,7 @@ if (PYTHON_EXECUTABLE)
             ${CMAKE_BINARY_DIR}/ccram
                 --python ${PYTHON_EXECUTABLE}
                 --root ${CMAKE_SOURCE_DIR}
+                --build ${CMAKE_BINARY_DIR}/src
                 --cram ${CRAM_EXECUTABLE}
                 --tests ${TEST}
         )

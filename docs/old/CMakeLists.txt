@@ -19,11 +19,6 @@ if (NOT SPHINX_EXECUTABLE)
   set(GENERATE_DOC FALSE)
 endif (NOT SPHINX_EXECUTABLE)
 
-if (NOT CMAKE_INSTALL_DOCDIR)
-    set(CMAKE_INSTALL_DOCDIR "share/doc/${PROJECT_NAME}" CACHE STRING
-        "The base name of the installation directory for documentation")
-endif (NOT CMAKE_INSTALL_DOCDIR)
-
 set(INTERSPHINX_OVERRIDES "")
 
 macro(find_prereq_doc LIB_NAME)
