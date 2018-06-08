@@ -1,3 +1,14 @@
+dist: trusty
+sudo: false
+addons:
+  apt:
+    packages:
+      - check
+      # This one is only needed for ARCH=i386, but we can't add conditional
+      # package dependencies in this section
+      - check:i386
+      - gcc-multilib
+
 language: c
 compiler:
   - clang
