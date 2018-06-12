@@ -141,7 +141,17 @@ function(add_c_library __TARGET_NAME)
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
     endif (ENABLE_STATIC)
 
+    set(PACKAGE_TARNAME "${PROJECT_NAME}")
     set(prefix ${CMAKE_INSTALL_PREFIX})
+    set(exec_prefix "\${prefix}")
+    set(datarootdir "\${prefix}/share")
+    set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+    set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+    string(REPLACE
+      "${CMAKE_INSTALL_DATAROOTDIR}/" ""
+      base_docdir
+      "${CMAKE_INSTALL_DOCDIR}")
+    set(docdir "\${datarootdir}/${base_docdir}")
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/${__PKGCONFIG_NAME}.pc.in
         ${CMAKE_CURRENT_BINARY_DIR}/${__PKGCONFIG_NAME}.pc

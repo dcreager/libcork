@@ -1,0 +1,47 @@
+#!/bin/sh
+# ----------------------------------------------------------------------
+# Copyright © 2011, libcork authors
+# All rights reserved.
+#
+# Please see the COPYING file in this distribution for license details.
+# ----------------------------------------------------------------------
+
+# Usage:
+#   calculate version|commit [path to stamp file]
+#
+# Calculates the current version number.  When run from a distribution tarball,
+# we get the version number from the .version-stamp file (that our `make dist`
+# target ensures that it creates).  When run from a local git repository, we get
+# the version number via `git describe`.
+
+WHAT="$1"
+case "$WHAT" in
+  version) ;;
+  commit) ;;
+  *) echo "Unknown option $WHAT" >&2; exit 1;;
+esac
+
+# First try the stamp file
+STAMP_FILE="$2"
+if [ -f "$STAMP_FILE" ]; then
+  version=$(cat "$STAMP_FILE")
+  if [ -z "$version" ]; then
+    echo "Invalid stamp file" >&2
+    exit 1
+  fi
+  printf "%s" "$version"
+  exit 0
+fi
+
+# Fall back on `git describe`
+case "$WHAT" in
+  version)
+    version=$(git describe --abbrev=7 --dirty --always);;
+  commit)
+    version=$(git rev-parse HEAD);;
+esac
+if [ -z "$version" ]; then
+  echo "Cannot find the version from git" >&2
+  exit 1
+fi
+printf "%s" "$version"

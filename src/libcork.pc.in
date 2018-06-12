@@ -1,8 +1,11 @@
+PACKAGE_TARNAME=@PACKAGE_TARNAME@
 prefix=@prefix@
-exec_prefix=${prefix}
-libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-sphinxdir=${prefix}/@CMAKE_INSTALL_DOCDIR@
+exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
+docdir=@docdir@
+includedir=@includedir@
+libdir=@libdir@
+sphinxdir=${docdir}/html
 
 Name: libcork
 Description: A simple, easily embeddable cross-platform C library

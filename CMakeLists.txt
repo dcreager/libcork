@@ -19,7 +19,8 @@ find_package(CTargets)
 # Retrieve the current version number
 
 execute_process(
-    COMMAND git describe
+    COMMAND
+      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate version .version-stamp
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE VERSION_RESULT
     OUTPUT_VARIABLE VERSION
@@ -42,7 +43,8 @@ else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
 endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
 
 execute_process(
-    COMMAND git rev-parse HEAD
+    COMMAND
+      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate commit .commit-stamp
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE GIT_SHA1_RESULT
     OUTPUT_VARIABLE GIT_SHA1

@@ -2,11 +2,10 @@
 
 set -e
 
-mkdir .build
-cd .build
-
-: ${ENABLE_SHARED_TESTS:=NO}
-: ${FALLBACK_U128:=NO}
+# Defaults
+ENABLE_SHARED_TESTS=NO
+SRCDIR="$PWD"
+: ${TMPDIR:=/tmp}
 
 if [ "$TRAVIS_OS_NAME" = linux ]; then
     if [ "$ARCH" = i386 ]; then
@@ -23,14 +22,92 @@ elif [ "$TRAVIS_OS_NAME" = osx ]; then
     fi
 fi
 
-if [ "$FALLBACK_U128" = YES ]; then
+build_autotools () {
+  BUILDDIR=$(mktemp -d "$TMPDIR"/build-autotools-XXXXXX)
+  echo "Using autotools to build in $BUILDDIR"
+  echo "$ autoreconf"
+  autoreconf -i
+  cd "$BUILDDIR"
+  echo "$ configure"
+  CFLAGS="-g -O3 $ARCH_FLAGS" "$SRCDIR"/configure
+  echo "$ make"
+  make
+  echo "$ make check"
+  make check
+  echo "$ make distcheck"
+  make distcheck
+}
+
+build_cmake () {
+  BUILDDIR=$(mktemp -d "$TMPDIR"/build-cmake-XXXXXX)
+  echo "Using cmake to build in $BUILDDIR"
+  cd "$BUILDDIR"
+  echo "$ cmake"
+  cmake "$SRCDIR" \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 $ARCH_FLAGS $EXTRA_FLAGS" \
+      -DENABLE_SHARED_TESTS="$ENABLE_SHARED_TESTS"
+  echo "$ make"
+  make
+  echo "$ make test"
+  make test
+}
+
+build_cmake_from_dist () {
+  DISTDIR=$(mktemp -d "$TMPDIR"/build-dist-XXXXXX)
+  echo "Using autotools to create dist tarball in $DISTDIR"
+  autoreconf -i
+  cd "$DISTDIR"
+  echo "$ configure"
+  CFLAGS="-g -O3 $ARCH_FLAGS" "$SRCDIR"/configure
+  echo "$ make dist"
+  make dist
+  # We should end up with exactly one *.tar.xz file
+  TARBALL=$(ls *.tar.xz | head -n 1)
+  UNPACKED=${TARBALL%.tar.xz}
+
+  UNPACKEDDIR=$(mktemp -d "$TMPDIR"/build-unpacked-XXXXXX)
+  echo "Unpacking dist tarball $UNPACKED into $UNPACKEDDIR"
+  cd "$UNPACKEDDIR"
+  tar xvf "$DISTDIR"/"$TARBALL"
+
+  BUILDDIR=$(mktemp -d "$TMPDIR"/build-cmake-XXXXXX)
+  echo "Using cmake to build from dist tarball in $BUILDDIR"
+  cd "$BUILDDIR"
+  echo "$ cmake"
+  cmake "$UNPACKEDDIR"/"$UNPACKED" \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 $ARCH_FLAGS $EXTRA_FLAGS"
+  echo "$ make"
+  make
+  echo "$ make test"
+  make test
+}
+
+# Flavors
+case $FLAVOR in
+  autotools)
+    BUILDER=autotools
+    ;;
+  cmake)
+    BUILDER=cmake
+    ;;
+  shared-cmake)
+    BUILDER=cmake
+    ENABLE_SHARED_TESTS=yes
+    ;;
+  fallback-u128)
+    BUILDER=cmake
     EXTRA_FLAGS="$EXTRA_FLAGS -DCORK_CONFIG_HAVE_GCC_INT128=0"
     EXTRA_FLAGS="$EXTRA_FLAGS -DCORK_CONFIG_HAVE_GCC_MODE_ATTRIBUTE=0"
-fi
+    ;;
+  cmake-from-dist)
+    BUILDER=cmake_from_dist
+    ;;
+  *)
+    echo "Unknown build flavor $FLAVOR!" >&2
+    exit 1
+    ;;
+esac
 
-cmake .. \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DCMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 $ARCH_FLAGS $EXTRA_FLAGS" \
-    -DENABLE_SHARED_TESTS="${ENABLE_SHARED_TESTS}"
-make
-make test
+build_$BUILDER
