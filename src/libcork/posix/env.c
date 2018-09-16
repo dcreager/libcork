@@ -16,6 +16,10 @@
 #include "libcork/os/subprocess.h"
 #include "libcork/helpers/errors.h"
 
+#ifdef __CYGWIN__
+#include <cygwin/version.h>
+#endif
+
 #if defined(__APPLE__)
 /* Apple doesn't provide access to the "environ" variable from a shared library.
  * There's a workaround function to grab the environ pointer described at [1].
