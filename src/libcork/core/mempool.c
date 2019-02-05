@@ -181,7 +181,7 @@ cork_mempool_new_object(struct cork_mempool *mp)
     }
 
     obj = mp->free_list;
-    mp->free_list = obj->next_free;
+    mp->free_list = obj ? obj->next_free : NULL;
     mp->allocated_count++;
     ptr = cork_mempool_get_object(obj);
     return ptr;
