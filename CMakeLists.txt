@@ -14,7 +14,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(ParseArguments)
 find_package(Prereqs)
 find_package(CTargets)
-find_package(Check)
 
 #-----------------------------------------------------------------------
 # Retrieve the current version number
