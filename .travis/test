@@ -33,7 +33,7 @@ build_autotools () {
   echo "$ make"
   make
   echo "$ make check"
-  make check
+  make check VERBOSE=1
   echo "$ make distcheck"
   make distcheck
 }
@@ -50,7 +50,7 @@ build_cmake () {
   echo "$ make"
   make
   echo "$ make test"
-  make test
+  CTEST_OUTPUT_ON_FAILURE=1 make test
 }
 
 build_cmake_from_dist () {
@@ -81,7 +81,7 @@ build_cmake_from_dist () {
   echo "$ make"
   make
   echo "$ make test"
-  make test
+  CTEST_OUTPUT_ON_FAILURE=1 make test
 }
 
 # Flavors
