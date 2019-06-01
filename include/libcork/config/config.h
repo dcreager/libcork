@@ -56,6 +56,10 @@
 /* Do some BSD (4.3 code base or newer)specific autodetection. */
 #include <libcork/config/bsd.h>
 
+#elif defined(__sun) && defined(__SVR4)
+/* Solaris and its derivatives */
+#include <libcork/config/solaris.h>
+
 #endif  /* platforms */
 
 
