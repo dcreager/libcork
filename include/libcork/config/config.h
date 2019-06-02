@@ -56,6 +56,10 @@
 /* Do some BSD (4.3 code base or newer)specific autodetection. */
 #include <libcork/config/bsd.h>
 
+#elif defined(__CYGWIN__)
+/* Do some Cygwin autodectection. */
+#include <libcork/config/cygwin.h>
+
 #endif  /* platforms */
 
 

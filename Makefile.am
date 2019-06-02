@@ -73,6 +73,7 @@ config_include_HEADERS = \
     include/libcork/config/macosx.h \
     include/libcork/config/bsd.h \
     include/libcork/config/gnu.h \
+    include/libcork/config/cygwin.h \
     include/libcork/config/config.h
 
 core_include_HEADERS = \
