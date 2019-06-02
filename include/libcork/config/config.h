@@ -44,9 +44,9 @@
 #include <sys/param.h>
 #endif
 
-#if defined(__linux) || defined(__FreeBSD_kernel__) || defined(__GNU__)
-/* Do some Linux, kFreeBSD or GNU/Hurd specific autodetection. */
-#include <libcork/config/linux.h>
+#ifdef __GLIBC__
+/* Do some GNU specific autodetection. */
+#include <libcork/config/gnu.h>
 
 #elif defined(__APPLE__) && defined(__MACH__)
 /* Do some Mac OS X-specific autodetection. */

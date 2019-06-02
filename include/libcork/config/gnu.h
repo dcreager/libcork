@@ -7,8 +7,8 @@
  * ----------------------------------------------------------------------
  */
 
-#ifndef LIBCORK_CONFIG_LINUX_H
-#define LIBCORK_CONFIG_LINUX_H
+#ifndef LIBCORK_CONFIG_GNU_H
+#define LIBCORK_CONFIG_GNU_H
 
 /*-----------------------------------------------------------------------
  * Endianness
@@ -30,4 +30,4 @@
 #define CORK_HAVE_PTHREADS  1
 
 
-#endif /* LIBCORK_CONFIG_LINUX_H */
+#endif /* LIBCORK_CONFIG_GNU_H */
