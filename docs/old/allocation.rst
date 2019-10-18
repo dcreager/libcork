@@ -164,9 +164,9 @@ Since this is C, you must free any memory region once you're done with it.
 You must use one of the functions from this section to free any memory that you
 created using any of the allocation functions described previously.
 
-.. function:: void \*cork_free(void \*ptr, size_t size)
-              void \*cork_cfree(void \*ptr, size_t count, size_t size)
-              type \*cork_delete(void \*ptr, TYPE type)
+.. function:: void cork_free(void \*ptr, size_t size)
+              void cork_cfree(void \*ptr, size_t count, size_t size)
+              void cork_delete(TYPE type, void \*ptr)
 
    Frees a region of memory allocated by one of libcork's allocation functions.
 
