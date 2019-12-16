@@ -24,7 +24,7 @@ macro(make_test test_name)
     target_link_libraries(${test_name} ${CHECK_LIBRARIES} libcork-shared)
   else (ENABLE_SHARED_TESTS)
     set_target_properties(${test_name} PROPERTIES COMPILE_DEFINITIONS CORK_EMBEDDED_TEST=1)
-    target_link_libraries(${test_name} ${CHECK_LIBRARIES} libcork-static)
+    target_link_libraries(${test_name} libcork-static ${CHECK_LIBRARIES})
   endif (ENABLE_SHARED_TESTS)
 endmacro(make_test)
 
