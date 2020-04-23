@@ -160,3 +160,40 @@ cork_timestamp_format_local(const cork_timestamp ts, const char *format,
     localtime_r(&clock, &tm);
     return cork_timestamp_format_parts(ts, &tm, format, dest);
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+void
+cork_timestamp_init_sec(cork_timestamp* ts, uint64_t sec);
+
+void
+cork_timestamp_init_gsec(cork_timestamp* ts, uint64_t sec, uint64_t gsec);
+
+void
+cork_timestamp_init_msec(cork_timestamp* ts, uint64_t sec, uint64_t msec);
+
+void
+cork_timestamp_init_usec(cork_timestamp* ts, uint64_t sec, uint64_t usec);
+
+void
+cork_timestamp_init_nsec(cork_timestamp* ts, uint64_t sec, uint64_t nsec);
+
+uint32_t
+cork_timestamp_sec(const cork_timestamp ts);
+
+uint32_t
+cork_timestamp_gsec(const cork_timestamp ts);
+
+uint64_t
+cork_timestamp_gsec_to_units(const cork_timestamp ts, uint64_t denom);
+
+uint64_t
+cork_timestamp_msec(const cork_timestamp ts);
+
+uint64_t
+cork_timestamp_usec(const cork_timestamp ts);
+
+uint64_t
+cork_timestamp_nsec(const cork_timestamp ts);

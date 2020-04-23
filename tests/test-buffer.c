@@ -345,3 +345,14 @@ main(int argc, const char **argv)
 
     return (number_failed == 0)? EXIT_SUCCESS: EXIT_FAILURE;
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+void
+cork_buffer_copy(struct cork_buffer* dest, const struct cork_buffer* src);
+
+void
+cork_buffer_append_copy(struct cork_buffer* dest,
+                        const struct cork_buffer* src);

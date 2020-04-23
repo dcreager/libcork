@@ -20,10 +20,6 @@
 /* Needed for memcpy */
 #include <string.h>
 
-#ifndef CORK_HASH_ATTRIBUTES
-#define CORK_HASH_ATTRIBUTES  CORK_ATTR_UNUSED static inline
-#endif
-
 
 typedef uint32_t  cork_hash;
 
@@ -31,7 +27,12 @@ typedef struct {
     cork_u128  u128;
 } cork_big_hash;
 
-#define cork_big_hash_equal(h1, h2)  (cork_u128_eq((h1).u128, (h2).u128))
+CORK_INLINE
+bool
+cork_big_hash_equal(const cork_big_hash h1, const cork_big_hash h2)
+{
+    return cork_u128_eq(h1.u128, h2.u128);
+}
 
 #define CORK_BIG_HASH_INIT()  {{{{0}}}}
 
@@ -44,8 +45,7 @@ typedef struct {
 #define CORK_ROTL32(a,b) (((a) << ((b) & 0x1f)) | ((a) >> (32 - ((b) & 0x1f))))
 #define CORK_ROTL64(a,b) (((a) << ((b) & 0x3f)) | ((a) >> (64 - ((b) & 0x3f))))
 
-CORK_ATTR_UNUSED
-static inline
+CORK_INLINE
 uint32_t cork_getblock32(const uint32_t *p, int i)
 {
     uint32_t u;
@@ -53,8 +53,7 @@ uint32_t cork_getblock32(const uint32_t *p, int i)
     return u;
 }
 
-CORK_ATTR_UNUSED
-static inline
+CORK_INLINE
 uint64_t cork_getblock64(const uint64_t *p, int i)
 {
     uint64_t u;
@@ -62,8 +61,7 @@ uint64_t cork_getblock64(const uint64_t *p, int i)
     return u;
 }
 
-CORK_ATTR_UNUSED
-static inline
+CORK_INLINE
 uint32_t cork_fmix32(uint32_t h)
 {
     h ^= h >> 16;
@@ -74,8 +72,7 @@ uint32_t cork_fmix32(uint32_t h)
     return h;
 }
 
-CORK_ATTR_UNUSED
-static inline
+CORK_INLINE
 uint64_t cork_fmix64(uint64_t k)
 {
     k ^= k >> 33;
@@ -86,7 +83,7 @@ uint64_t cork_fmix64(uint64_t k)
     return k;
 }
 
-CORK_HASH_ATTRIBUTES
+CORK_INLINE
 cork_hash
 cork_stable_hash_buffer(cork_hash seed, const void *src, size_t len)
 {
@@ -333,8 +330,7 @@ do { \
 } while (0)
 
 
-#include <stdio.h>
-CORK_HASH_ATTRIBUTES
+CORK_INLINE
 cork_hash
 cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 {
@@ -351,7 +347,7 @@ cork_hash_buffer(cork_hash seed, const void *src, size_t len)
 }
 
 
-CORK_HASH_ATTRIBUTES
+CORK_INLINE
 cork_big_hash
 cork_big_hash_buffer(cork_big_hash seed, const void *src, size_t len)
 {

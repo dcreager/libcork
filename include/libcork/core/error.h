@@ -117,8 +117,8 @@ cork_unknown_error_set_(const char *location);
 #define cork_abort(fmt, ...) \
     cork_abort_(__func__, __FILE__, __LINE__, fmt, __VA_ARGS__)
 
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_abort_if_null_(void *ptr, const char *msg, const char *func,
                     const char *file, unsigned int line)
 {

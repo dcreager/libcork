@@ -11,6 +11,7 @@
 #define LIBCORK_DS_SLICE_H
 
 #include <libcork/core/api.h>
+#include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
 
@@ -79,57 +80,97 @@ struct cork_slice {
 CORK_API void
 cork_slice_clear(struct cork_slice *slice);
 
-#define cork_slice_is_empty(slice)  ((slice)->buf == NULL)
+CORK_INLINE
+bool
+cork_slice_is_empty(const struct cork_slice* slice)
+{
+    return slice->buf == NULL;
+}
 
 
 CORK_API int
 cork_slice_copy(struct cork_slice *dest, const struct cork_slice *slice,
                 size_t offset, size_t length);
 
-#define cork_slice_copy_fast(dest, slice, offset, length) \
-    ((slice)->iface->copy((dest), (slice), (offset), (length)))
+CORK_INLINE
+int
+cork_slice_copy_fast(struct cork_slice* dest, const struct cork_slice* slice,
+                     size_t offset, size_t length)
+{
+    return slice->iface->copy(dest, slice, offset, length);
+}
 
 CORK_API int
 cork_slice_copy_offset(struct cork_slice *dest, const struct cork_slice *slice,
                        size_t offset);
 
-#define cork_slice_copy_offset_fast(dest, slice, offset) \
-    ((slice)->iface->copy \
-     ((dest), (slice), (offset), (slice)->size - (offset)))
+CORK_INLINE
+int
+cork_slice_copy_offset_fast(struct cork_slice *dest,
+                            const struct cork_slice *slice, size_t offset)
+{
+    return slice->iface->copy(dest, slice, offset, slice->size - offset);
+}
 
 
 CORK_API int
 cork_slice_light_copy(struct cork_slice *dest, const struct cork_slice *slice,
                       size_t offset, size_t length);
 
-#define cork_slice_light_copy_fast(dest, slice, offset, length) \
-    ((slice)->iface->light_copy((dest), (slice), (offset), (length)))
+CORK_INLINE
+int
+cork_slice_light_copy_fast(struct cork_slice *dest,
+                           const struct cork_slice *slice, size_t offset,
+                           size_t length)
+{
+    return slice->iface->light_copy(dest, slice, offset, length);
+}
 
 CORK_API int
 cork_slice_light_copy_offset(struct cork_slice *dest,
                              const struct cork_slice *slice, size_t offset);
 
-#define cork_slice_light_copy_offset_fast(dest, slice, offset) \
-    ((slice)->iface->light_copy \
-     ((dest), (slice), (offset), (slice)->size - (offset)))
+CORK_INLINE
+int
+cork_slice_light_copy_offset_fast(struct cork_slice *dest,
+                                  const struct cork_slice *slice,
+                                  size_t offset)
+{
+    return slice->iface->light_copy(dest, slice, offset, slice->size - offset);
+}
 
 
 CORK_API int
 cork_slice_slice(struct cork_slice *slice, size_t offset, size_t length);
 
-#define cork_slice_slice_fast(_slice, offset, length) \
-    ((_slice)->iface->slice == NULL? \
-     ((_slice)->buf += (offset), (_slice)->size = (length), 0): \
-     ((_slice)->iface->slice((_slice), (offset), (length))))
+CORK_INLINE
+int
+cork_slice_slice_fast(struct cork_slice *slice, size_t offset, size_t length)
+{
+    if (slice->iface->slice == NULL) {
+        slice->buf += offset;
+        slice->size = length;
+        return 0;
+    } else {
+        return slice->iface->slice(slice, offset, length);
+    }
+}
 
 CORK_API int
 cork_slice_slice_offset(struct cork_slice *slice, size_t offset);
 
-#define cork_slice_slice_offset_fast(_slice, offset) \
-    ((_slice)->iface->slice == NULL? \
-     ((_slice)->buf += (offset), (_slice)->size -= (offset), 0): \
-     ((_slice)->iface->slice \
-      ((_slice), (offset), (_slice)->size - (offset))))
+CORK_INLINE
+int
+cork_slice_slice_offset_fast(struct cork_slice *slice, size_t offset)
+{
+    if (slice->iface->slice == NULL) {
+        slice->buf += offset;
+        slice->size -= offset;
+        return 0;
+    } else {
+        return slice->iface->slice(slice, offset, slice->size - offset);
+    }
+}
 
 
 CORK_API void

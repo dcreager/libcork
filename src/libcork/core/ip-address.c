@@ -534,3 +534,28 @@ cork_ip_is_valid_network(const struct cork_ip *addr, unsigned int cidr_prefix)
             return false;
     }
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+void
+cork_ipv4_copy(struct cork_ipv4* addr, const void* src);
+
+bool
+cork_ipv4_equal(const struct cork_ipv4* addr1, const struct cork_ipv4* addr2);
+
+void
+cork_ipv6_copy(struct cork_ipv6* addr, const void* src);
+
+bool
+cork_ipv6_equal(const struct cork_ipv6* addr1, const struct cork_ipv6* addr2);
+
+bool
+cork_ip_equal(const struct cork_ip* addr1, const struct cork_ip* addr2);
+
+void
+cork_ip_from_ipv4(struct cork_ip* addr, const void* src);
+
+void
+cork_ip_from_ipv6(struct cork_ip* addr, const void* src);

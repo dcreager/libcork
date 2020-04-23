@@ -196,3 +196,10 @@ cork_mempool_free_object(struct cork_mempool *mp, void *ptr)
     mp->free_list = obj;
     mp->allocated_count--;
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+struct cork_mempool*
+cork_mempool_new_size(size_t element_size);

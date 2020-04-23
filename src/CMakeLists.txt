@@ -45,6 +45,7 @@ add_c_library(
         libcork/core/error.c
         libcork/core/gc.c
         libcork/core/hash.c
+        libcork/core/id.c
         libcork/core/ip-address.c
         libcork/core/mempool.c
         libcork/core/timestamp.c
@@ -59,6 +60,7 @@ add_c_library(
         libcork/ds/managed-buffer.c
         libcork/ds/ring-buffer.c
         libcork/ds/slice.c
+        libcork/ds/stream.c
         libcork/posix/directory-walker.c
         libcork/posix/env.c
         libcork/posix/exec.c
