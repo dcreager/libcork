@@ -1,7 +1,0 @@
-#!/bin/sh
-
-set -e
-
-if [ "$TRAVIS_OS_NAME" = osx ]; then
-    brew install --universal check
-fi
