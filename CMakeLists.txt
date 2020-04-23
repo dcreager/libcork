@@ -99,6 +99,7 @@ endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 find_package(Threads)
 set(THREADS_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
 set(THREADS_STATIC_LDFLAGS "${CMAKE_THREAD_LIBS_INIT}")
+set(PTHREAD_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 
 #-----------------------------------------------------------------------
 # Include our subdirectories
