@@ -419,3 +419,80 @@ cork_debug_alloc_new(const struct cork_alloc *parent)
     cork_alloc_set_free(debug, cork_debug_alloc__free);
     return debug;
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+void *
+cork_alloc_calloc(const struct cork_alloc *alloc, size_t count, size_t size);
+
+void *
+cork_alloc_malloc(const struct cork_alloc *alloc, size_t size);
+
+void *
+cork_alloc_realloc(const struct cork_alloc *alloc, void *ptr,
+                   size_t old_size, size_t new_size);
+
+void *
+cork_alloc_xcalloc(const struct cork_alloc *alloc, size_t count, size_t size);
+
+void *
+cork_alloc_xmalloc(const struct cork_alloc *alloc, size_t size);
+
+void *
+cork_alloc_xrealloc(const struct cork_alloc *alloc, void *ptr,
+                    size_t old_size, size_t new_size);
+
+void *
+cork_alloc_xreallocf(const struct cork_alloc *alloc, void *ptr,
+                     size_t old_size, size_t new_size);
+
+void
+cork_alloc_free(const struct cork_alloc *alloc, void *ptr, size_t size);
+
+void
+cork_alloc_cfree(const struct cork_alloc *alloc, void *ptr,
+                 size_t count, size_t size);
+
+void *
+cork_calloc(size_t count, size_t size);
+
+void *
+cork_malloc(size_t size);
+
+void *
+cork_realloc(void *ptr, size_t old_size, size_t new_size);
+
+void *
+cork_xcalloc(size_t count, size_t size);
+
+void *
+cork_xmalloc(size_t size);
+
+void *
+cork_xrealloc(void *ptr, size_t old_size, size_t new_size);
+
+void *
+cork_xreallocf(void *ptr, size_t old_size, size_t new_size);
+
+void
+cork_free(void *ptr, size_t size);
+
+void
+cork_cfree(void *ptr, size_t count, size_t size);
+
+const char *
+cork_strdup(const char *str);
+
+const char *
+cork_strndup(const char *str, size_t size);
+
+const char *
+cork_xstrdup(const char *str);
+
+const char *
+cork_xstrndup(const char *str, size_t size);
+
+void
+cork_strfree(const char *str);

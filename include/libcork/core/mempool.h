@@ -27,9 +27,13 @@ struct cork_mempool;
 CORK_API struct cork_mempool *
 cork_mempool_new_size_ex(size_t element_size, size_t block_size);
 
-#define cork_mempool_new_size(element_size) \
-    (cork_mempool_new_size_ex \
-     ((element_size), CORK_MEMPOOL_DEFAULT_BLOCK_SIZE))
+CORK_INLINE
+struct cork_mempool*
+cork_mempool_new_size(size_t element_size)
+{
+    return cork_mempool_new_size_ex(
+            element_size, CORK_MEMPOOL_DEFAULT_BLOCK_SIZE);
+}
 
 #define cork_mempool_new_ex(type, block_size) \
     (cork_mempool_new_size_ex(sizeof(type), (block_size)))

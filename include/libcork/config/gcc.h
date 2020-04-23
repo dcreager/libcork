@@ -56,6 +56,13 @@
 #endif
 #endif
 
+/* C99 inline is available if we're compiling in C99 mode. */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define CORK_CONFIG_HAVE_C99_INLINE  1
+#else
+#define CORK_CONFIG_HAVE_C99_INLINE  0
+#endif
+
 /* __int128 seems to be available on 64-bit platforms as of GCC 4.6.  The
  * attribute((mode(TI))) syntax seems to be available as of 4.1. */
 

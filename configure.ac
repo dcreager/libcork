@@ -30,11 +30,8 @@ AC_SUBST(VERSION_MINOR, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $2}'`])
 AC_SUBST(VERSION_PATCH, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $3}'`])
 AC_SUBST(GIT_SHA1, m4_esyscmd([build-aux/calculate commit .commit-stamp]))
 AC_CONFIG_FILES([include/libcork/config/version.h])
-
-# Turn on fatal warnings by default; you can override this by setting CPPFLAGS
-# to something else when running configure.
-: ${CPPFLAGS="-Wall -Werror"}
 AC_PROG_CC
+AC_PROG_CC_C99
 
 # TAP support
 AC_PROG_AWK
@@ -59,6 +56,10 @@ AX_VALGRIND_DFLT([helgrind], [off])
 AX_VALGRIND_DFLT([drd], [off])
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK()
+
+# Turn on fatal warnings by default; you can override this by setting CPPFLAGS
+# to something else when running configure.
+: ${CPPFLAGS="-Wall -Werror"}
 
 AC_OUTPUT([Makefile])
 

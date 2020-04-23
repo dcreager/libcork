@@ -10,6 +10,7 @@
 #ifndef LIBCORK_CORE_ID_H
 #define LIBCORK_CORE_ID_H
 
+#include <libcork/core/attributes.h>
 #include <libcork/core/hash.h>
 
 
@@ -27,9 +28,26 @@ typedef const struct cork_uid  *cork_uid;
 #define cork_uid_define(c_name) \
     cork_uid_define_named(c_name, #c_name)
 
-#define cork_uid_equal(id1, id2)  ((id1) == (id2))
-#define cork_uid_hash(id)         ((cork_hash) (uintptr_t) (id))
-#define cork_uid_name(id)         ((id)->name)
+CORK_INLINE
+bool
+cork_uid_equal(const cork_uid id1, const cork_uid id2)
+{
+    return id1 == id2;
+}
+
+CORK_INLINE
+cork_hash
+cork_uid_hash(const cork_uid id)
+{
+    return (cork_hash) (uintptr_t) id;
+}
+
+CORK_INLINE
+const char*
+cork_uid_name(const cork_uid id)
+{
+    return id->name;
+}
 
 
 #endif /* LIBCORK_CORE_ID_H */

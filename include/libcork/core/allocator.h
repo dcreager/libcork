@@ -101,24 +101,24 @@ cork_alloc_set_free(struct cork_alloc *alloc, cork_alloc_free_f free);
 /* Low-level use of an allocator. */
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_calloc(const struct cork_alloc *alloc, size_t count, size_t size)
 {
     return alloc->calloc(alloc, count, size);
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_malloc(const struct cork_alloc *alloc, size_t size)
 {
     return alloc->malloc(alloc, size);
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_realloc(const struct cork_alloc *alloc, void *ptr,
                    size_t old_size, size_t new_size)
 {
@@ -126,24 +126,24 @@ cork_alloc_realloc(const struct cork_alloc *alloc, void *ptr,
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_xcalloc(const struct cork_alloc *alloc, size_t count, size_t size)
 {
     return alloc->xcalloc(alloc, count, size);
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_xmalloc(const struct cork_alloc *alloc, size_t size)
 {
     return alloc->xmalloc(alloc, size);
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_xrealloc(const struct cork_alloc *alloc, void *ptr,
                     size_t old_size, size_t new_size)
 {
@@ -151,8 +151,8 @@ cork_alloc_xrealloc(const struct cork_alloc *alloc, void *ptr,
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_alloc_xreallocf(const struct cork_alloc *alloc, void *ptr,
                      size_t old_size, size_t new_size)
 {
@@ -165,15 +165,15 @@ cork_alloc_xreallocf(const struct cork_alloc *alloc, void *ptr,
     }
 }
 
-CORK_ATTR_UNUSED
-static void
+CORK_INLINE
+void
 cork_alloc_free(const struct cork_alloc *alloc, void *ptr, size_t size)
 {
     return alloc->free(alloc, ptr, size);
 }
 
-CORK_ATTR_UNUSED
-static void
+CORK_INLINE
+void
 cork_alloc_cfree(const struct cork_alloc *alloc, void *ptr,
                  size_t count, size_t size)
 {
@@ -260,8 +260,8 @@ cork_set_allocator(const struct cork_alloc *alloc);
 /* using an allocator */
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_calloc(size_t count, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -269,8 +269,8 @@ cork_calloc(size_t count, size_t size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_malloc(size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -278,8 +278,8 @@ cork_malloc(size_t size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_realloc(void *ptr, size_t old_size, size_t new_size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -287,8 +287,8 @@ cork_realloc(void *ptr, size_t old_size, size_t new_size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_xcalloc(size_t count, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -296,8 +296,8 @@ cork_xcalloc(size_t count, size_t size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_xmalloc(size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -305,8 +305,8 @@ cork_xmalloc(size_t size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_xrealloc(void *ptr, size_t old_size, size_t new_size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -314,24 +314,24 @@ cork_xrealloc(void *ptr, size_t old_size, size_t new_size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static void *
+CORK_INLINE
+void *
 cork_xreallocf(void *ptr, size_t old_size, size_t new_size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
     return cork_alloc_xreallocf(alloc, ptr, old_size, new_size);
 }
 
-CORK_ATTR_UNUSED
-static void
+CORK_INLINE
+void
 cork_free(void *ptr, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
     cork_alloc_free(alloc, ptr, size);
 }
 
-CORK_ATTR_UNUSED
-static void
+CORK_INLINE
+void
 cork_cfree(void *ptr, size_t count, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -346,8 +346,8 @@ cork_cfree(void *ptr, size_t count, size_t size)
 /* string-related helper functions */
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static const char *
+CORK_INLINE
+const char *
 cork_strdup(const char *str)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -355,8 +355,8 @@ cork_strdup(const char *str)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static const char *
+CORK_INLINE
+const char *
 cork_strndup(const char *str, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -364,8 +364,8 @@ cork_strndup(const char *str, size_t size)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static const char *
+CORK_INLINE
+const char *
 cork_xstrdup(const char *str)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
@@ -373,16 +373,16 @@ cork_xstrdup(const char *str)
 }
 
 CORK_ATTR_MALLOC
-CORK_ATTR_UNUSED
-static const char *
+CORK_INLINE
+const char *
 cork_xstrndup(const char *str, size_t size)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();
     return cork_alloc_xstrndup(alloc, str, size);
 }
 
-CORK_ATTR_UNUSED
-static void
+CORK_INLINE
+void
 cork_strfree(const char *str)
 {
     const struct cork_alloc  *alloc = cork_current_allocator();

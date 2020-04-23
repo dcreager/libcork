@@ -66,17 +66,25 @@ cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
  * A whole bunch of methods for adding data
  */
 
-#define cork_buffer_copy(dest, src) \
-    (cork_buffer_set((dest), (src)->buf, (src)->size))
-
 CORK_API void
 cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
 
-#define cork_buffer_append_copy(dest, src) \
-    (cork_buffer_append((dest), (src)->buf, (src)->size))
+CORK_INLINE
+void
+cork_buffer_copy(struct cork_buffer* dest, const struct cork_buffer* src)
+{
+    cork_buffer_set(dest, src->buf, src->size);
+}
 
 CORK_API void
 cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length);
+
+CORK_INLINE
+void
+cork_buffer_append_copy(struct cork_buffer* dest, const struct cork_buffer* src)
+{
+    cork_buffer_append(dest, src->buf, src->size);
+}
 
 
 CORK_API void

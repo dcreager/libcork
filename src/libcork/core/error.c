@@ -244,3 +244,11 @@ cork_unknown_error_set_(const char *location)
 {
     cork_error_set_printf(CORK_UNKNOWN_ERROR, "Unknown error in %s", location);
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+void *
+cork_abort_if_null_(void *ptr, const char *msg, const char *func,
+                    const char *file, unsigned int line);

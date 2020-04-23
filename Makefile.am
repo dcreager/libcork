@@ -122,6 +122,7 @@ libcork_la_SOURCES = \
     src/libcork/core/error.c \
     src/libcork/core/gc.c \
     src/libcork/core/hash.c \
+    src/libcork/core/id.c \
     src/libcork/core/ip-address.c \
     src/libcork/core/mempool.c \
     src/libcork/core/timestamp.c \
@@ -136,6 +137,7 @@ libcork_la_SOURCES = \
     src/libcork/ds/managed-buffer.c \
     src/libcork/ds/ring-buffer.c \
     src/libcork/ds/slice.c \
+    src/libcork/ds/stream.c \
     src/libcork/posix/directory-walker.c \
     src/libcork/posix/env.c \
     src/libcork/posix/exec.c \

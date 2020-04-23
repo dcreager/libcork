@@ -42,8 +42,8 @@ typedef struct {
 
 
 /* i0-3 are given in big-endian order, regardless of host endianness */
-CORK_ATTR_UNUSED
-static cork_u128
+CORK_INLINE
+cork_u128
 cork_u128_from_32(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3)
 {
     cork_u128  value;
@@ -62,8 +62,8 @@ cork_u128_from_32(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3)
 }
 
 /* i0-1 are given in big-endian order, regardless of host endianness */
-CORK_ATTR_UNUSED
-static cork_u128
+CORK_INLINE
+cork_u128
 cork_u128_from_64(uint64_t i0, uint64_t i1)
 {
     cork_u128  value;
@@ -91,8 +91,8 @@ cork_u128_from_64(uint64_t i0, uint64_t i1)
 #endif
 
 
-CORK_ATTR_UNUSED
-static cork_u128
+CORK_INLINE
+cork_u128
 cork_u128_add(cork_u128 a, cork_u128 b)
 {
     cork_u128  result;
@@ -106,8 +106,8 @@ cork_u128_add(cork_u128 a, cork_u128 b)
     return result;
 }
 
-CORK_ATTR_UNUSED
-static cork_u128
+CORK_INLINE
+cork_u128
 cork_u128_sub(cork_u128 a, cork_u128 b)
 {
     cork_u128  result;
@@ -122,8 +122,8 @@ cork_u128_sub(cork_u128 a, cork_u128 b)
 }
 
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_eq(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128
@@ -133,8 +133,8 @@ cork_u128_eq(cork_u128 a, cork_u128 b)
 #endif
 }
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_ne(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128
@@ -144,8 +144,8 @@ cork_u128_ne(cork_u128 a, cork_u128 b)
 #endif
 }
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_lt(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128
@@ -159,8 +159,8 @@ cork_u128_lt(cork_u128 a, cork_u128 b)
 #endif
 }
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_le(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128
@@ -174,8 +174,8 @@ cork_u128_le(cork_u128 a, cork_u128 b)
 #endif
 }
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_gt(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128
@@ -189,8 +189,8 @@ cork_u128_gt(cork_u128 a, cork_u128 b)
 #endif
 }
 
-CORK_ATTR_UNUSED
-static bool
+CORK_INLINE
+bool
 cork_u128_ge(cork_u128 a, cork_u128 b)
 {
 #if CORK_U128_HAVE_U128

@@ -294,3 +294,34 @@ cork_slice_init_copy_once(struct cork_slice *dest, const void *buf, size_t size)
     dest->iface = &cork_copy_once_slice;
     dest->user_data = NULL;
 }
+
+/*-----------------------------------------------------------------------
+ * Inline declarations
+ */
+
+bool
+cork_slice_is_empty(const struct cork_slice* slice);
+
+int
+cork_slice_copy_fast(struct cork_slice* dest, const struct cork_slice* slice,
+                     size_t offset, size_t length);
+
+int
+cork_slice_copy_offset_fast(struct cork_slice *dest,
+                            const struct cork_slice *slice, size_t offset);
+
+int
+cork_slice_light_copy_fast(struct cork_slice *dest,
+                           const struct cork_slice *slice, size_t offset,
+                           size_t length);
+
+int
+cork_slice_light_copy_offset_fast(struct cork_slice *dest,
+                                  const struct cork_slice *slice,
+                                  size_t offset);
+
+int
+cork_slice_slice_fast(struct cork_slice *slice, size_t offset, size_t length);
+
+int
+cork_slice_slice_offset_fast(struct cork_slice *slice, size_t offset);

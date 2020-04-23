@@ -146,6 +146,20 @@
 #define CORK_LOCAL
 #endif
 
+/*
+ * Define an inline function in a header file.  This allows the compiler to
+ * inline the definition if it makes sense.  You should also provide a
+ * _declaration_ in some source file, with exactly the same signature, which
+ * will ensure that a single copy of the function is available to link against
+ * if the compiler decides not to inline the function.
+ */
+
+#if CORK_CONFIG_HAVE_C99_INLINE
+#define CORK_INLINE inline
+#else
+#define CORK_INLINE CORK_ATTR_UNUSED static
+#endif
+
 
 /*
  * Declare a static function that should automatically be called at program

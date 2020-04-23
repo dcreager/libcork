@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 #include <libcork/core/api.h>
+#include <libcork/core/attributes.h>
 #include <libcork/core/types.h>
 
 
@@ -29,14 +30,27 @@ struct cork_stream_consumer {
 };
 
 
-#define cork_stream_consumer_data(consumer, buf, size, is_first) \
-    ((consumer)->data((consumer), (buf), (size), (is_first)))
+CORK_INLINE
+int
+cork_stream_consumer_data(struct cork_stream_consumer* consumer,
+                          const void *buf, size_t size, bool is_first_chunk)
+{
+    return consumer->data(consumer, buf, size, is_first_chunk);
+}
 
-#define cork_stream_consumer_eof(consumer) \
-    ((consumer)->eof((consumer)))
+CORK_INLINE
+int
+cork_stream_consumer_eof(struct cork_stream_consumer *consumer)
+{
+    return consumer->eof(consumer);
+}
 
-#define cork_stream_consumer_free(consumer) \
-    ((consumer)->free((consumer)))
+CORK_INLINE
+void
+cork_stream_consumer_free(struct cork_stream_consumer *consumer)
+{
+    consumer->free(consumer);
+}
 
 
 CORK_API int
