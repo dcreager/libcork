@@ -73,7 +73,8 @@ config_include_HEADERS = \
     include/libcork/config/macosx.h \
     include/libcork/config/bsd.h \
     include/libcork/config/linux.h \
-    include/libcork/config/config.h
+    include/libcork/config/config.h \
+    include/libcork/config/version.h
 
 core_include_HEADERS = \
     include/libcork/core/hash.h \
@@ -145,6 +146,8 @@ libcork_la_SOURCES = \
     src/libcork/posix/process.c \
     src/libcork/posix/subprocess.c \
     src/libcork/pthreads/thread.c
+
+pkgconfig_DATA = src/libcork.pc
 
 libcork_la_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS) -DCORK_API=CORK_EXPORT
 libcork_la_CFLAGS = $(AM_CFLAGS) $(CFLAGS) -DCORK_API=CORK_EXPORT

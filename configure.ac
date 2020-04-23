@@ -43,6 +43,7 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
 # pkg-config
+PKG_INSTALLDIR
 AC_CONFIG_FILES([src/libcork.pc])
 
 # Tests

@@ -12,5 +12,5 @@ Description: A simple, easily embeddable cross-platform C library
 Version: @VERSION@
 URL: https://libcork.io/
 Libs: -L${libdir} -lcork
-Libs.private: @CMAKE_THREAD_LIBS_INIT@
-Cflags: -I${includedir}
+Libs.private: @PTHREAD_LIBS@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@
