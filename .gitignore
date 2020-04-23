@@ -43,7 +43,3 @@ test*.trs
 /.build*
 /build*
 !/build-aux
-
-# Some common hidden files that we definitely DON'T want to ignore.
-!.travis.yml
-!.travis/

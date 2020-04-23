@@ -1,0 +1,42 @@
+name: Continuous integration
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    - cron: "0 0 1,15 * *"
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        arch: [amd64, i386]
+        compiler: [clang, gcc]
+        flavor:
+          - autotools
+          - cmake
+          - shared-cmake
+          - fallback-u128
+          - cmake-from-dist
+
+    env:
+      ARCH: ${{ matrix.arch }}
+      COMPILER: ${{ matrix.compiler }}
+      FLAVOR: ${{ matrix.flavor }}
+      OS_NAME: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetch everything (for automatic version detection)
+        run: git fetch --prune --unshallow
+
+      - name: Install dependencies
+        run: scripts/install
+
+      - name: Test harness
+        run: scripts/test

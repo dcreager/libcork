@@ -7,14 +7,20 @@ ENABLE_SHARED_TESTS=NO
 SRCDIR="$PWD"
 : ${TMPDIR:=/tmp}
 
-if [ "$TRAVIS_OS_NAME" = linux ]; then
+if [ "$COMPILER" = clang ]; then
+    export CC=/usr/bin/clang
+else
+    export CC=/usr/bin/gcc
+fi
+
+if [ "$OS_NAME" = "ubuntu-latest" ]; then
     if [ "$ARCH" = i386 ]; then
         ARCH_FLAGS="-m32"
         export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
     else
         ARCH_FLAGS=""
     fi
-elif [ "$TRAVIS_OS_NAME" = osx ]; then
+elif [ "$OS_NAME" = osx ]; then
     if [ "$ARCH" = i386 ]; then
         ARCH_FLAGS="-arch i386"
     else

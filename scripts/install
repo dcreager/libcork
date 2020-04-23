@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+if [ "$OS_NAME" = "ubuntu-latest" ]; then
+    sudo dpkg --add-architecture i386
+    sudo apt-get update
+    sudo apt-get install -y check check:i386 gcc-multilib valgrind
+elif [ "$OS_NAME" = osx ]; then
+    brew install --universal check
+fi
