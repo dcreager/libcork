@@ -73,6 +73,8 @@ make_u128_suite(lt)
 make_u128_suite(le)
 make_u128_suite(gt)
 make_u128_suite(ge)
+make_u128_suite(shl)
+make_u128_suite(shr)
 make_u128_suite(add)
 make_u128_suite(sub)
 
