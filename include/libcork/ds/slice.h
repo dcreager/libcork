@@ -172,6 +172,28 @@ cork_slice_slice_offset_fast(struct cork_slice *slice, size_t offset)
     }
 }
 
+CORK_API const void*
+cork_slice_advance_checked(struct cork_slice* slice, size_t offset);
+
+CORK_INLINE
+const void*
+cork_slice_advance(struct cork_slice* slice, size_t offset)
+{
+    if (CORK_LIKELY(slice->iface->slice == NULL)) {
+        const void* buf = slice->buf;
+        slice->buf += offset;
+        slice->size -= offset;
+        return buf;
+    } else {
+        const void* buf = slice->buf;
+        int rc = slice->iface->slice(slice, offset, slice->size - offset);
+        if (CORK_UNLIKELY(rc != 0)) {
+            return NULL;
+        }
+        return buf;
+    }
+}
+
 
 CORK_API void
 cork_slice_finish(struct cork_slice *slice);

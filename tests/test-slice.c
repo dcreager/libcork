@@ -28,9 +28,15 @@ START_TEST(test_static_slice)
     size_t  SRC_LEN = sizeof(SRC) - 1;
 
     struct cork_slice  slice;
+    struct cork_slice  advanced;
+    const void* original;
     struct cork_slice  copy1;
     struct cork_slice  lcopy1;
     cork_slice_init_static(&slice, SRC, SRC_LEN);
+    fail_if_error(cork_slice_copy_offset(&advanced, &slice, 0));
+    fail_if_error(original = cork_slice_advance(&advanced, 4));
+    fail_unless(strcmp(SRC, original) == 0,
+                "Advance should return original buffer");
     fail_if_error(cork_slice_copy(&copy1, &slice, 8, 4));
     fail_if_error(cork_slice_light_copy(&lcopy1, &slice, 8, 4));
     fail_if_error(cork_slice_slice(&slice, 8, 4));
@@ -40,6 +46,7 @@ START_TEST(test_static_slice)
     cork_slice_finish(&lcopy1);
     cork_slice_finish(&slice);
     cork_slice_finish(&copy1);
+    cork_slice_finish(&advanced);
 }
 END_TEST
 

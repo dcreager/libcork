@@ -182,6 +182,20 @@ cork_slice_slice_offset(struct cork_slice *slice, size_t offset)
 }
 
 
+const void*
+cork_slice_advance_checked(struct cork_slice* slice, size_t offset)
+{
+    if (slice == NULL) {
+        cork_slice_invalid_slice_set(0, offset, 0);
+        return NULL;
+    } else {
+        const void* buf = slice->buf;
+        rpi_check(cork_slice_slice(slice, offset, slice->size - offset));
+        return buf;
+    }
+}
+
+
 void
 cork_slice_finish(struct cork_slice *slice)
 {
@@ -325,3 +339,6 @@ cork_slice_slice_fast(struct cork_slice *slice, size_t offset, size_t length);
 
 int
 cork_slice_slice_offset_fast(struct cork_slice *slice, size_t offset);
+
+const void*
+cork_slice_advance(struct cork_slice *slice, size_t offset);
