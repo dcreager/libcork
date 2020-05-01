@@ -20,12 +20,7 @@
 
 
 void
-cork_buffer_init(struct cork_buffer *buffer)
-{
-    buffer->buf = NULL;
-    buffer->size = 0;
-    buffer->allocated_size = 0;
-}
+cork_buffer_init(struct cork_buffer* buffer);
 
 
 struct cork_buffer *
@@ -73,14 +68,10 @@ cork_buffer_equal(const struct cork_buffer *buffer1,
 }
 
 
-static void
-cork_buffer_ensure_size_int(struct cork_buffer *buffer, size_t desired_size)
+void
+cork_buffer_ensure_size_(struct cork_buffer* buffer, size_t desired_size)
 {
-    size_t  new_size;
-
-    if (CORK_LIKELY(buffer->allocated_size >= desired_size)) {
-        return;
-    }
+    size_t new_size;
 
     /* Make sure we at least double the old size when reallocating. */
     new_size = buffer->allocated_size * 2;
@@ -93,69 +84,26 @@ cork_buffer_ensure_size_int(struct cork_buffer *buffer, size_t desired_size)
 }
 
 void
-cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size)
-{
-    cork_buffer_ensure_size_int(buffer, desired_size);
-}
+cork_buffer_ensure_size(struct cork_buffer* buffer, size_t desired_size);
 
 
 void
-cork_buffer_clear(struct cork_buffer *buffer)
-{
-    buffer->size = 0;
-    if (buffer->buf != NULL) {
-        ((char *) buffer->buf)[0] = '\0';
-    }
-}
+cork_buffer_clear(struct cork_buffer* buffer);
 
 void
-cork_buffer_truncate(struct cork_buffer *buffer, size_t length)
-{
-    if (buffer->size > length) {
-        buffer->size = length;
-        if (length == 0) {
-            if (buffer->buf != NULL) {
-                ((char *) buffer->buf)[0] = '\0';
-            }
-        } else {
-            ((char *) buffer->buf)[length] = '\0';
-        }
-    }
-}
-
+cork_buffer_truncate(struct cork_buffer* buffer, size_t length);
 
 void
-cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length)
-{
-    cork_buffer_ensure_size_int(buffer, length+1);
-    memcpy(buffer->buf, src, length);
-    ((char *) buffer->buf)[length] = '\0';
-    buffer->size = length;
-}
-
+cork_buffer_set(struct cork_buffer* buffer, const void* src, size_t length);
 
 void
-cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length)
-{
-    cork_buffer_ensure_size_int(buffer, buffer->size + length + 1);
-    memcpy(buffer->buf + buffer->size, src, length);
-    buffer->size += length;
-    ((char *) buffer->buf)[buffer->size] = '\0';
-}
-
+cork_buffer_append(struct cork_buffer* buffer, const void* src, size_t length);
 
 void
-cork_buffer_set_string(struct cork_buffer *buffer, const char *str)
-{
-    cork_buffer_set(buffer, str, strlen(str));
-}
-
+cork_buffer_set_string(struct cork_buffer* buffer, const char* str);
 
 void
-cork_buffer_append_string(struct cork_buffer *buffer, const char *str)
-{
-    cork_buffer_append(buffer, str, strlen(str));
-}
+cork_buffer_append_string(struct cork_buffer* buffer, const char* str);
 
 
 void
@@ -178,8 +126,7 @@ cork_buffer_append_vprintf(struct cork_buffer *buffer, const char *format,
     }
 
     /* If the first call fails, resize buffer and try again. */
-    cork_buffer_ensure_size_int
-        (buffer, buffer->allocated_size + format_size + 1);
+    cork_buffer_ensure_size(buffer, buffer->allocated_size + format_size + 1);
     format_size = vsnprintf(buffer->buf + buffer->size,
                             buffer->allocated_size - buffer->size,
                             format, args);
@@ -219,7 +166,7 @@ cork_buffer_printf(struct cork_buffer *buffer, const char *format, ...)
 void
 cork_buffer_append_indent(struct cork_buffer *buffer, size_t indent)
 {
-    cork_buffer_ensure_size_int(buffer, buffer->size + indent + 1);
+    cork_buffer_ensure_size(buffer, buffer->size + indent + 1);
     memset(buffer->buf + buffer->size, ' ', indent);
     buffer->size += indent;
     ((char *) buffer->buf)[buffer->size] = '\0';
