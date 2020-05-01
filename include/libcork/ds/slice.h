@@ -147,7 +147,7 @@ CORK_INLINE
 int
 cork_slice_slice_fast(struct cork_slice *slice, size_t offset, size_t length)
 {
-    if (slice->iface->slice == NULL) {
+    if (CORK_LIKELY(slice->iface->slice == NULL)) {
         slice->buf += offset;
         slice->size = length;
         return 0;
@@ -163,12 +163,34 @@ CORK_INLINE
 int
 cork_slice_slice_offset_fast(struct cork_slice *slice, size_t offset)
 {
-    if (slice->iface->slice == NULL) {
+    if (CORK_LIKELY(slice->iface->slice == NULL)) {
         slice->buf += offset;
         slice->size -= offset;
         return 0;
     } else {
         return slice->iface->slice(slice, offset, slice->size - offset);
+    }
+}
+
+CORK_API const void*
+cork_slice_advance_checked(struct cork_slice* slice, size_t offset);
+
+CORK_INLINE
+const void*
+cork_slice_advance(struct cork_slice* slice, size_t offset)
+{
+    if (CORK_LIKELY(slice->iface->slice == NULL)) {
+        const void* buf = slice->buf;
+        slice->buf += offset;
+        slice->size -= offset;
+        return buf;
+    } else {
+        const void* buf = slice->buf;
+        int rc = slice->iface->slice(slice, offset, slice->size - offset);
+        if (CORK_UNLIKELY(rc != 0)) {
+            return NULL;
+        }
+        return buf;
     }
 }
 
