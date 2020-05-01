@@ -143,6 +143,11 @@ END_TEST
  * Endianness
  */
 
+#define uint8_t_eq(a, b) ((a) == (b))
+#define uint16_t_eq(a, b) ((a) == (b))
+#define uint32_t_eq(a, b) ((a) == (b))
+#define uint64_t_eq(a, b) ((a) == (b))
+
 START_TEST(test_endianness)
 {
 #define TEST_ENDIAN(TYPE, type, sz, expected, ...) \
@@ -151,21 +156,21 @@ START_TEST(test_endianness)
             { { __VA_ARGS__ } }; \
         \
         type  from_big = CORK_##TYPE##_BIG_TO_HOST(u.val); \
-        fail_unless(from_big == expected, \
+        fail_unless(type##_eq(from_big, expected), \
                     "Unexpected big-to-host " #type " value"); \
         \
         type  from_big_in_place = u.val; \
         CORK_##TYPE##_BIG_TO_HOST_IN_PLACE(from_big_in_place); \
-        fail_unless(from_big_in_place == expected, \
+        fail_unless(type##_eq(from_big_in_place, expected), \
                     "Unexpected in-place big-to-host " #type " value"); \
         \
         type  to_big = CORK_##TYPE##_HOST_TO_BIG(expected); \
-        fail_unless(to_big == u.val, \
+        fail_unless(type##_eq(to_big, u.val), \
                     "Unexpected host-to-big " #type " value"); \
         \
         type  to_big_in_place = expected; \
         CORK_##TYPE##_HOST_TO_BIG_IN_PLACE(to_big_in_place); \
-        fail_unless(to_big_in_place == u.val, \
+        fail_unless(type##_eq(to_big_in_place, u.val), \
                     "Unexpected in-place host-to-big " #type " value"); \
         \
         int  i; \
@@ -176,21 +181,21 @@ START_TEST(test_endianness)
         } \
         \
         type  from_little = CORK_##TYPE##_LITTLE_TO_HOST(u.val); \
-        fail_unless(from_little == expected, \
+        fail_unless(type##_eq(from_little, expected), \
                     "Unexpected little-to-host " #type " value"); \
         \
         type  from_little_in_place = u.val; \
         CORK_##TYPE##_LITTLE_TO_HOST_IN_PLACE(from_little_in_place); \
-        fail_unless(from_little_in_place == expected, \
+        fail_unless(type##_eq(from_little_in_place, expected), \
                     "Unexpected in-place little-to-host " #type " value"); \
         \
         type  to_little = CORK_##TYPE##_HOST_TO_LITTLE(expected); \
-        fail_unless(to_little == u.val, \
+        fail_unless(type##_eq(to_little, u.val), \
                     "Unexpected host-to-little " #type " value"); \
         \
         type  to_little_in_place = expected; \
         CORK_##TYPE##_HOST_TO_LITTLE_IN_PLACE(to_little_in_place); \
-        fail_unless(to_little_in_place == u.val, \
+        fail_unless(type##_eq(to_little_in_place, u.val), \
                     "Unexpected in-place host-to-little " #type " value"); \
     }
 
@@ -198,6 +203,10 @@ START_TEST(test_endianness)
     TEST_ENDIAN(UINT32, uint32_t, 4, 0x01020304, 1, 2, 3, 4);
     TEST_ENDIAN(UINT64, uint64_t, 8, UINT64_C(0x0102030405060708),
                 1, 2, 3, 4, 5, 6, 7, 8);
+    TEST_ENDIAN(
+        UINT128, cork_u128, 16,
+        cork_u128_from_32(0x01020304, 0x05060708, 0x090a0b0c, 0x0d0e0f00), 1, 2,
+        3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0);
 
 #undef TEST_ENDIAN
 }

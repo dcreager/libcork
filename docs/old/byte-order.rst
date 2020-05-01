@@ -61,6 +61,7 @@ value of the macro.
 .. function:: uint16_t CORK_SWAP_UINT16(uint16_t value)
               uint32_t CORK_SWAP_UINT32(uint32_t value)
               uint64_t CORK_SWAP_UINT64(uint64_t value)
+              cork_u128 CORK_SWAP_UINT128(cork_128 value)
 
    These functions always perform a byte-swap, regardless of the
    endianness of the host system.
@@ -68,6 +69,7 @@ value of the macro.
 .. function:: uint16_t CORK_UINT16_BIG_TO_HOST(uint16_t value)
               uint32_t CORK_UINT32_BIG_TO_HOST(uint32_t value)
               uint64_t CORK_UINT64_BIG_TO_HOST(uint64_t value)
+              cork_u128 CORK_UINT128_BIG_TO_HOST(cork_u128 value)
 
    These functions convert a big-endian (or network-endian) value into
    host endianness.  (I.e., they only perform a swap if the current host
@@ -76,6 +78,7 @@ value of the macro.
 .. function:: uint16_t CORK_UINT16_HOST_TO_BIG(uint16_t value)
               uint32_t CORK_UINT32_HOST_TO_BIG(uint32_t value)
               uint64_t CORK_UINT64_HOST_TO_BIG(uint64_t value)
+              cork_u128 CORK_UINT128_HOST_TO_BIG(cork_u128 value)
 
    These functions convert a host-endian value into big (or network)
    endianness.  (I.e., they only perform a swap if the current host is
@@ -84,6 +87,7 @@ value of the macro.
 .. function:: uint16_t CORK_UINT16_LITTLE_TO_HOST(uint16_t value)
               uint32_t CORK_UINT32_LITTLE_TO_HOST(uint32_t value)
               uint64_t CORK_UINT64_LITTLE_TO_HOST(uint64_t value)
+              cork_u128 CORK_UINT128_LITTLE_TO_HOST(cork_u128 value)
 
    These functions convert a little-endian value into host endianness.
    (I.e., they only perform a swap if the current host is big-endian.)
@@ -91,6 +95,7 @@ value of the macro.
 .. function:: uint16_t CORK_UINT16_HOST_TO_LITTLE(uint16_t value)
               uint32_t CORK_UINT32_HOST_TO_LITTLE(uint32_t value)
               uint64_t CORK_UINT64_HOST_TO_LITTLE(uint64_t value)
+              cork_u128 CORK_UINT128_HOST_TO_LITTLE(cork_u128 value)
 
    These functions convert a host-endian value into little endianness.
    (I.e., they only perform a swap if the current host is big-endian.)
@@ -108,6 +113,7 @@ a reference to the variable to be swapped.)
 .. function:: void CORK_SWAP_UINT16_IN_PLACE(uint16_t &value)
               void CORK_SWAP_UINT32_IN_PLACE(uint32_t &value)
               void CORK_SWAP_UINT64_IN_PLACE(uint64_t &value)
+              void CORK_SWAP_UINT128_IN_PLACE(cork_u128 &value)
 
    These functions always perform a byte-swap, regardless of the
    endianness of the host system.
@@ -115,6 +121,7 @@ a reference to the variable to be swapped.)
 .. function:: void CORK_UINT16_BIG_TO_HOST_IN_PLACE(uint16_t &value)
               void CORK_UINT32_BIG_TO_HOST_IN_PLACE(uint32_t &value)
               void CORK_UINT64_BIG_TO_HOST_IN_PLACE(uint64_t &value)
+              void CORK_UINT128_BIG_TO_HOST_IN_PLACE(cork_u128 &value)
 
    These functions convert a big-endian (or network-endian) value into
    host endianness, and vice versa.  (I.e., they only perform a swap if
@@ -123,6 +130,7 @@ a reference to the variable to be swapped.)
 .. function:: void CORK_UINT16_HOST_TO_BIG_IN_PLACE(uint16_t &value)
               void CORK_UINT32_HOST_TO_BIG_IN_PLACE(uint32_t &value)
               void CORK_UINT64_HOST_TO_BIG_IN_PLACE(uint64_t &value)
+              void CORK_UINT128_HOST_TO_BIG_IN_PLACE(cork_u128 &value)
 
    These functions convert a host-endian value into big (or network)
    endianness.  (I.e., they only perform a swap if the current host is
@@ -131,6 +139,7 @@ a reference to the variable to be swapped.)
 .. function:: void CORK_UINT16_LITTLE_TO_HOST_IN_PLACE(uint16_t &value)
               void CORK_UINT32_LITTLE_TO_HOST_IN_PLACE(uint32_t &value)
               void CORK_UINT64_LITTLE_TO_HOST_IN_PLACE(uint64_t &value)
+              void CORK_UINT128_LITTLE_TO_HOST_IN_PLACE(cork_u128 &value)
 
    These functions convert a little-endian value into host endianness, and
    vice versa.  (I.e., they only perform a swap if the current host is
@@ -139,6 +148,7 @@ a reference to the variable to be swapped.)
 .. function:: void CORK_UINT16_HOST_TO_LITTLE_IN_PLACE(uint16_t &value)
               void CORK_UINT32_HOST_TO_LITTLE_IN_PLACE(uint32_t &value)
               void CORK_UINT64_HOST_TO_LITTLE_IN_PLACE(uint64_t &value)
+              void CORK_UINT128_HOST_TO_LITTLE_IN_PLACE(cork_u128 &value)
 
    These functions convert a host-endian value into little endianness.
    (I.e., they only perform a swap if the current host is big-endian.)

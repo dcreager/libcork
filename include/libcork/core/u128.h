@@ -97,6 +97,35 @@ cork_u128_zero(void)
 #define cork_u128_be64(val, idx)  ((val)._.u64[1 - (idx)])
 #endif
 
+#define CORK_SWAP_UINT128(__u128)                                              \
+  (cork_u128_from_64(CORK_SWAP_UINT64(cork_u128_be64((__u128), 1)),            \
+                     CORK_SWAP_UINT64(cork_u128_be64((__u128), 0))))
+
+#define CORK_SWAP_IN_PLACE_UINT128(__u128) \
+    do { \
+        (__u128) = CORK_SWAP_UINT128(__u128); \
+    } while (0)
+
+#if CORK_HOST_ENDIANNESS == CORK_BIG_ENDIAN
+#define CORK_UINT128_BIG_TO_HOST(__u128) (__u128) /* nothing to do */
+#define CORK_UINT128_LITTLE_TO_HOST(__u128)  CORK_SWAP_UINT128(__u128)
+#define CORK_UINT128_BIG_TO_HOST_IN_PLACE(__u128) /* nothing to do */
+#define CORK_UINT128_LITTLE_TO_HOST_IN_PLACE(__u128)                           \
+  CORK_SWAP_IN_PLACE_UINT128(__u128)
+#elif CORK_HOST_ENDIANNESS == CORK_LITTLE_ENDIAN
+#define CORK_UINT128_BIG_TO_HOST(__u128)  CORK_SWAP_UINT128(__u128)
+#define CORK_UINT128_LITTLE_TO_HOST(__u128) (__u128) /* nothing to do */
+#define CORK_UINT128_BIG_TO_HOST_IN_PLACE(__u128)                              \
+  CORK_SWAP_IN_PLACE_UINT128(__u128)
+#define CORK_UINT128_LITTLE_TO_HOST_IN_PLACE(__u128) /* nothing to do */
+#endif
+
+#define CORK_UINT128_HOST_TO_BIG(__u128) CORK_UINT128_BIG_TO_HOST(__u128)
+#define CORK_UINT128_HOST_TO_LITTLE(__u128) CORK_UINT128_LITTLE_TO_HOST(__u128)
+#define CORK_UINT128_HOST_TO_BIG_IN_PLACE(__u128)                              \
+  CORK_UINT128_BIG_TO_HOST_IN_PLACE(__u128)
+#define CORK_UINT128_HOST_TO_LITTLE_IN_PLACE(__u128)                           \
+  CORK_UINT128_LITTLE_TO_HOST_IN_PLACE(__u128)
 
 CORK_INLINE
 bool
