@@ -12,6 +12,7 @@
 
 
 #include <stdarg.h>
+#include <string.h>
 
 #include <libcork/core/api.h>
 #include <libcork/core/attributes.h>
@@ -28,8 +29,14 @@ struct cork_buffer {
 };
 
 
-CORK_API void
-cork_buffer_init(struct cork_buffer *buffer);
+CORK_INLINE
+void
+cork_buffer_init(struct cork_buffer* buffer)
+{
+    buffer->buf = NULL;
+    buffer->size = 0;
+    buffer->allocated_size = 0;
+}
 
 #define CORK_BUFFER_INIT()  { NULL, 0, 0 }
 
@@ -48,15 +55,41 @@ cork_buffer_equal(const struct cork_buffer *buffer1,
                   const struct cork_buffer *buffer2);
 
 
-CORK_API void
-cork_buffer_ensure_size(struct cork_buffer *buffer, size_t desired_size);
+CORK_API
+void
+cork_buffer_ensure_size_(struct cork_buffer* buffer, size_t desired_size);
+
+CORK_INLINE
+void
+cork_buffer_ensure_size(struct cork_buffer* buffer, size_t desired_size)
+{
+    if (CORK_UNLIKELY(buffer->allocated_size < desired_size)) {
+        cork_buffer_ensure_size_(buffer, desired_size);
+    }
+}
 
 
-CORK_API void
-cork_buffer_clear(struct cork_buffer *buffer);
+CORK_INLINE
+void
+cork_buffer_clear(struct cork_buffer* buffer)
+{
+    buffer->size = 0;
+    if (buffer->buf != NULL) {
+        ((char*) buffer->buf)[0] = '\0';
+    }
+}
 
-CORK_API void
-cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
+CORK_INLINE
+void
+cork_buffer_truncate(struct cork_buffer* buffer, size_t length)
+{
+    if (buffer->size > length) {
+        buffer->size = length;
+        if (buffer->buf != NULL) {
+            ((char*) buffer->buf)[length] = '\0';
+        }
+    }
+}
 
 #define cork_buffer_byte(buffer, i)  (((const uint8_t *) (buffer)->buf)[(i)])
 #define cork_buffer_char(buffer, i)  (((const char *) (buffer)->buf)[(i)])
@@ -66,8 +99,15 @@ cork_buffer_truncate(struct cork_buffer *buffer, size_t length);
  * A whole bunch of methods for adding data
  */
 
-CORK_API void
-cork_buffer_set(struct cork_buffer *buffer, const void *src, size_t length);
+CORK_INLINE
+void
+cork_buffer_set(struct cork_buffer* buffer, const void* src, size_t length)
+{
+    cork_buffer_ensure_size(buffer, length + 1);
+    memcpy(buffer->buf, src, length);
+    ((char*) buffer->buf)[length] = '\0';
+    buffer->size = length;
+}
 
 CORK_INLINE
 void
@@ -76,8 +116,15 @@ cork_buffer_copy(struct cork_buffer* dest, const struct cork_buffer* src)
     cork_buffer_set(dest, src->buf, src->size);
 }
 
-CORK_API void
-cork_buffer_append(struct cork_buffer *buffer, const void *src, size_t length);
+CORK_INLINE
+void
+cork_buffer_append(struct cork_buffer* buffer, const void* src, size_t length)
+{
+    cork_buffer_ensure_size(buffer, buffer->size + length + 1);
+    memcpy(buffer->buf + buffer->size, src, length);
+    buffer->size += length;
+    ((char*) buffer->buf)[buffer->size] = '\0';
+}
 
 CORK_INLINE
 void
@@ -87,11 +134,19 @@ cork_buffer_append_copy(struct cork_buffer* dest, const struct cork_buffer* src)
 }
 
 
-CORK_API void
-cork_buffer_set_string(struct cork_buffer *buffer, const char *str);
+CORK_INLINE
+void
+cork_buffer_set_string(struct cork_buffer* buffer, const char* str)
+{
+    cork_buffer_set(buffer, str, strlen(str));
+}
 
-CORK_API void
-cork_buffer_append_string(struct cork_buffer *buffer, const char *str);
+CORK_INLINE
+void
+cork_buffer_append_string(struct cork_buffer* buffer, const char* str)
+{
+    cork_buffer_append(buffer, str, strlen(str));
+}
 
 #define cork_buffer_set_literal(buffer, str) \
     (cork_buffer_set((buffer), (str), sizeof((str)) - 1))
