@@ -24,20 +24,21 @@
  * Resizable arrays
  */
 
-#define add_element(element, expected_new_size) \
-    fail_if_error(cork_array_append(&array, element)); \
-    fail_unless(cork_array_size(&array) == expected_new_size, \
-                "Unexpected size of array: got %zu, expected %zu", \
-                cork_array_size(&array), expected_new_size);
+#define verify_size(array, expected_size)                                      \
+    fail_unless(cork_array_size((array)) == expected_size,                     \
+                "Unexpected size of array: got %zu, expected %zu",             \
+                cork_array_size((array)), expected_size);
 
-#define add_element0(element, expected_new_size, int_type) \
-    do { \
-        int_type  *__element; \
-        fail_if_error(__element = cork_array_append_get(&array)); \
-        *__element = element; \
-        fail_unless(cork_array_size(&array) == expected_new_size, \
-                    "Unexpected size of array: got %zu, expected %zu", \
-                    cork_array_size(&array), expected_new_size); \
+#define add_element(element, expected_new_size)                                \
+    fail_if_error(cork_array_append(&array, element));                         \
+    verify_size(&array, expected_new_size);
+
+#define add_element0(element, expected_new_size, int_type)                     \
+    do {                                                                       \
+        int_type* __element;                                                   \
+        fail_if_error(__element = cork_array_append_get(&array));              \
+        *__element = element;                                                  \
+        verify_size(&array, expected_new_size);                                \
     } while (0)
 
 #define test_sum(array, expected) \
@@ -52,51 +53,57 @@
                     (long) sum, (long) expected); \
     } while (0)
 
-#define test_int(int_type) \
-START_TEST(test_array_##int_type) \
-{ \
-    DESCRIBE_TEST; \
-    \
-    cork_array(int_type)  array; \
-    cork_array(int_type)  copy; \
-    cork_array_init(&array); \
-    \
-    fail_unless(cork_array_size(&array) == 0, \
-                "Unexpected size of array: got %zu, expected 0", \
-                cork_array_size(&array)); \
-    \
-    /* Make sure to add enough elements to force the array into \
-     * heap-allocated storage. */ \
-    test_sum(&array, 0); \
-    add_element ( 1,  1); \
-    test_sum(&array, 1); \
-    add_element0( 2,  2, int_type); \
-    test_sum(&array, 3); \
-    add_element ( 3,  3); \
-    test_sum(&array, 6); \
-    add_element0( 4,  4, int_type); \
-    test_sum(&array, 10); \
-    add_element0( 5,  5, int_type); \
-    test_sum(&array, 15); \
-    add_element ( 6,  6); \
-    test_sum(&array, 21); \
-    add_element ( 7,  7); \
-    test_sum(&array, 28); \
-    add_element0( 8,  8, int_type); \
-    test_sum(&array, 36); \
-    add_element ( 9,  9); \
-    test_sum(&array, 45); \
-    add_element0(10, 10, int_type); \
-    test_sum(&array, 55); \
-    \
-    cork_array_init(&copy); \
-    fail_if_error(cork_array_copy(&copy, &array, NULL, NULL)); \
-    test_sum(&copy, 55); \
-    \
-    cork_array_done(&array); \
-    cork_array_done(&copy); \
-} \
-END_TEST
+#define test_int(int_type)                                                     \
+    START_TEST(test_array_##int_type)                                          \
+    {                                                                          \
+        DESCRIBE_TEST;                                                         \
+                                                                               \
+        cork_array(int_type) array;                                            \
+        cork_array(int_type) copy;                                             \
+        cork_array_init(&array);                                               \
+                                                                               \
+        fail_unless(cork_array_size(&array) == 0,                              \
+                    "Unexpected size of array: got %zu, expected 0",           \
+                    cork_array_size(&array));                                  \
+                                                                               \
+        test_sum(&array, 0);                                                   \
+        add_element(1, 1);                                                     \
+        test_sum(&array, 1);                                                   \
+        add_element0(2, 2, int_type);                                          \
+        test_sum(&array, 3);                                                   \
+        add_element(3, 3);                                                     \
+        test_sum(&array, 6);                                                   \
+        add_element0(4, 4, int_type);                                          \
+        test_sum(&array, 10);                                                  \
+        add_element0(5, 5, int_type);                                          \
+        test_sum(&array, 15);                                                  \
+        add_element(6, 6);                                                     \
+        test_sum(&array, 21);                                                  \
+        add_element(7, 7);                                                     \
+        test_sum(&array, 28);                                                  \
+        add_element0(8, 8, int_type);                                          \
+        test_sum(&array, 36);                                                  \
+        add_element(9, 9);                                                     \
+        test_sum(&array, 45);                                                  \
+        add_element0(10, 10, int_type);                                        \
+        test_sum(&array, 55);                                                  \
+                                                                               \
+        cork_array_init(&copy);                                                \
+        fail_if_error(cork_array_copy(&copy, &array, NULL, NULL));             \
+        test_sum(&copy, 55);                                                   \
+                                                                               \
+        cork_array_remove(&copy, 9);                                           \
+        verify_size(&copy, 9);                                                 \
+        test_sum(&copy, 45);                                                   \
+                                                                               \
+        cork_array_remove_range(&copy, 2, 3);                                  \
+        verify_size(&copy, 6);                                                 \
+        test_sum(&copy, 33);                                                   \
+                                                                               \
+        cork_array_done(&array);                                               \
+        cork_array_done(&copy);                                                \
+    }                                                                          \
+    END_TEST
 
 test_int(int8_t)
 test_int(int16_t)
@@ -108,11 +115,9 @@ test_int(int64_t)
  * String arrays
  */
 
-#define add_string(element, expected_new_size) \
-    fail_if_error(cork_string_array_append(&array, element)); \
-    fail_unless(cork_array_size(&array) == expected_new_size, \
-                "Unexpected size of array: got %zu, expected %zu", \
-                cork_array_size(&array), (size_t) expected_new_size);
+#define add_string(element, expected_new_size)                                 \
+    fail_if_error(cork_string_array_append(&array, element));                  \
+    verify_size(&array, expected_new_size);
 
 #define test_string(array, index, expected) \
     do { \
@@ -133,6 +138,10 @@ START_TEST(test_array_string)
     test_string(&array, 0, "hello");
     test_string(&array, 1, "there");
     test_string(&array, 2, "world");
+    cork_array_remove(&array, 0);
+    test_string(&array, 0, "there");
+    test_string(&array, 1, "world");
+
     cork_array_clear(&array);
     add_string("reusing", 1);
     add_string("entries", 2);
@@ -144,6 +153,17 @@ START_TEST(test_array_string)
     test_string(&copy, 0, "reusing");
     test_string(&copy, 1, "entries");
     cork_array_done(&copy);
+
+    add_string("hello", 3);
+    add_string("there", 4);
+    add_string("world", 5);
+    cork_array_remove_range(&array, 1, 2);
+    test_string(&array, 0, "reusing");
+    test_string(&array, 1, "there");
+    test_string(&array, 2, "world");
+    cork_array_remove(&array, 2);
+    test_string(&array, 0, "reusing");
+    test_string(&array, 1, "there");
 
     cork_array_done(&array);
 }
