@@ -151,7 +151,7 @@ pkgconfig_DATA = src/libcork.pc
 
 libcork_la_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS) -DCORK_API=CORK_EXPORT
 libcork_la_CFLAGS = $(AM_CFLAGS) $(CFLAGS) -DCORK_API=CORK_EXPORT
-libcork_la_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS) -version-info 16:3:0
+libcork_la_LDFLAGS = $(AM_LDFLAGS) $(LDFLAGS) -version-info 17:0:1
 
 #-----------------------------------------------------------------------
 # Utility commands
