@@ -74,6 +74,17 @@ cork_raw_array_ensure_size(struct cork_raw_array *array, size_t count);
 CORK_API void *
 cork_raw_array_append(struct cork_raw_array *array);
 
+CORK_API void
+cork_raw_array_remove_range(struct cork_raw_array* array, size_t index,
+                            size_t count);
+
+CORK_INLINE
+void
+cork_raw_array_remove(struct cork_raw_array *array, size_t index)
+{
+    cork_raw_array_remove_range(array, index, 1);
+}
+
 CORK_API int
 cork_raw_array_copy(struct cork_raw_array *dest,
                     const struct cork_raw_array *src,
@@ -129,6 +140,11 @@ cork_raw_array_copy(struct cork_raw_array *dest,
 #define cork_array_append_get(arr) \
     (cork_raw_array_append(cork_array_to_raw(arr)), \
      &(arr)->items[(arr)->size - 1])
+
+#define cork_array_remove(arr, element)                                        \
+    (cork_raw_array_remove(cork_array_to_raw(arr), (element)))
+#define cork_array_remove_range(arr, element, count)                           \
+    (cork_raw_array_remove_range(cork_array_to_raw(arr), (element), (count)))
 
 
 /*-----------------------------------------------------------------------

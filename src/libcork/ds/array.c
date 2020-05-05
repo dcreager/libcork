@@ -220,6 +220,47 @@ cork_raw_array_append(struct cork_raw_array *array)
     return element;
 }
 
+void
+cork_raw_array_remove(struct cork_raw_array *array, size_t index);
+
+void
+cork_raw_array_remove_range(struct cork_raw_array* array, size_t index,
+                            size_t count)
+{
+    size_t element_size = array->priv->element_size;
+    size_t remaining = array->size - index - count;
+    char* start_of_removed = array->items + (index * element_size);
+    char* end_of_removed = start_of_removed + (count * element_size);
+    char* end_of_array = array->items + (array->size * element_size);
+
+    array->size -= count;
+    if (array->priv->remove == NULL) {
+        /* If there isn't a cleanup callback, just move the array contents
+         * directly. */
+        if (end_of_removed < end_of_array) {
+            memmove(start_of_removed, end_of_removed, remaining * element_size);
+        }
+    } else {
+        /* If there are any elements _after_ the elements to be removed, we
+         * first swap them into the beginning of the elements to be removed. */
+        char temp[element_size];
+        while (end_of_removed < end_of_array) {
+            memcpy(temp, start_of_removed, element_size);
+            memcpy(start_of_removed, end_of_removed, element_size);
+            memcpy(end_of_removed, temp, element_size);
+            start_of_removed += element_size;
+            end_of_removed += element_size;
+        }
+
+        /* Then call the cleanup callback on all of the elements to be removed,
+         * which are now guaranteed to be at the end of the array. */
+        while (start_of_removed < end_of_removed) {
+            array->priv->remove(array->priv->user_data, start_of_removed);
+            start_of_removed += element_size;
+        }
+    }
+}
+
 int
 cork_raw_array_copy(struct cork_raw_array *dest,
                     const struct cork_raw_array *src,
