@@ -31,8 +31,8 @@ fi
 build_autotools () {
   BUILDDIR=$(mktemp -d "$TMPDIR"/build-autotools-XXXXXX)
   echo "Using autotools to build in $BUILDDIR"
-  echo "$ autoreconf"
-  autoreconf -i
+  echo "$ autogen.sh"
+  "$SRCDIR"/autogen.sh
   cd "$BUILDDIR"
   echo "$ configure"
   CFLAGS="-g -O3 $ARCH_FLAGS" "$SRCDIR"/configure
@@ -62,7 +62,7 @@ build_cmake () {
 build_cmake_from_dist () {
   DISTDIR=$(mktemp -d "$TMPDIR"/build-dist-XXXXXX)
   echo "Using autotools to create dist tarball in $DISTDIR"
-  autoreconf -i
+  "$SRCDIR"/autogen.sh
   cd "$DISTDIR"
   echo "$ configure"
   CFLAGS="-g -O3 $ARCH_FLAGS" "$SRCDIR"/configure

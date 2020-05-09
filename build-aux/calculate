@@ -7,12 +7,14 @@
 # ----------------------------------------------------------------------
 
 # Usage:
-#   calculate version|commit [path to stamp file]
+#   calculate version|commit [top_srcdir] [path to stamp file]
 #
 # Calculates the current version number.  When run from a distribution tarball,
 # we get the version number from the .version-stamp file (that our `make dist`
 # target ensures that it creates).  When run from a local git repository, we get
 # the version number via `git describe`.
+
+set -e
 
 WHAT="$1"
 case "$WHAT" in
@@ -21,8 +23,11 @@ case "$WHAT" in
   *) echo "Unknown option $WHAT" >&2; exit 1;;
 esac
 
+top_srcdir="${2-.}"
+export GIT_DIR="${top_srcdir}/.git"
+
 # First try the stamp file
-STAMP_FILE="$2"
+STAMP_FILE="$3"
 if [ -f "$STAMP_FILE" ]; then
   version=$(cat "$STAMP_FILE")
   if [ -z "$version" ]; then

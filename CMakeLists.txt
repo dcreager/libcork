@@ -20,8 +20,9 @@ find_package(CTargets)
 
 execute_process(
     COMMAND
-      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate version .version-stamp
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_SOURCE_DIR}/build-aux/calculate version
+        ${CMAKE_SOURCE_DIR} .version-stamp
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     RESULT_VARIABLE VERSION_RESULT
     OUTPUT_VARIABLE VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -44,8 +45,9 @@ endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
 
 execute_process(
     COMMAND
-      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate commit .commit-stamp
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_SOURCE_DIR}/build-aux/calculate commit
+        ${CMAKE_SOURCE_DIR} .commit-stamp
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     RESULT_VARIABLE GIT_SHA1_RESULT
     OUTPUT_VARIABLE GIT_SHA1
     OUTPUT_STRIP_TRAILING_WHITESPACE
