@@ -14,17 +14,15 @@ dist-hook: dist-check-git-version dist-stamps
 
 dist-check-git-version:
 	: # Verify that the version that configure.ac recorded matches the
-	: # current version from git tags.
-	@if test -n $(top_srcdir)/.version-stamp; then \
-	    git_ver=`$(top_srcdir)/build-aux/calculate version`; \
-	    if test "x$${git_ver}" != "x$(PACKAGE_VERSION)"; then \
-	        echo "ERROR: PACKAGE_VERSION and 'git describe' version do not match:"; \
-	        echo "     current 'git describe' version: $${git_ver}"; \
-	        echo "     current PACKAGE_VERSION:        $(PACKAGE_VERSION)"; \
-	        echo "Update PACKAGE_VERSION by running $(top_srcdir)/autogen.sh."; \
-	        rm -rf "$(top_srcdir)/autom4te.cache"; \
-	        exit 1; \
-	    fi \
+	: # current calculated version.
+	@git_ver=`$(top_srcdir)/build-aux/calculate version $(top_srcdir) $(top_srcdir)/.version-stamp`; \
+	if test "x$${git_ver}" != "x$(PACKAGE_VERSION)"; then \
+	    echo "ERROR: PACKAGE_VERSION and 'git describe' version do not match:"; \
+	    echo "     current 'git describe' version: $${git_ver}"; \
+	    echo "     current PACKAGE_VERSION:        $(PACKAGE_VERSION)"; \
+	    echo "Update PACKAGE_VERSION by running $(top_srcdir)/autogen.sh."; \
+	    rm -rf "$(top_srcdir)/autom4te.cache"; \
+	    exit 1; \
 	fi
 
 dist-stamps:
