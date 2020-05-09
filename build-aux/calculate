@@ -36,7 +36,14 @@ fi
 # Fall back on `git describe`
 case "$WHAT" in
   version)
-    version=$(git describe --abbrev=7 --dirty --always);;
+    closest_tag=$(git describe --abbrev=0)
+    full_version=$(git describe --abbrev=7 --dirty)
+    if test "$closest_tag" = "$full_version"; then
+        version="$closest_tag"
+    else
+        version="$closest_tag-git"
+    fi
+    ;;
   commit)
     version=$(git rev-parse HEAD);;
 esac
