@@ -5,12 +5,32 @@
 # ------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
+# Dist hooks
+
+dist-hook: dist-check-git-version dist-stamps
+
+#-------------------------------------------------------------------------------
 # .commit-stamp and .version-stamp
 
-# These should only appear in distribution tarballs.
-dist-hook:
-	echo $(GIT_SHA1) > $(distdir)/.commit-stamp
-	echo $(VERSION) > $(distdir)/.version-stamp
+dist-check-git-version:
+	: # Verify that the version that configure.ac recorded matches the
+	: # current version from git tags.
+	@if test -n $(top_srcdir)/.version-stamp; then \
+	    git_ver=`$(top_srcdir)/build-aux/calculate version`; \
+	    if test "x$${git_ver}" != "x$(PACKAGE_VERSION)"; then \
+	        echo "ERROR: PACKAGE_VERSION and 'git describe' version do not match:"; \
+	        echo "     current 'git describe' version: $${git_ver}"; \
+	        echo "     current PACKAGE_VERSION:        $(PACKAGE_VERSION)"; \
+	        echo "Update PACKAGE_VERSION by running $(top_srcdir)/autogen.sh."; \
+	        rm -rf "$(top_srcdir)/autom4te.cache"; \
+	        exit 1; \
+	    fi \
+	fi
+
+dist-stamps:
+	@: # Generate version stamps for dist tarball.
+	@echo $(GIT_SHA1) > $(distdir)/.commit-stamp
+	@echo $(VERSION) > $(distdir)/.version-stamp
 
 #-------------------------------------------------------------------------------
 # Preliminaries
