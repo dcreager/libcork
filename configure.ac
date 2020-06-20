@@ -24,11 +24,12 @@ fi
 # Versions
 AC_PROG_AWK
 AC_PROG_SED
-BASE_VERSION=`AS_ECHO([$VERSION]) | sed -e 's/\+.*//'`
-AC_SUBST(VERSION_MAJOR, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $1}'`])
-AC_SUBST(VERSION_MINOR, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $2}'`])
-AC_SUBST(VERSION_PATCH, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $3}'`])
-AC_SUBST(GIT_SHA1, m4_esyscmd([build-aux/calculate commit . .commit-stamp]))
+BASE_VERSION=`AS_ECHO([$VERSION]) | sed -e 's/\-.*//'`
+AC_SUBST(CORK_VERSION_MAJOR, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $1}'`])
+AC_SUBST(CORK_VERSION_MINOR, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $2}'`])
+AC_SUBST(CORK_VERSION_PATCH, [`AS_ECHO([$BASE_VERSION]) | $AWK -F. '{print $3}'`])
+AC_SUBST(CORK_VERSION, ["$VERSION"])
+AC_SUBST(CORK_GIT_SHA1, m4_esyscmd([build-aux/calculate commit . .commit-stamp]))
 AC_CONFIG_FILES([include/libcork/config/version.h])
 AC_PROG_CC
 AC_PROG_CC_C99

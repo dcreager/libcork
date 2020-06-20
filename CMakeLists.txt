@@ -36,12 +36,13 @@ message(STATUS "Current version: " ${VERSION})
 string(REGEX REPLACE "-.*" "-dev" BASE_VERSION "${VERSION}")
 
 if(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
-    set(VERSION_MAJOR "${CMAKE_MATCH_1}")
-    set(VERSION_MINOR "${CMAKE_MATCH_2}")
-    set(VERSION_PATCH "${CMAKE_MATCH_3}")
+    set(CORK_VERSION_MAJOR "${CMAKE_MATCH_1}")
+    set(CORK_VERSION_MINOR "${CMAKE_MATCH_2}")
+    set(CORK_VERSION_PATCH "${CMAKE_MATCH_3}")
 else(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
     message(FATAL_ERROR "Invalid version number: ${VERSION}")
 endif(BASE_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-dev)?$")
+set(CORK_VERSION "${VERSION}")
 
 execute_process(
     COMMAND
@@ -49,14 +50,14 @@ execute_process(
         ${CMAKE_SOURCE_DIR} .commit-stamp
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     RESULT_VARIABLE GIT_SHA1_RESULT
-    OUTPUT_VARIABLE GIT_SHA1
+    OUTPUT_VARIABLE CORK_GIT_SHA1
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 if(GIT_SHA1_RESULT)
     message(FATAL_ERROR
             "Cannot determine git commit: " ${GIT_SHA1_RESULT})
 endif(GIT_SHA1_RESULT)
-message(STATUS "Current revision: " ${GIT_SHA1})
+message(STATUS "Current revision: " ${CORK_GIT_SHA1})
 
 include(GNUInstallDirs)
 

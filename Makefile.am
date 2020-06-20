@@ -27,7 +27,7 @@ dist-check-git-version:
 
 dist-stamps:
 	@: # Generate version stamps for dist tarball.
-	@echo $(GIT_SHA1) > $(distdir)/.commit-stamp
+	@echo $(CORK_GIT_SHA1) > $(distdir)/.commit-stamp
 	@echo $(VERSION) > $(distdir)/.version-stamp
 
 #-------------------------------------------------------------------------------
