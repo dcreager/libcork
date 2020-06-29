@@ -119,12 +119,18 @@ test_strndup(const char *string, size_t size)
     if (memcmp(string, copy, size) != 0) {
         fail("cork_strndup failed");
     }
+    if (cork_strlen(copy) != size) {
+        fail("cork_strlen failed");
+    }
     cork_strfree(copy);
 
     copy = cork_xstrndup(string, size);
     fail_if(copy == NULL, "cork_xstrndup couldn't allocate copy");
     if (memcmp(string, copy, size) != 0) {
         fail("cork_xstrndup failed");
+    }
+    if (cork_strlen(copy) != size) {
+        fail("cork_strlen failed");
     }
     cork_strfree(copy);
 }

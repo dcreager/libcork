@@ -221,7 +221,7 @@ strndup_internal(const struct cork_alloc *alloc,
     char  *dest;
     size_t  allocated_size = len + sizeof(size_t) + 1;
     size_t  *new_str = cork_alloc_malloc(alloc, allocated_size);
-    *new_str = allocated_size;
+    *new_str = len;
     dest = (char *) (void *) (new_str + 1);
     memcpy(dest, str, len);
     dest[len] = '\0';
@@ -251,7 +251,7 @@ xstrndup_internal(const struct cork_alloc *alloc,
         return NULL;
     } else {
         char  *dest;
-        *new_str = allocated_size;
+        *new_str = len;
         dest = (char *) (void *) (new_str + 1);
         memcpy(dest, str, len);
         dest[len] = '\0';
@@ -275,8 +275,10 @@ cork_alloc_xstrndup(const struct cork_alloc *alloc,
 void
 cork_alloc_strfree(const struct cork_alloc *alloc, const char *str)
 {
-    size_t  *base = ((size_t *) str) - 1;
-    cork_alloc_free(alloc, base, *base);
+    size_t* base = ((size_t*) str) - 1;
+    size_t len = *base;
+    size_t allocated_size = len + sizeof(size_t) + 1;
+    cork_alloc_free(alloc, base, allocated_size);
 }
 
 
@@ -496,3 +498,6 @@ cork_xstrndup(const char *str, size_t size);
 
 void
 cork_strfree(const char *str);
+
+size_t
+cork_strlen(const char *str);

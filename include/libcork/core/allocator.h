@@ -389,6 +389,14 @@ cork_strfree(const char *str)
     return cork_alloc_strfree(alloc, str);
 }
 
+CORK_INLINE
+size_t
+cork_strlen(const char *str)
+{
+    size_t* base = ((size_t*) str) - 1;
+    return *base;
+}
+
 
 /*-----------------------------------------------------------------------
  * Debugging allocator
