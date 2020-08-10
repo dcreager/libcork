@@ -134,9 +134,9 @@ cork_read_pipe_open(struct cork_read_pipe *p)
         rii_check_posix(pipe(p->fds));
         DEBUG("[read]   Got read=%d write=%d\n", p->fds[0], p->fds[1]);
         DEBUG("[read]   Setting non-blocking flag on read pipe\n");
-        ei_check_posix(flags = fcntl(p->fds[0], F_GETFD));
+        ei_check_posix(flags = fcntl(p->fds[0], F_GETFL));
         flags |= O_NONBLOCK;
-        ei_check_posix(fcntl(p->fds[0], F_SETFD, flags));
+        ei_check_posix(fcntl(p->fds[0], F_SETFL, flags));
     }
 
     p->first = true;
