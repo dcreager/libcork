@@ -126,3 +126,15 @@ cork_u128_add(cork_u128 a, cork_u128 b);
 
 cork_u128
 cork_u128_sub(cork_u128 a, cork_u128 b);
+
+cork_u128
+cork_u128_mul(cork_u128 lhs, cork_u128 rhs);
+
+struct cork_u128_divmod
+cork_u128_divmod(cork_u128 a, cork_u128 b);
+
+cork_u128
+cork_u128_div(cork_u128 a, cork_u128 b);
+
+cork_u128
+cork_u128_mod(cork_u128 a, cork_u128 b);
