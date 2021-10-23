@@ -36,7 +36,7 @@ START_TEST(test_mempool_01)
     size_t  i;
     int64_t  *objects[OBJECT_COUNT];
     for (i = 0; i < OBJECT_COUNT; i++) {
-        fail_if((objects[i] = cork_mempool_new_object(mp)) == NULL,
+        ck_assert_false_msg((objects[i] = cork_mempool_new_object(mp)) == NULL,
                 "Cannot allocate object #%zu", i);
     }
 
@@ -45,7 +45,7 @@ START_TEST(test_mempool_01)
     }
 
     for (i = 0; i < OBJECT_COUNT; i++) {
-        fail_if((objects[i] = cork_mempool_new_object(mp)) == NULL,
+        ck_assert_false_msg((objects[i] = cork_mempool_new_object(mp)) == NULL,
                 "Cannot reallocate object #%zu", i);
     }
 
@@ -64,7 +64,7 @@ START_TEST(test_mempool_fail_01)
     mp = cork_mempool_new(int64_t);
 
     int64_t  *obj;
-    fail_if((obj = cork_mempool_new_object(mp)) == NULL,
+    ck_assert_false_msg((obj = cork_mempool_new_object(mp)) == NULL,
             "Cannot allocate object");
 
     /* This should raise an assertion since we never freed obj. */
@@ -105,25 +105,25 @@ START_TEST(test_mempool_reuse_01)
     cork_mempool_set_done_object(mp, int64_done);
 
     int64_t  *obj;
-    fail_if((obj = cork_mempool_new_object(mp)) == NULL,
+    ck_assert_false_msg((obj = cork_mempool_new_object(mp)) == NULL,
             "Cannot allocate object");
 
     /* The init_object function sets the value to 12 */
-    fail_unless(*obj == 12, "Unexpected value %" PRId64, *obj);
+    ck_assert_msg(*obj == 12, "Unexpected value %" PRId64, *obj);
 
     /* Set the value to something new, free the object, then reallocate.
      * Since we know memory pools are LIFO, we should get back the same
      * object, unchanged. */
     *obj = 42;
     cork_mempool_free_object(mp, obj);
-    fail_if((obj = cork_mempool_new_object(mp)) == NULL,
+    ck_assert_false_msg((obj = cork_mempool_new_object(mp)) == NULL,
             "Cannot allocate object");
-    fail_unless(*obj == 42, "Unexpected value %" PRId64, *obj);
+    ck_assert_msg(*obj == 42, "Unexpected value %" PRId64, *obj);
 
     cork_mempool_free_object(mp, obj);
     cork_mempool_free(mp);
 
-    fail_unless(done_call_count ==
+    ck_assert_msg(done_call_count ==
                 OBJECTS_PER_BLOCK(BLOCK_SIZE, sizeof(int64_t)),
                 "done_object called an unexpected number of times: %zu",
                 done_call_count);

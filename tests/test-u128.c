@@ -173,7 +173,7 @@ check_shift_test(cork_u128(op)(cork_u128, unsigned int), const char *op_str,
         fprintf(stderr, "#  %s %40u\n", op_str, test->j);
         fprintf(stderr, "#   = %40s\n", expected_str);
         fprintf(stderr, "# got %40s\n", result_str);
-        fail("Unexpected shift error");
+        ck_abort_msg("Unexpected shift error");
     }
 }
 
@@ -252,7 +252,7 @@ check_arithmetic_test(cork_u128(op)(cork_u128, cork_u128), const char *op_str,
         fprintf(stderr, "#   %s %40s\n", op_str, value2_str);
         fprintf(stderr, "#   = %40s\n", expected_str);
         fprintf(stderr, "# got %40s\n", result_str);
-        fail("Unexpected arithmetic error");
+        ck_abort_msg("Unexpected arithmetic error");
     }
 }
 
@@ -328,7 +328,7 @@ check_comparison_test(bool(op)(cork_u128, cork_u128), const char *op_str,
         fprintf(stderr, "#  %s %40s\n", op_str, value2_str);
         fprintf(stderr, "#   = %s\n", test->expected? "true": "false");
         fprintf(stderr, "# got %s\n", actual? "true": "false");
-        fail("Unexpected comparison error");
+        ck_abort_msg("Unexpected comparison error");
     }
 }
 

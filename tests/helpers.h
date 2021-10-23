@@ -65,7 +65,7 @@ setup_allocator(void)
     do { \
         call; \
         if (cork_error_occurred()) { \
-            fail("%s", cork_error_message()); \
+            ck_abort_msg(cork_error_message()); \
         } \
     } while (0)
 
@@ -73,7 +73,7 @@ setup_allocator(void)
     do { \
         call; \
         if (!cork_error_occurred()) { \
-            fail(__VA_ARGS__); \
+            ck_abort_msg(__VA_ARGS__); \
         } else { \
             print_expected_failure(); \
         } \
@@ -81,15 +81,15 @@ setup_allocator(void)
     } while (0)
 
 #define fail_unless_equal(what, format, expected, actual) \
-    (fail_unless((expected) == (actual), \
+    (ck_assert_msg((expected) == (actual), \
                  "%s not equal (expected " format \
                  ", got " format ")", \
                  (what), (expected), (actual)))
 
 #define fail_unless_streq(what, expected, actual) \
-    (fail_unless(strcmp((expected), (actual)) == 0, \
+    (ck_assert_msg(strcmp((expected), (actual)) == 0, \
                  "%s not equal (expected \"%s\", got \"%s\")", \
                  (char *) (what), (char *) (expected), (char *) (actual)))
 
-
+#define ck_assert_false_msg(expr, ...) ck_assert_msg(!(expr), ## __VA_ARGS__)
 #endif /* TESTS_HELPERS_H */

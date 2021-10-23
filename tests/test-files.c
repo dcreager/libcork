@@ -31,7 +31,7 @@ static const char  *program_path;
 void
 verify_path_content(struct cork_path *path, const char *expected)
 {
-    fail_if(cork_path_get(path) == NULL, "Path should not have NULL content");
+    ck_assert_false_msg(cork_path_get(path) == NULL, "Path should not have NULL content");
     fail_unless_streq("Paths", expected, cork_path_get(path));
 }
 
@@ -357,7 +357,7 @@ test_file_exists(const char *filename, bool expected)
     cork_path_append(path, filename);
     file = cork_file_new_from_path(path);
     fail_if_error(cork_file_exists(file, &actual));
-    fail_unless(actual == expected, "File %s should%s exist",
+    ck_assert_msg(actual == expected, "File %s should%s exist",
                 cork_path_get(path), expected? "": " not");
     cork_file_free(file);
 }

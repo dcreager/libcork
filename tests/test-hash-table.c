@@ -68,7 +68,7 @@ test_map_sum(struct cork_hash_table *table, uint64_t expected)
 {
     uint64_t  sum = 0;
     cork_hash_table_map(table, &sum, uint64_sum);
-    fail_unless(sum == expected,
+    ck_assert_msg(sum == expected,
                 "Unexpected map sum, got %" PRIu64
                 ", expected %" PRIu64,
                 sum, expected);
@@ -85,7 +85,7 @@ test_iterator_sum(struct cork_hash_table *table, uint64_t expected)
         uint64_t  *value_ptr = entry->value;
         sum += *value_ptr;
     }
-    fail_unless(sum == expected,
+    ck_assert_msg(sum == expected,
                 "Unexpected iterator sum, got %" PRIu64
                 ", expected %" PRIu64 "",
                 sum, expected);
@@ -150,11 +150,11 @@ START_TEST(test_uint64_hash_table)
     cork_hash_table_set_equals(table, uint64__equals);
     cork_hash_table_set_free_key(table, uint64__free);
     cork_hash_table_set_free_value(table, uint64__free);
-    fail_unless(cork_hash_table_size(table) == 0,
+    ck_assert_msg(cork_hash_table_size(table) == 0,
                 "Hash table should start empty");
 
     key = 0;
-    fail_unless(cork_hash_table_get(table, &key) == NULL,
+    ck_assert_msg(cork_hash_table_get(table, &key) == NULL,
                 "Shouldn't get value pointer from empty hash table");
 
     test_map_sum(table, 0);
@@ -169,32 +169,32 @@ START_TEST(test_uint64_hash_table)
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
                    &is_new, &v_key, &v_value));
-    fail_unless(is_new, "Couldn't append {0=>32} to hash table");
+    ck_assert_msg(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
 
-    fail_unless(old_key == NULL,
+    ck_assert_msg(old_key == NULL,
                 "Unexpected previous key");
-    fail_unless(old_value == NULL,
+    ck_assert_msg(old_value == NULL,
                 "Unexpected previous value");
 
-    fail_unless(cork_hash_table_size(table) == 1,
+    ck_assert_msg(cork_hash_table_size(table) == 1,
                 "Unexpected size after adding {0->32}");
 
     fail_if_error(entry = cork_hash_table_get_or_create
                   (table, &key, &is_new));
-    fail_if(is_new, "Shouldn't create new {0=>X} entry");
+    ck_assert_false_msg(is_new, "Shouldn't create new {0=>X} entry");
     value_ptr = entry->value;
-    fail_unless(*value_ptr == 32,
+    ck_assert_msg(*value_ptr == 32,
                 "Unexpected value for {0=>X} entry");
 
-    fail_unless(cork_hash_table_size(table) == 1,
+    ck_assert_msg(cork_hash_table_size(table) == 1,
                 "Unexpected size after retrieving {0->32}");
 
     key = 1;
     fail_if_error(entry = cork_hash_table_get_or_create
                   (table, &key, &is_new));
-    fail_unless(is_new, "Should create new {1=>X} entry");
+    ck_assert_msg(is_new, "Should create new {1=>X} entry");
     key_ptr = cork_new(uint64_t);
     *key_ptr = key;
     entry->key = key_ptr;
@@ -202,7 +202,7 @@ START_TEST(test_uint64_hash_table)
     *value_ptr = 2;
     entry->value = value_ptr;
 
-    fail_unless(cork_hash_table_size(table) == 2,
+    ck_assert_msg(cork_hash_table_size(table) == 2,
                 "Unexpected size after adding {1=>2}");
 
     test_map_sum(table, 34);
@@ -211,22 +211,22 @@ START_TEST(test_uint64_hash_table)
     test_iterator_to_string(table, "[0:32, 1:2]");
 
     key = 0;
-    fail_unless(cork_hash_table_delete(table, &key, NULL, NULL),
+    ck_assert_msg(cork_hash_table_delete(table, &key, NULL, NULL),
                 "Couldn't delete {0=>32}");
 
-    fail_unless(cork_hash_table_size(table) == 1,
+    ck_assert_msg(cork_hash_table_size(table) == 1,
                 "Unexpected size after deleting entry");
 
     test_map_to_string(table, "[1:2]");
     test_iterator_to_string(table, "[1:2]");
 
     key = 3;
-    fail_if(cork_hash_table_delete(table, &key, NULL, NULL),
+    ck_assert_false_msg(cork_hash_table_delete(table, &key, NULL, NULL),
             "Shouldn't be able to delete nonexistent {3=>X}");
 
     cork_hash_table_delete_entry(table, entry);
 
-    fail_unless(cork_hash_table_size(table) == 0,
+    ck_assert_msg(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting last entry");
 
     /*
@@ -241,7 +241,7 @@ START_TEST(test_uint64_hash_table)
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
                    &is_new, &v_key, &v_value));
-    fail_unless(is_new, "Couldn't append {0=>32} to hash table");
+    ck_assert_msg(is_new, "Couldn't append {0=>32} to hash table");
     old_key = v_key;
     old_value = v_value;
 
@@ -252,12 +252,12 @@ START_TEST(test_uint64_hash_table)
     fail_if_error(cork_hash_table_put
                   (table, key_ptr, value_ptr,
                    &is_new, &v_key, &v_value));
-    fail_unless(is_new, "Couldn't append {1=>2} to hash table");
+    ck_assert_msg(is_new, "Couldn't append {1=>2} to hash table");
     old_key = v_key;
     old_value = v_value;
 
     cork_hash_table_clear(table);
-    fail_unless(cork_hash_table_size(table) == 0,
+    ck_assert_msg(cork_hash_table_size(table) == 0,
                 "Unexpected size after deleting entries using map");
 
     /* And we're done, so let's free everything. */
@@ -280,18 +280,18 @@ START_TEST(test_string_hash_table)
 
     fail_if_error(cork_hash_table_put
                   (table, "key1", (void *) (uintptr_t) 1, NULL, NULL, NULL));
-    fail_unless(cork_hash_table_size(table) == 1,
+    ck_assert_msg(cork_hash_table_size(table) == 1,
                 "Unexpected size after adding {key1->1}");
 
     strncpy(key, "key1", sizeof(key));
-    fail_if((value = cork_hash_table_get(table, key)) == NULL,
+    ck_assert_false_msg((value = cork_hash_table_get(table, key)) == NULL,
             "No entry for key1");
 
-    fail_unless(value == (void *) (uintptr_t) 1,
+    ck_assert_msg(value == (void *) (uintptr_t) 1,
                 "Unexpected value for key1");
 
     strncpy(key, "key2", sizeof(key));
-    fail_unless((value = cork_hash_table_get(table, key)) == NULL,
+    ck_assert_msg((value = cork_hash_table_get(table, key)) == NULL,
                 "Unexpected entry for key2");
 
     cork_hash_table_free(table);
@@ -314,16 +314,16 @@ START_TEST(test_pointer_hash_table)
 
     fail_if_error(cork_hash_table_put
                   (table, &key1, (void *) (uintptr_t) 1, NULL, NULL, NULL));
-    fail_unless(cork_hash_table_size(table) == 1,
+    ck_assert_msg(cork_hash_table_size(table) == 1,
                 "Unexpected size after adding {key1->1}");
 
-    fail_if((value = cork_hash_table_get(table, &key1)) == NULL,
+    ck_assert_false_msg((value = cork_hash_table_get(table, &key1)) == NULL,
             "No entry for key1");
 
-    fail_unless(value == (void *) (uintptr_t) 1,
+    ck_assert_msg(value == (void *) (uintptr_t) 1,
                 "Unexpected value for key1");
 
-    fail_unless((value = cork_hash_table_get(table, &key2)) == NULL,
+    ck_assert_msg((value = cork_hash_table_get(table, &key2)) == NULL,
                 "Unexpected entry for key2");
 
     cork_hash_table_free(table);

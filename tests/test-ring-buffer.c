@@ -28,40 +28,40 @@ START_TEST(test_ring_buffer_1)
     struct cork_ring_buffer  buf;
     cork_ring_buffer_init(&buf, 4);
 
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 1) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 1) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 2) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 2) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 3) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 3) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 4) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 4) == 0,
                 "Cannot add to ring buffer");
-    fail_if(cork_ring_buffer_add(&buf, (void *) 5) == 0,
+    ck_assert_false_msg(cork_ring_buffer_add(&buf, (void *) 5) == 0,
             "Shouldn't be able to add to ring buffer");
 
-    fail_unless(((intptr_t) cork_ring_buffer_peek(&buf)) == 1,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_peek(&buf)) == 1,
                 "Unexpected head of ring buffer (peek)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 1,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 1,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 2,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 2,
                 "Unexpected head of ring buffer (pop)");
 
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 5) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 5) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(&buf, (void *) 6) == 0,
+    ck_assert_msg(cork_ring_buffer_add(&buf, (void *) 6) == 0,
                 "Cannot add to ring buffer");
-    fail_if(cork_ring_buffer_add(&buf, (void *) 7) == 0,
+    ck_assert_false_msg(cork_ring_buffer_add(&buf, (void *) 7) == 0,
             "Shouldn't be able to add to ring buffer");
 
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 3,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 3,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 4,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 4,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 5,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 5,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(&buf)) == 6,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(&buf)) == 6,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(cork_ring_buffer_pop(&buf) == NULL,
+    ck_assert_msg(cork_ring_buffer_pop(&buf) == NULL,
                 "Shouldn't be able to pop from ring buffer");
 
     cork_ring_buffer_done(&buf);
@@ -73,40 +73,40 @@ START_TEST(test_ring_buffer_2)
 {
     struct cork_ring_buffer  *buf = cork_ring_buffer_new(4);
 
-    fail_unless(cork_ring_buffer_add(buf, (void *) 1) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 1) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(buf, (void *) 2) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 2) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(buf, (void *) 3) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 3) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(buf, (void *) 4) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 4) == 0,
                 "Cannot add to ring buffer");
-    fail_if(cork_ring_buffer_add(buf, (void *) 5) == 0,
+    ck_assert_false_msg(cork_ring_buffer_add(buf, (void *) 5) == 0,
             "Shouldn't be able to add to ring buffer");
 
-    fail_unless(((intptr_t) cork_ring_buffer_peek(buf)) == 1,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_peek(buf)) == 1,
                 "Unexpected head of ring buffer (peek)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 1,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 1,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 2,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 2,
                 "Unexpected head of ring buffer (pop)");
 
-    fail_unless(cork_ring_buffer_add(buf, (void *) 5) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 5) == 0,
                 "Cannot add to ring buffer");
-    fail_unless(cork_ring_buffer_add(buf, (void *) 6) == 0,
+    ck_assert_msg(cork_ring_buffer_add(buf, (void *) 6) == 0,
                 "Cannot add to ring buffer");
-    fail_if(cork_ring_buffer_add(buf, (void *) 7) == 0,
+    ck_assert_false_msg(cork_ring_buffer_add(buf, (void *) 7) == 0,
             "Shouldn't be able to add to ring buffer");
 
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 3,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 3,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 4,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 4,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 5,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 5,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(((intptr_t) cork_ring_buffer_pop(buf)) == 6,
+    ck_assert_msg(((intptr_t) cork_ring_buffer_pop(buf)) == 6,
                 "Unexpected head of ring buffer (pop)");
-    fail_unless(cork_ring_buffer_pop(buf) == NULL,
+    ck_assert_msg(cork_ring_buffer_pop(buf) == NULL,
                 "Shouldn't be able to pop from ring buffer");
 
     cork_ring_buffer_free(buf);
