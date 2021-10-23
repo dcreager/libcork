@@ -29,13 +29,13 @@
 #define test_atomic_op(name, type, fmt, op, expected) \
     do { \
         type  actual = cork_##name##_atomic_##op(&val, 1); \
-        fail_unless_equal(#name, fmt, expected, actual); \
+        fail_unless_equal(#name, fmt, (type)expected, actual); \
     } while (0)
 
 #define test_cas(name, type, fmt, ov, nv) \
     do { \
         type  actual = cork_##name##_cas(&val, ov, nv); \
-        fail_unless_equal(#name, fmt, ov, actual); \
+        fail_unless_equal(#name, fmt, (type)ov, (type)actual); \
     } while (0)
 
 #define test_atomic(name, type, fmt) \
@@ -47,18 +47,18 @@ START_TEST(test_atomic_##name) \
     test_atomic_op(name, type, fmt, pre_add, 1); \
     test_atomic_op(name, type, fmt, add, 3); \
     test_atomic_op(name, type, fmt, pre_add, 3); \
-    fail_unless_equal(#name, fmt, 4, val); \
+    fail_unless_equal(#name, fmt, (type)4, val); \
     test_atomic_op(name, type, fmt, sub, 3); \
     test_atomic_op(name, type, fmt, pre_sub, 3); \
     test_atomic_op(name, type, fmt, sub, 1); \
     test_atomic_op(name, type, fmt, pre_sub, 1); \
-    fail_unless_equal(#name, fmt, 0, val); \
+    fail_unless_equal(#name, fmt, (type)0, val); \
     \
     test_cas(name, type, fmt, 0, 1); \
     test_cas(name, type, fmt, 1, 10); \
     test_cas(name, type, fmt, 10, 2); \
     test_cas(name, type, fmt, 2, 0); \
-    fail_unless_equal(#name, fmt, 0, val); \
+    fail_unless_equal(#name, fmt, (type)0, val); \
 } \
 END_TEST
 
@@ -112,7 +112,7 @@ START_TEST(test_once)
     cork_once(once, go);
     fail_unless_equal("Value", "%d", 1, value);
 
-    fail_unless_equal("Call count", "%zu", 1, call_count);
+    fail_unless_equal("Call count", "%zu", (size_t)1, call_count);
 }
 END_TEST
 
@@ -139,7 +139,7 @@ START_TEST(test_once_recursive)
     cork_once_recursive(once, go);
     fail_unless_equal("Value", "%d", 1, value);
 
-    fail_unless_equal("Call count", "%zu", 1, call_count);
+    fail_unless_equal("Call count", "%zu", (size_t)1, call_count);
 }
 END_TEST
 
@@ -152,7 +152,7 @@ START_TEST(test_thread_ids)
 {
     DESCRIBE_TEST;
     cork_thread_id  id = cork_current_thread_get_id();
-    fail_if(id == CORK_THREAD_NONE, "Expected a valid thread ID");
+    ck_assert_false_msg(id == CORK_THREAD_NONE, "Expected a valid thread ID");
 }
 END_TEST
 
@@ -277,7 +277,7 @@ START_TEST(test_threads_error_01)
     fail_if_error(t1 = cork_thread_new
                   ("test", NULL, NULL, cork_error_thread__run));
     fail_if_error(cork_thread_start(t1));
-    fail_unless_error(cork_thread_join(t1));
+    fail_unless_error(cork_thread_join(t1), "Cannot join the thread");
 }
 END_TEST
 

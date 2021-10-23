@@ -81,7 +81,7 @@ START_TEST(test_managed_buffer_refcount)
     cork_managed_buffer_unref(pb2);
     cork_managed_buffer_unref(pb3);
 
-    fail_unless(flag,
+    ck_assert_msg(flag,
                 "Managed buffer free function never called.");
 }
 END_TEST
@@ -108,7 +108,7 @@ START_TEST(test_managed_buffer_bad_refcount)
     /* cork_managed_buffer_unref(pb3);   OH NO! */
     (void) pb3;
 
-    fail_if(flag,
+    ck_assert_false_msg(flag,
             "Managed buffer free function was called unexpectedly.");
 
     /* free the buffer here to quiet valgrind */
@@ -176,7 +176,7 @@ START_TEST(test_slice_refcount)
     cork_slice_finish(&ps2);
     cork_slice_finish(&ps3);
 
-    fail_unless(flag,
+    ck_assert_msg(flag,
                 "Managed buffer free function never called.");
 }
 END_TEST
@@ -211,7 +211,7 @@ START_TEST(test_slice_bad_refcount)
     cork_slice_finish(&ps2);
     /* cork_slice_finish(&ps3);   OH NO! */
 
-    fail_if(flag,
+    ck_assert_false_msg(flag,
             "Managed buffer free function was called unexpectedly.");
 
     /* free the slice here to quiet valgrind */
@@ -244,7 +244,7 @@ START_TEST(test_slice_equals_01)
     fail_if_error(cork_managed_buffer_slice_offset(&ps1, pb, 0));
     fail_if_error(cork_managed_buffer_slice(&ps2, pb, 0, LEN));
 
-    fail_unless(cork_slice_equal(&ps1, &ps2),
+    ck_assert_msg(cork_slice_equal(&ps1, &ps2),
                 "Slices aren't equal");
 
     cork_managed_buffer_unref(pb);
@@ -278,9 +278,9 @@ START_TEST(test_slice_equals_02)
     fail_if_error(cork_slice_copy(&ps3, &ps2, 2, 3));
     fail_if_error(cork_slice_slice(&ps2, 2, 3));
 
-    fail_unless(cork_slice_equal(&ps1, &ps2),
+    ck_assert_msg(cork_slice_equal(&ps1, &ps2),
                 "Slices aren't equal");
-    fail_unless(cork_slice_equal(&ps1, &ps3),
+    ck_assert_msg(cork_slice_equal(&ps1, &ps3),
                 "Slices aren't equal");
 
     cork_managed_buffer_unref(pb);

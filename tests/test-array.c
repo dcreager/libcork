@@ -25,9 +25,9 @@
  */
 
 #define verify_size(array, expected_size)                                      \
-    fail_unless(cork_array_size((array)) == expected_size,                     \
+    ck_assert_msg(cork_array_size((array)) == expected_size,                     \
                 "Unexpected size of array: got %zu, expected %zu",             \
-                cork_array_size((array)), expected_size);
+                (size_t)cork_array_size((array)), (size_t)expected_size);
 
 #define add_element(element, expected_new_size)                                \
     fail_if_error(cork_array_append(&array, element));                         \
@@ -48,7 +48,7 @@
         for (i = 0; i < cork_array_size(array); i++) { \
             sum += cork_array_at(array, i); \
         } \
-        fail_unless(sum == expected, \
+        ck_assert_msg(sum == expected, \
                     "Unexpected sum, got %ld, expected %ld", \
                     (long) sum, (long) expected); \
     } while (0)
@@ -62,7 +62,7 @@
         cork_array(int_type) copy;                                             \
         cork_array_init(&array);                                               \
                                                                                \
-        fail_unless(cork_array_size(&array) == 0,                              \
+        ck_assert_msg(cork_array_size(&array) == 0,                              \
                     "Unexpected size of array: got %zu, expected 0",           \
                     cork_array_size(&array));                                  \
                                                                                \

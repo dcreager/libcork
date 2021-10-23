@@ -32,24 +32,24 @@ test_bitset_of_size(size_t bit_count)
 
     for (i = 0; i < bit_count; i++) {
         cork_bitset_set(set1, i, true);
-        fail_unless(cork_bitset_get(set1, i), "Unexpected value for bit %zu", i);
+        ck_assert_msg(cork_bitset_get(set1, i), "Unexpected value for bit %zu", i);
     }
 
     for (i = 0; i < bit_count; i++) {
         cork_bitset_set(set1, i, false);
-        fail_if(cork_bitset_get(set1, i), "Unexpected value for bit %zu", i);
+        ck_assert_false_msg(cork_bitset_get(set1, i), "Unexpected value for bit %zu", i);
     }
     cork_bitset_free(set1);
 
     cork_bitset_init(&set2, bit_count);
     for (i = 0; i < bit_count; i++) {
         cork_bitset_set(&set2, i, true);
-        fail_unless(cork_bitset_get(&set2, i), "Unexpected value for bit %zu", i);
+        ck_assert_msg(cork_bitset_get(&set2, i), "Unexpected value for bit %zu", i);
     }
 
     for (i = 0; i < bit_count; i++) {
         cork_bitset_set(&set2, i, false);
-        fail_if(cork_bitset_get(&set2, i), "Unexpected value for bit %zu", i);
+        ck_assert_false_msg(cork_bitset_get(&set2, i), "Unexpected value for bit %zu", i);
     }
     cork_bitset_done(&set2);
 }

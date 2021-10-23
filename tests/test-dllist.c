@@ -72,37 +72,37 @@ START_TEST(test_dllist)
     int64_t  sum;
 
     cork_dllist_init(&list);
-    fail_unless(cork_dllist_size(&list) == 0,
+    ck_assert_msg(cork_dllist_size(&list) == 0,
                 "Unexpected size of list: got %zu, expected 0",
                 cork_dllist_size(&list));
-    fail_unless(cork_dllist_is_empty(&list),
+    ck_assert_msg(cork_dllist_is_empty(&list),
                 "Expected empty list");
     check_int64_list(&list, "");
 
     item1.value = 1;
     cork_dllist_add(&list, &item1.element);
-    fail_unless(cork_dllist_size(&list) == 1,
+    ck_assert_msg(cork_dllist_size(&list) == 1,
                 "Unexpected size of list: got %zu, expected 1",
                 cork_dllist_size(&list));
     check_int64_list(&list, "1");
 
     item2.value = 2;
     cork_dllist_add(&list, &item2.element);
-    fail_unless(cork_dllist_size(&list) == 2,
+    ck_assert_msg(cork_dllist_size(&list) == 2,
                 "Unexpected size of list: got %zu, expected 2",
                 cork_dllist_size(&list));
     check_int64_list(&list, "1,2");
 
     item3.value = 3;
     cork_dllist_add(&list, &item3.element);
-    fail_unless(cork_dllist_size(&list) == 3,
+    ck_assert_msg(cork_dllist_size(&list) == 3,
                 "Unexpected size of list: got %zu, expected 3",
                 cork_dllist_size(&list));
     check_int64_list(&list, "1,2,3");
 
     sum = 0;
-    fail_if(cork_dllist_visit(&list, &sum, int64_sum));
-    fail_unless(sum == 6,
+    ck_assert(!cork_dllist_visit(&list, &sum, int64_sum));
+    ck_assert_msg(sum == 6,
                 "Unexpected sum, got %ld, expected 6",
                 (long) sum);
 
@@ -110,12 +110,12 @@ START_TEST(test_dllist)
     cork_dllist_foreach(&list, curr, next, struct int64_item, item, element) {
         sum += item->value;
     }
-    fail_unless(sum == 6,
+    ck_assert_msg(sum == 6,
                 "Unexpected sum, got %ld, expected 6",
                 (long) sum);
 
     cork_dllist_remove(&item2.element);
-    fail_unless(cork_dllist_size(&list) == 2,
+    ck_assert_msg(cork_dllist_size(&list) == 2,
                 "Unexpected size of list: got %zu, expected 2",
                 cork_dllist_size(&list));
 }

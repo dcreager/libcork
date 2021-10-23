@@ -38,10 +38,10 @@ START_TEST(test_bool)
     bool  value;
 
     value = true;
-    fail_unless(value, "Unexpected true value");
+    ck_assert_msg(value, "Unexpected true value");
 
     value = false;
-    fail_if(value, "Unexpected false value");
+    ck_assert_false_msg(value, "Unexpected false value");
 }
 END_TEST
 
@@ -55,7 +55,7 @@ START_TEST(test_int_types)
 #define TEST_INT_TYPE(type) \
     { \
         type  i = 0; \
-        fail_unless(i == 0, "Unexpected value for " #type); \
+        ck_assert_msg(i == 0, "Unexpected value for " #type); \
     }
 
     TEST_INT_TYPE(int8_t);
@@ -85,7 +85,7 @@ START_TEST(test_int_sizeof)
 
 #define TEST_SIZEOF(TYPE, type) \
     { \
-        fail_unless(CORK_SIZEOF_##TYPE == sizeof(type), \
+        ck_assert_msg(CORK_SIZEOF_##TYPE == sizeof(type), \
                     "Incorrect size for " #type ": got %zu, expected %zu", \
                     (size_t) CORK_SIZEOF_##TYPE, \
                     (size_t) sizeof(type)); \
@@ -117,20 +117,20 @@ test_strndup(const char *string, size_t size)
 
     copy = cork_strndup(string, size);
     if (memcmp(string, copy, size) != 0) {
-        fail("cork_strndup failed");
+        ck_abort_msg("cork_strndup failed");
     }
     if (cork_strlen(copy) != size) {
-        fail("cork_strlen failed");
+        ck_abort_msg("cork_strlen failed");
     }
     cork_strfree(copy);
 
     copy = cork_xstrndup(string, size);
-    fail_if(copy == NULL, "cork_xstrndup couldn't allocate copy");
+    ck_assert_false_msg(copy == NULL, "cork_xstrndup couldn't allocate copy");
     if (memcmp(string, copy, size) != 0) {
-        fail("cork_xstrndup failed");
+        ck_abort_msg("cork_xstrndup failed");
     }
     if (cork_strlen(copy) != size) {
-        fail("cork_strlen failed");
+        ck_abort_msg("cork_strlen failed");
     }
     cork_strfree(copy);
 }
@@ -162,21 +162,21 @@ START_TEST(test_endianness)
             { { __VA_ARGS__ } }; \
         \
         type  from_big = CORK_##TYPE##_BIG_TO_HOST(u.val); \
-        fail_unless(type##_eq(from_big, expected), \
+        ck_assert_msg(type##_eq(from_big, expected), \
                     "Unexpected big-to-host " #type " value"); \
         \
         type  from_big_in_place = u.val; \
         CORK_##TYPE##_BIG_TO_HOST_IN_PLACE(from_big_in_place); \
-        fail_unless(type##_eq(from_big_in_place, expected), \
+        ck_assert_msg(type##_eq(from_big_in_place, expected), \
                     "Unexpected in-place big-to-host " #type " value"); \
         \
         type  to_big = CORK_##TYPE##_HOST_TO_BIG(expected); \
-        fail_unless(type##_eq(to_big, u.val), \
+        ck_assert_msg(type##_eq(to_big, u.val), \
                     "Unexpected host-to-big " #type " value"); \
         \
         type  to_big_in_place = expected; \
         CORK_##TYPE##_HOST_TO_BIG_IN_PLACE(to_big_in_place); \
-        fail_unless(type##_eq(to_big_in_place, u.val), \
+        ck_assert_msg(type##_eq(to_big_in_place, u.val), \
                     "Unexpected in-place host-to-big " #type " value"); \
         \
         int  i; \
@@ -187,21 +187,21 @@ START_TEST(test_endianness)
         } \
         \
         type  from_little = CORK_##TYPE##_LITTLE_TO_HOST(u.val); \
-        fail_unless(type##_eq(from_little, expected), \
+        ck_assert_msg(type##_eq(from_little, expected), \
                     "Unexpected little-to-host " #type " value"); \
         \
         type  from_little_in_place = u.val; \
         CORK_##TYPE##_LITTLE_TO_HOST_IN_PLACE(from_little_in_place); \
-        fail_unless(type##_eq(from_little_in_place, expected), \
+        ck_assert_msg(type##_eq(from_little_in_place, expected), \
                     "Unexpected in-place little-to-host " #type " value"); \
         \
         type  to_little = CORK_##TYPE##_HOST_TO_LITTLE(expected); \
-        fail_unless(type##_eq(to_little, u.val), \
+        ck_assert_msg(type##_eq(to_little, u.val), \
                     "Unexpected host-to-little " #type " value"); \
         \
         type  to_little_in_place = expected; \
         CORK_##TYPE##_HOST_TO_LITTLE_IN_PLACE(to_little_in_place); \
-        fail_unless(type##_eq(to_little_in_place, u.val), \
+        ck_assert_msg(type##_eq(to_little_in_place, u.val), \
                     "Unexpected in-place host-to-little " #type " value"); \
     }
 
@@ -247,7 +247,7 @@ START_TEST(test_system_error)
     errno = ENOMEM;
     cork_error_clear();
     cork_system_error_set();
-    fail_unless(cork_error_code() == ENOMEM,
+    ck_assert_msg(cork_error_code() == ENOMEM,
                 "Expected a system error");
     printf("Got error: %s\n", cork_error_message());
     cork_error_clear();
@@ -260,7 +260,7 @@ END_TEST
  */
 
 #define test_hash_func(func, expected, ...) \
-    fail_unless(func(0, __VA_ARGS__) == expected, \
+    ck_assert_msg(func(0, __VA_ARGS__) == expected, \
                 "Unexpected hash value 0x%08" PRIx32 \
                 " (expected 0x%08" PRIx32 ")", \
                 func(0, __VA_ARGS__), expected);
@@ -303,7 +303,7 @@ END_TEST
         cork_big_hash  seed = CORK_BIG_HASH_INIT(); \
         cork_big_hash  expected = {cork_u128_from_64(e1, e2)}; \
         cork_big_hash  actual = cork_big_hash_buffer(seed, buf, len); \
-        fail_unless(cork_big_hash_equal(actual, expected), \
+        ck_assert_msg(cork_big_hash_equal(actual, expected), \
                     "\nUnexpected hash value 0x%016" PRIx64 ".%016" PRIx64 \
                     "\n            (expected 0x%016" PRIx64 ".%016" PRIx64 ")", \
                     cork_u128_be64(actual.u128, 0), \
@@ -482,14 +482,14 @@ START_TEST(test_ipv4_address)
         fail_if_error(cork_ipv4_init(&addr, str)); \
         char  actual[CORK_IPV4_STRING_LENGTH]; \
         cork_ipv4_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, normalized) == 0, \
+        ck_assert_msg(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
                     "got \"%s\", expected \"%s\"", \
                     actual, normalized); \
         \
         struct cork_ipv4  addr2; \
         cork_ipv4_init(&addr2, normalized); \
-        fail_unless(cork_ipv4_equal(&addr, &addr2), \
+        ck_assert_msg(cork_ipv4_equal(&addr, &addr2), \
                     "IPv4 instances should be equal"); \
     }
 
@@ -515,14 +515,14 @@ START_TEST(test_ipv4_address)
 
     fprintf(stderr, "Testing network prefixes\n");
     cork_ipv4_init(&addr4, "1.2.3.4");
-    fail_unless(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_good),
+    ck_assert_msg(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_good),
                 "Bad CIDR block for 1.2.3.4 and %u",
                 ipv4_cidr_good);
-    fail_if(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_value),
-            "IPv4 CIDR check should fail for %u",
+    ck_assert_false_msg(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_value),
+            "IPv4 CIDR check should ck_abort_msg for %u",
             ipv4_cidr_bad_value);
-    fail_if(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_range),
-            "IPv4 CIDR check should fail for %u",
+    ck_assert_false_msg(cork_ipv4_is_valid_network(&addr4, ipv4_cidr_bad_range),
+            "IPv4 CIDR check should ck_abort_msg for %u",
             ipv4_cidr_bad_range);
 }
 END_TEST
@@ -538,14 +538,14 @@ START_TEST(test_ipv6_address)
         fail_if_error(cork_ipv6_init(&addr, str)); \
         char  actual[CORK_IPV6_STRING_LENGTH]; \
         cork_ipv6_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, normalized) == 0, \
+        ck_assert_msg(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
                     "got \"%s\", expected \"%s\"", \
                     actual, normalized); \
         \
         struct cork_ipv6  addr2; \
         cork_ipv6_init(&addr2, normalized); \
-        fail_unless(cork_ipv6_equal(&addr, &addr2), \
+        ck_assert_msg(cork_ipv6_equal(&addr, &addr2), \
                     "IPv6 instances should be equal"); \
     }
 
@@ -571,14 +571,14 @@ START_TEST(test_ipv6_address)
 
     fprintf(stderr, "Testing network prefixes\n");
     cork_ipv6_init(&addr6, "fe80::200:f8ff:fe21:6000");
-    fail_unless(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_good),
+    ck_assert_msg(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_good),
                 "Bad CIDR block %u",
                 ipv6_cidr_good);
-    fail_if(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_bad_value),
-            "IPv6 CIDR check should fail for %u",
+    ck_assert_false_msg(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_bad_value),
+            "IPv6 CIDR check should ck_abort_msg for %u",
             ipv6_cidr_bad_value);
-    fail_if(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_bad_range),
-            "IPv6 CIDR check should fail for %u",
+    ck_assert_false_msg(cork_ipv6_is_valid_network(&addr6, ipv6_cidr_bad_range),
+            "IPv6 CIDR check should ck_abort_msg for %u",
             ipv6_cidr_bad_range);
 }
 END_TEST
@@ -595,14 +595,14 @@ START_TEST(test_ip_address)
         fail_if_error(cork_ip_init(&addr, str)); \
         char  actual[CORK_IP_STRING_LENGTH]; \
         cork_ip_to_raw_string(&addr, actual); \
-        fail_unless(strcmp(actual, normalized) == 0, \
+        ck_assert_msg(strcmp(actual, normalized) == 0, \
                     "Unexpected string representation: " \
                     "got \"%s\", expected \"%s\"", \
                     actual, normalized); \
         \
         struct cork_ip  addr2; \
         cork_ip_init(&addr2, normalized); \
-        fail_unless(cork_ip_equal(&addr, &addr2), \
+        ck_assert_msg(cork_ip_equal(&addr, &addr2), \
                     "IP instances should be equal"); \
     }
 
@@ -627,18 +627,18 @@ START_TEST(test_ip_address)
     fprintf(stderr, "Testing IP address versions\n");
     cork_ip_init(&addr, "192.168.1.1");
     cork_ipv4_init(&addr4, "192.168.1.1");
-    fail_unless(addr.version == 4,
+    ck_assert_msg(addr.version == 4,
                 "Unexpected IP address version (expected 4, got %u)",
                 addr.version);
-    fail_unless(cork_ipv4_equal(&addr.ip.v4, &addr4),
+    ck_assert_msg(cork_ipv4_equal(&addr.ip.v4, &addr4),
                 "IP addresses should be equal");
 
     cork_ip_init(&addr, "fe80::1");
     cork_ipv6_init(&addr6, "fe80::1");
-    fail_unless(addr.version == 6,
+    ck_assert_msg(addr.version == 6,
                 "Unexpected IP address version (expected 6, got %u)",
                 addr.version);
-    fail_unless(cork_ipv6_equal(&addr.ip.v6, &addr6),
+    ck_assert_msg(cork_ipv6_equal(&addr.ip.v6, &addr6),
                 "IP addresses should be equal");
 }
 END_TEST
@@ -652,7 +652,7 @@ static void
 test_timestamp_bad_format(cork_timestamp ts, const char *format)
 {
     struct cork_buffer  buf = CORK_BUFFER_INIT();
-    fail_unless_error(cork_timestamp_format_utc(ts, format, &buf));
+    fail_unless_error(cork_timestamp_format_utc(ts, format, &buf), "Error in cork_timestamp_format_utc");
     cork_buffer_done(&buf);
 }
 
@@ -662,7 +662,7 @@ test_timestamp_utc_format(cork_timestamp ts, const char *format,
 {
     struct cork_buffer  buf = CORK_BUFFER_INIT();
     fail_if_error(cork_timestamp_format_utc(ts, format, &buf));
-    fail_unless(strcmp(buf.buf, expected) == 0,
+    ck_assert_msg(strcmp(buf.buf, expected) == 0,
                 "Unexpected formatted UTC time "
                 "(got \"%s\", expected \"%s\")",
                 (char *) buf.buf, expected);
@@ -675,7 +675,7 @@ test_timestamp_local_format(cork_timestamp ts, const char *format,
 {
     struct cork_buffer  buf = CORK_BUFFER_INIT();
     fail_if_error(cork_timestamp_format_local(ts, format, &buf));
-    fail_unless(strcmp(buf.buf, expected) == 0,
+    ck_assert_msg(strcmp(buf.buf, expected) == 0,
                 "Unexpected formatted local time "
                 "(got \"%s\", expected \"%s\")",
                 (char *) buf.buf, expected);
@@ -706,7 +706,7 @@ START_TEST(test_timestamp)
     DESCRIBE_TEST;
 
 #define test(unit, expected) \
-    fail_unless(cork_timestamp_##unit(ts) == expected, \
+    ck_assert_msg(cork_timestamp_##unit(ts) == expected, \
                 "Unexpected " #unit " portion of timestamp " \
                 "(got %lu, expected %lu)", \
                 (unsigned long) cork_timestamp_##unit(ts), \
@@ -826,15 +826,15 @@ START_TEST(test_uid)
 
     id1 = test_id_01;
     id2 = test_id_02;
-    fail_if(cork_uid_equal(id1, id2), "Unique IDs aren't unique");
+    ck_assert_false_msg(cork_uid_equal(id1, id2), "Unique IDs aren't unique");
 
     id1 = test_id_01;
     id2 = test_id_01;
-    fail_unless(cork_uid_equal(id1, id2), "Unique ID isn't equal to itself");
+    ck_assert_msg(cork_uid_equal(id1, id2), "Unique ID isn't equal to itself");
 
     id1 = test_id_01;
     id2 = CORK_UID_NONE;
-    fail_if(cork_uid_equal(id1, id2), "NULL unique ID isn't unique");
+    ck_assert_false_msg(cork_uid_equal(id1, id2), "NULL unique ID isn't unique");
 }
 END_TEST
 

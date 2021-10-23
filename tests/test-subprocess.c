@@ -56,7 +56,7 @@ verify_consumer__eof(struct cork_stream_consumer *vself)
     if (actual == NULL) {
         actual = "";
     }
-    fail_unless(strcmp(actual, self->expected) == 0,
+    ck_assert_msg(strcmp(actual, self->expected) == 0,
                 "Unexpected %s: got\n%s\nexpected\n%s\n", self->name,
                 actual, self->expected);
     return 0;

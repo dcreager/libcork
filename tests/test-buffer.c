@@ -28,18 +28,18 @@
 static void
 check_buffers(const struct cork_buffer *buf1, const struct cork_buffer *buf2)
 {
-    fail_unless(cork_buffer_equal(buf1, buf2),
+    ck_assert_msg(cork_buffer_equal(buf1, buf2),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
-                buf1->size, buf1->buf, buf2->size, buf2->buf);
+                buf1->size, (char*)buf1->buf, buf2->size, (char*)buf2->buf);
 }
 
 static void
 check_buffer(const struct cork_buffer *buf, const char *expected)
 {
     size_t  expected_len = strlen(expected);
-    fail_unless(buf->size == expected_len,
+    ck_assert_msg(buf->size == expected_len,
                 "Unexpected buffer content: got %zu:%s, expected %zu:%s",
-                buf->size, buf->buf, expected_len, expected);
+                buf->size, (char*)buf->buf, expected_len, expected);
 }
 
 START_TEST(test_buffer)
@@ -56,11 +56,11 @@ START_TEST(test_buffer)
     cork_buffer_init(&buffer1);
     fail_if_error(cork_buffer_set(&buffer1, SRC, SRC_LEN));
 
-    fail_unless(cork_buffer_char(&buffer1, 0) == 'H',
+    ck_assert_msg(cork_buffer_char(&buffer1, 0) == 'H',
                 "Unexpected character at position 0: got %c, expected %c",
                 (int) cork_buffer_char(&buffer1, 0), (int) 'H');
 
-    fail_unless(cork_buffer_byte(&buffer1, 1) == (uint8_t) 'e',
+    ck_assert_msg(cork_buffer_byte(&buffer1, 1) == (uint8_t) 'e',
                 "Unexpected character at position 1: got %c, expected %c",
                 (int) cork_buffer_byte(&buffer1, 1), (int) 'e');
 
@@ -127,9 +127,9 @@ START_TEST(test_buffer_append)
                   (buffer3, "%s%s%s", SRC2, SRC3, SRC4));
     check_buffers(&buffer1, buffer3);
 
-    fail_unless(cork_buffer_equal(&buffer1, buffer3),
+    ck_assert_msg(cork_buffer_equal(&buffer1, buffer3),
                 "Buffers should be equal: got %zu:%s, expected %zu:%s",
-                buffer1.size, buffer1.buf, buffer3->size, buffer3->buf);
+                buffer1.size, (char*)buffer1.buf, buffer3->size, (char*)buffer3->buf);
 
     cork_buffer_done(&buffer1);
     cork_buffer_done(&buffer2);
@@ -176,7 +176,7 @@ START_TEST(test_buffer_slicing)
     fail_if_error(cork_slice_slice_offset_fast(&slice2, 2));
     fail_if_error(cork_slice_slice_fast(&slice2, 0, 2));
     fail_if_error(cork_slice_slice(&slice1, 2, 2));
-    fail_unless(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
+    ck_assert_msg(cork_slice_equal(&slice1, &slice2), "Slices should be equal");
     cork_slice_finish(&slice2);
 
     cork_slice_finish(&slice1);
