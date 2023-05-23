@@ -20,9 +20,9 @@ find_package(CTargets)
 
 execute_process(
     COMMAND
-      ${CMAKE_SOURCE_DIR}/build-aux/calculate version
-        ${CMAKE_SOURCE_DIR} .version-stamp
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate version
+        ${CMAKE_CURRENT_SOURCE_DIR} .version-stamp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE VERSION_RESULT
     OUTPUT_VARIABLE VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -46,9 +46,9 @@ set(CORK_VERSION "${VERSION}")
 
 execute_process(
     COMMAND
-      ${CMAKE_SOURCE_DIR}/build-aux/calculate commit
-        ${CMAKE_SOURCE_DIR} .commit-stamp
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/build-aux/calculate commit
+        ${CMAKE_CURRENT_SOURCE_DIR} .commit-stamp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE GIT_SHA1_RESULT
     OUTPUT_VARIABLE CORK_GIT_SHA1
     OUTPUT_STRIP_TRAILING_WHITESPACE
